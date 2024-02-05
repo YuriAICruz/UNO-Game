@@ -34,18 +34,18 @@ TEST(Deck, EnqueueAndStack)
 
     unsigned int count = deck->count();
     deck->stack(card.get());
-
+    
     EXPECT_GT(count, deck->count());
-    EXPECT_EQ(card, deck->peek());
-    EXPECT_NE(first, deck->peek());
-
+    EXPECT_EQ(*card.get(), *deck->peek());
+    EXPECT_NE(*first, *deck->peek());
+    
     count = deck->count();
     Cards::ICard* last = deck->peekLast();
     deck->enqueue(card.get());
-
+    
     EXPECT_GT(count, deck->count());
-    EXPECT_LT(card, deck->peekLast());
-    EXPECT_NE(last, deck->peek());
+    EXPECT_EQ(*card.get(), *deck->peekLast());
+    EXPECT_NE(*last, *deck->peek());
 }
 
 TEST(Deck, Shuffle)

@@ -146,6 +146,8 @@
     <ClInclude Include="src\Cards\ICard.h" />
     <ClInclude Include="src\Cards\reverseCard.h" />
     <ClInclude Include="src\Cards\skipCard.h" />
+    <ClInclude Include="src\Decks\deck.h" />
+    <ClInclude Include="src\Decks\IDeck.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
@@ -159,6 +161,8 @@
     <ClCompile Include="src\Cards\numberedCard.cpp" />
     <ClCompile Include="src\Cards\reverseCard.cpp" />
     <ClCompile Include="src\Cards\skipCard.cpp" />
+    <ClCompile Include="src\Decks\deck.cpp" />
+    <ClCompile Include="src\Decks\IDeck.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
