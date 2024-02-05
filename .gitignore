@@ -4,6 +4,9 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 */Debug/
+*/Release/
+*/x64/
+*/x86/
 
 # IDEs
 .idea/
