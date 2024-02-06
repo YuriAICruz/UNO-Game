@@ -7,8 +7,6 @@ namespace Cards
 {
     class ENGINE_API baseCard : public ICard
     {
-        static const char* typeId;
-
     public:
         explicit baseCard(const int number, const char color)
         {
@@ -25,7 +23,5 @@ namespace Cards
 
             return number == other.Number() && color == other.Color();
         }
-
-        static const char* TypeId();
     };
 }

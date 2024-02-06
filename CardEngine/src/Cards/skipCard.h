@@ -6,20 +6,19 @@ namespace Cards
 {
     class ENGINE_API skipCard : public ICard
     {
-    private:
-        static const char* typeId;
-
     public:
         explicit skipCard(char color)
         {
             this->color = color;
         }
 
+        explicit skipCard(int number, char color): skipCard(color)
+        {
+        }
+
         bool equal(const ICard& other) const override
         {
             return false;
         }
-
-        static const char* TypeId();
     };
 }

@@ -1,7 +1,9 @@
 ﻿#include "pch.h"
 #include "cardFactory.h"
 
+#include <map>
 #include <memory>
+#include <string>
 
 #include "baseCard.h"
 #include "drawCard.h"
@@ -10,31 +12,35 @@
 
 namespace Cards
 {
+    template <typename Type>
+    ICard* createAndAddInstance(std::vector<std::unique_ptr<ICard>>& instances, int n, char c)
+    {
+        instances.emplace_back(std::make_unique<Type>(n, c));
+        return instances.back().get();
+    }
+
     std::vector<std::unique_ptr<ICard>> cardFactory::instances;
 
-    ICard* cardFactory::Instantiate(const char* value, int number, char color)
-    {
-        if (strcmp(drawCard::TypeId(), value) == 0)
-        {
-            auto up = std::make_unique<drawCard>(number, color);
-            instances.push_back(std::move(up));
-            return instances.back().get();
+    using CreateCardFunction = ICard* (*)(std::vector<std::unique_ptr<ICard>>&, int, char);
+    
+    constexpr size_t hash(const char* str) {
+        size_t hash = 14695981039346656037ull;
+        while (*str) {
+            hash ^= static_cast<size_t>(*str++);
+            hash *= 1099511628211ull;
         }
-        if (strcmp(reverseCard::TypeId(), value) == 0)
-        {
-            auto up = std::make_unique<reverseCard>(color);
-            instances.push_back(std::move(up));
-            return instances.back().get();
-        }
-        if (strcmp(skipCard::TypeId(), value) == 0)
-        {
-            auto up = std::make_unique<skipCard>(color);
-            instances.push_back(std::move(up));
-            return instances.back().get();
-        }
+        return hash;
+    }
+    
+    std::map<size_t, CreateCardFunction> classes = {
+        {hash("default"), &createAndAddInstance<baseCard>},
+        {hash("draw"), &createAndAddInstance<drawCard>},
+        {hash("reverse"), &createAndAddInstance<reverseCard>},
+        {hash("skip"), &createAndAddInstance<skipCard>}
+    };
 
-        auto up = std::make_unique<baseCard>(number, color);
-        instances.push_back(std::move(up));
-        return instances.back().get();
+    ICard* cardFactory::Instantiate(const char* type, int number, char color)
+    {
+        return classes.at(hash(type))(instances, number, color);
     }
 }

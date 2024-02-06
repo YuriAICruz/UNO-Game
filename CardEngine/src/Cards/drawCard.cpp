@@ -4,8 +4,6 @@
 
 namespace Cards
 {
-    const char* drawCard::typeId = "draw";
-
     bool drawCard::equal(const ICard& other) const
     {
         if (color != other.Color())
@@ -24,10 +22,5 @@ namespace Cards
     bool drawCard::sameNumber(ICard& other) const
     {
         return false;
-    }
-
-    const char* drawCard::TypeId()
-    {
-        return typeId;
     }
 }

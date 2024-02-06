@@ -6,9 +6,6 @@ namespace Cards
 {
     class ENGINE_API drawCard : public ICard
     {
-    private:
-        static const char* typeId;
-
     public:
         explicit drawCard(int drawCount, char color)
         {
@@ -19,7 +16,5 @@ namespace Cards
         bool equal(const ICard& other) const override;
 
         bool sameNumber(ICard& other) const override;
-
-        static const char* TypeId();
     };
 }

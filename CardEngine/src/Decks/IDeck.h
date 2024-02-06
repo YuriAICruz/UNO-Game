@@ -18,5 +18,6 @@ namespace Decks
         virtual void enqueue(Cards::ICard* card) =0;
         virtual Cards::ICard* dequeue() =0;
         virtual void shuffle() = 0;
+        std::list<Cards::ICard*> Cards();
     };
 }

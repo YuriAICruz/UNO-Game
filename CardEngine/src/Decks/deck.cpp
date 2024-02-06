@@ -22,12 +22,17 @@ namespace Decks
 
         for (auto data : jsonData)
         {
-            auto t = data.contains("type") ? data["type"].get<std::string>().c_str() : "";
+            std::string t =  "default";
+            if (data.contains("type"))
+            {
+                t = data["type"].get<std::string>();
+            }
+
             int copies = data.contains("repeat") ? data["repeat"].get<int>() : 1;
             for (int i = 0; i < copies; ++i)
             {
                 Cards::ICard* card = Cards::cardFactory::Instantiate(
-                    t,
+                    t.c_str(),
                     data["number"],
                     data["color"].get<std::string>()[0]
                 );

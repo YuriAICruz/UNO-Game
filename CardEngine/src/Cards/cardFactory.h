@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -10,7 +11,8 @@ namespace Cards
     {
     private:
         static std::vector<std::unique_ptr<ICard>> instances;
+
     public:
-        static ICard* Instantiate(const char* value, int number, char color);
+        static ICard* Instantiate(const char* type, int number, char color);
     };
 }
