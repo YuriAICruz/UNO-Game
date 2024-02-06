@@ -6,8 +6,9 @@ namespace TurnSystem
     class ITurnSystem
     {
     public:
-        virtual IPlayer* getCurrentPlayer() = 0;
+        virtual ~ITurnSystem() = default;
+        virtual IPlayer* getCurrentPlayer() const = 0;
         virtual void endTurn() = 0;
-        virtual int playersCount() = 0;
+        virtual int playersCount() const = 0;
     };
 }
