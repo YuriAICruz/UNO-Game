@@ -146,6 +146,7 @@
     <ClInclude Include="src\Cards\drawCard.h" />
     <ClInclude Include="src\Cards\baseCard.h" />
     <ClInclude Include="src\Cards\ICard.h" />
+    <ClInclude Include="src\Cards\jsonDeck.h" />
     <ClInclude Include="src\Cards\reverseCard.h" />
     <ClInclude Include="src\Cards\skipCard.h" />
     <ClInclude Include="src\Decks\deck.h" />
@@ -162,6 +163,7 @@
     <ClCompile Include="src\Cards\cardFactory.cpp" />
     <ClCompile Include="src\Cards\drawCard.cpp" />
     <ClCompile Include="src\Cards\baseCard.cpp" />
+    <ClCompile Include="src\Cards\jsonDeck.cpp" />
     <ClCompile Include="src\Cards\reverseCard.cpp" />
     <ClCompile Include="src\Cards\skipCard.cpp" />
     <ClCompile Include="src\Decks\deck.cpp" />

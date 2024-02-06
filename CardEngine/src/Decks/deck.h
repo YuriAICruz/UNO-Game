@@ -6,7 +6,7 @@ namespace Decks
     class deck : public IDeck
     {
     public:
-        explicit deck(const char* jsonFilePath);
+        deck();
         unsigned int count() override;
         Cards::ICard* peek() override;
         void shuffle() override;

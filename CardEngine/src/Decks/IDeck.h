@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <list>
+#include <memory>
 
 #include "../Cards/ICard.h"
 
@@ -19,5 +20,6 @@ namespace Decks
         virtual Cards::ICard* dequeue() =0;
         virtual void shuffle() = 0;
         std::list<Cards::ICard*> Cards();
+        void moveAllCardsTo(Decks::IDeck* deck);
     };
 }

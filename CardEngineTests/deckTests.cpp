@@ -2,6 +2,7 @@
 
 #include "Cards/baseCard.h"
 #include "Cards/drawCard.h"
+#include "Cards/jsonDeck.h"
 #include "Cards/reverseCard.h"
 #include "Cards/skipCard.h"
 #include "Decks/deck.h"
@@ -9,7 +10,7 @@
 
 std::unique_ptr<Decks::IDeck> createDeck(const char* path)
 {
-    return std::make_unique<Decks::deck>(path);
+    return std::make_unique<Decks::jsonDeck>(path);
 }
 
 TEST(Deck, Populate)
@@ -87,4 +88,37 @@ TEST(Deck, Shuffle)
     Cards::ICard* first = deck->peek();
     deck->shuffle();
     EXPECT_NE(first, deck->peek());
+}
+
+TEST(Deck, StackEmptyDeck)
+{
+    const std::unique_ptr<Decks::IDeck> deck = createDeck("Data\\deck_setup.json");
+    const std::unique_ptr<Decks::IDeck> emptyDeck = std::make_unique<Decks::deck>();
+
+    int count = deck->count();
+    for (int i = 0; i < count; ++i)
+    {
+        auto card = deck->dequeue();
+        emptyDeck->stack(card);
+
+        EXPECT_EQ(card, emptyDeck->peek());
+    }
+
+
+    EXPECT_EQ(count, emptyDeck->count());
+    EXPECT_EQ(0, deck->count());
+}
+
+TEST(Deck, MoveDeck)
+{
+    const std::unique_ptr<Decks::IDeck> deck = createDeck("Data\\deck_setup.json");
+    const std::unique_ptr<Decks::IDeck> emptyDeck = std::make_unique<Decks::deck>();
+
+    auto card = deck->peek();
+    int count = deck->count();
+    deck->moveAllCardsTo(emptyDeck.get());
+
+    EXPECT_EQ(count, emptyDeck->count());
+    EXPECT_EQ(0, deck->count());
+    EXPECT_EQ(card, emptyDeck->peek());
 }
