@@ -15,6 +15,6 @@ namespace Cards
 
         bool equal(const ICard& other) const override;
 
-        bool sameNumber(ICard& other) const override;
+        bool sameNumber(const ICard& other) const override;
     };
 }

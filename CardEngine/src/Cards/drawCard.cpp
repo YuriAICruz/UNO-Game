@@ -19,7 +19,7 @@ namespace Cards
         return false;
     }
 
-    bool drawCard::sameNumber(ICard& other) const
+    bool drawCard::sameNumber(const ICard& other) const
     {
         return false;
     }

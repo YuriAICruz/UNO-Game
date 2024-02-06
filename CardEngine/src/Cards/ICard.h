@@ -39,7 +39,7 @@ namespace Cards
             return color == other.color;
         }
 
-        virtual bool sameNumber(ICard& other) const
+        virtual bool sameNumber(const ICard& other) const
         {
             return number == other.number;
         }
