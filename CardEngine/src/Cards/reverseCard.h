@@ -6,6 +6,9 @@ namespace Cards
 {
     class ENGINE_API reverseCard : public ICard
     {
+    private:
+        static const char* typeId;
+
     public:
         explicit reverseCard(char color)
         {
@@ -15,6 +18,8 @@ namespace Cards
         bool equal(const ICard& other) const override
         {
             return false;
-        }        
+        }
+
+        static const char* TypeId();
     };
 }

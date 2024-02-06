@@ -5,10 +5,12 @@
 
 namespace Cards
 {
-    class ENGINE_API numberedCard : public ICard
+    class ENGINE_API baseCard : public ICard
     {
+        static const char* typeId;
+
     public:
-        explicit numberedCard(const int number, const char color)
+        explicit baseCard(const int number, const char color)
         {
             this->number = number;
             this->color = color;
@@ -16,14 +18,14 @@ namespace Cards
 
         bool equal(const ICard& other) const override
         {
-            if (typeid(numberedCard) != typeid(other))
+            if (typeid(baseCard) != typeid(other))
             {
-                auto a = typeid(this).name();
-                auto b = typeid(other).name();
                 return false;
             }
 
             return number == other.Number() && color == other.Color();
         }
+
+        static const char* TypeId();
     };
 }

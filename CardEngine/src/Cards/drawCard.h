@@ -1,7 +1,4 @@
 ﻿#pragma once
-
-#include <vcruntime_typeinfo.h>
-
 #include "ICard.h"
 #include "../../framework.h"
 
@@ -9,31 +6,20 @@ namespace Cards
 {
     class ENGINE_API drawCard : public ICard
     {
+    private:
+        static const char* typeId;
+
     public:
         explicit drawCard(int drawCount, char color)
         {
             this->number = drawCount;
             this->color = color;
         }
-        
-        bool equal(const ICard& other) const override
-        {
-            if (color != other.Color())
-            {
-                return false;
-            }
 
-            if(typeid(drawCard) == typeid(other))
-            {
-                return number == other.Number();
-            }
+        bool equal(const ICard& other) const override;
 
-            return false;
-        }
+        bool sameNumber(ICard& other) const override;
 
-        bool sameNumber(ICard& other) const override
-        {
-            return false;
-        }
+        static const char* TypeId();
     };
 }
