@@ -1,6 +1,6 @@
 ﻿#include "pch.h"
 
-#include "Cards/numberedCard.h"
+#include "Cards/baseCard.h"
 #include "Decks/deck.h"
 #include "Decks/IDeck.h"
 
@@ -12,7 +12,7 @@ std::unique_ptr<Decks::IDeck> createDeck(const char* path)
 TEST(Deck, Populate)
 {
     const std::unique_ptr<Decks::IDeck> deck = createDeck("Data\\deck_setup.json");
-    EXPECT_EQ(80, deck->count());
+    EXPECT_EQ(104, deck->count());
 }
 
 TEST(Deck, PeekAndDequeue)
@@ -22,7 +22,7 @@ TEST(Deck, PeekAndDequeue)
     unsigned int count = deck->count();
 
     EXPECT_EQ(first, deck->dequeue());
-    EXPECT_LT(count, deck->count());
+    EXPECT_GT(count, deck->count());
 }
 
 TEST(Deck, EnqueueAndStack)
@@ -30,12 +30,12 @@ TEST(Deck, EnqueueAndStack)
     const std::unique_ptr<Decks::IDeck> deck = createDeck("Data\\deck_setup.json");
     Cards::ICard* first = deck->peek();
 
-    std::unique_ptr<Cards::numberedCard> card = std::make_unique<Cards::numberedCard>(1, 'b');
+    std::unique_ptr<Cards::baseCard> card = std::make_unique<Cards::baseCard>(1, 'b');
 
     unsigned int count = deck->count();
     deck->stack(card.get());
     
-    EXPECT_GT(count, deck->count());
+    EXPECT_LT(count, deck->count());
     EXPECT_EQ(*card.get(), *deck->peek());
     EXPECT_NE(*first, *deck->peek());
     
@@ -43,7 +43,7 @@ TEST(Deck, EnqueueAndStack)
     Cards::ICard* last = deck->peekLast();
     deck->enqueue(card.get());
     
-    EXPECT_GT(count, deck->count());
+    EXPECT_LT(count, deck->count());
     EXPECT_EQ(*card.get(), *deck->peekLast());
     EXPECT_NE(*last, *deck->peek());
 }
