@@ -140,8 +140,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
+    <ClInclude Include="json.hpp" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="src\temp.h" />
+    <ClInclude Include="src\Cards\cardFactory.h" />
+    <ClInclude Include="src\Cards\drawCard.h" />
+    <ClInclude Include="src\Cards\baseCard.h" />
+    <ClInclude Include="src\Cards\ICard.h" />
+    <ClInclude Include="src\Cards\jsonDeck.h" />
+    <ClInclude Include="src\Cards\reverseCard.h" />
+    <ClInclude Include="src\Cards\skipCard.h" />
+    <ClInclude Include="src\Decks\deck.h" />
+    <ClInclude Include="src\Decks\IDeck.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
@@ -151,7 +160,14 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\temp.cpp" />
+    <ClCompile Include="src\Cards\cardFactory.cpp" />
+    <ClCompile Include="src\Cards\drawCard.cpp" />
+    <ClCompile Include="src\Cards\baseCard.cpp" />
+    <ClCompile Include="src\Cards\jsonDeck.cpp" />
+    <ClCompile Include="src\Cards\reverseCard.cpp" />
+    <ClCompile Include="src\Cards\skipCard.cpp" />
+    <ClCompile Include="src\Decks\deck.cpp" />
+    <ClCompile Include="src\Decks\IDeck.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
