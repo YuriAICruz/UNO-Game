@@ -1,6 +1,6 @@
 ﻿#include "pch.h"
 #include "Cards/drawCard.h"
-#include "Cards/numberedCard.h"
+#include "Cards/baseCard.h"
 #include "Cards/ICard.h"
 #include "Cards/reverseCard.h"
 #include "Cards/skipCard.h"
@@ -8,11 +8,11 @@
 TEST(Cards, numberedCardComparision)
 {
     std::vector<std::unique_ptr<Cards::ICard>> cards;
-    cards.emplace_back(std::make_unique<Cards::numberedCard>(1, 'a'));
-    cards.emplace_back(std::make_unique<Cards::numberedCard>(2, 'a'));
-    cards.emplace_back(std::make_unique<Cards::numberedCard>(1, 'b'));
-    cards.emplace_back(std::make_unique<Cards::numberedCard>(2, 'b'));
-    cards.emplace_back(std::make_unique<Cards::numberedCard>(1, 'a'));
+    cards.emplace_back(std::make_unique<Cards::baseCard>(1, 'a'));
+    cards.emplace_back(std::make_unique<Cards::baseCard>(2, 'a'));
+    cards.emplace_back(std::make_unique<Cards::baseCard>(1, 'b'));
+    cards.emplace_back(std::make_unique<Cards::baseCard>(2, 'b'));
+    cards.emplace_back(std::make_unique<Cards::baseCard>(1, 'a'));
 
     EXPECT_TRUE(cards[0]->sameColor(*cards[1]));
     EXPECT_TRUE(cards[2]->sameColor(*cards[3]));
@@ -27,7 +27,7 @@ TEST(Cards, numberedCardComparision)
 
 TEST(Cards, drawCardComparison)
 {
-    auto nCard = Cards::numberedCard(2, 'a');
+    auto nCard = Cards::baseCard(2, 'a');
     auto dCardA = Cards::drawCard{2, 'a'};
     auto dCardB = Cards::drawCard{2, 'b'};
 
