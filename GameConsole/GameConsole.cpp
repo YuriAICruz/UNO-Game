@@ -6,9 +6,6 @@ int main()
 {
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
-    SMALL_RECT windowSize = {0, 0, 79, 24};
-    SetConsoleWindowInfo(hConsole, TRUE, &windowSize);
-
     COORD bufferSize = {80, 25};
     SetConsoleScreenBufferSize(hConsole, bufferSize);
 
@@ -17,7 +14,7 @@ int main()
     CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
     GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
     int windowWidth = consoleInfo.srWindow.Right - consoleInfo.srWindow.Left + 1;
-    int windowHeight = consoleInfo.srWindow.Bottom - consoleInfo.srWindow.Top +1;
+    int windowHeight = consoleInfo.srWindow.Bottom - consoleInfo.srWindow.Top + 1;
 
     std::cout << windowWidth << "," << windowHeight << "\n";
     for (int y = 0; y < windowHeight; ++y)
