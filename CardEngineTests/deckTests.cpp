@@ -2,7 +2,7 @@
 
 #include "Cards/baseCard.h"
 #include "Cards/drawCard.h"
-#include "Cards/jsonDeck.h"
+#include "Decks/jsonDeck.h"
 #include "Cards/reverseCard.h"
 #include "Cards/skipCard.h"
 #include "Decks/deck.h"
