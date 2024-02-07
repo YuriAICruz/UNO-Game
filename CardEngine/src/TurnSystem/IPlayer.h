@@ -1,6 +1,8 @@
 ﻿#pragma once
+#include <list>
+#include "../Cards/ICard.h"
 
-namespace TurnSystem
+namespace turnSystem
 {
     class IPlayer
     {
@@ -13,7 +15,6 @@ namespace TurnSystem
         }
 
         virtual ~IPlayer() = default;
-        virtual void endTurn() = 0;
 
         virtual bool equal(const IPlayer& player) const = 0;
 
@@ -31,5 +32,10 @@ namespace TurnSystem
         {
             return id;
         }
+
+        virtual void endTurn() = 0;
+        virtual std::list<cards::ICard*> getHand() const = 0;
+        virtual cards::ICard* pickCard(int index) = 0;
+        virtual void receiveCard(cards::ICard* card) = 0;
     };
 }
