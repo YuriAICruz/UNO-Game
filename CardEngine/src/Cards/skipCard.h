@@ -1,8 +1,9 @@
 ﻿#pragma once
 #include "ICard.h"
 #include "../../framework.h"
+#include "ActionTypes/skip.h"
 
-namespace Cards
+namespace cards
 {
     class ENGINE_API skipCard : public ICard
     {
@@ -10,6 +11,7 @@ namespace Cards
         explicit skipCard(char color)
         {
             this->color = color;
+            action = std::make_unique<actions::skip>();
         }
 
         explicit skipCard(int number, char color): skipCard(color)
@@ -19,6 +21,11 @@ namespace Cards
         bool equal(const ICard& other) const override
         {
             return false;
+        }
+
+        bool hasAction() const override
+        {
+            return true;
         }
     };
 }

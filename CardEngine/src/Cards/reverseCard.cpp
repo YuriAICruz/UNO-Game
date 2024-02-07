@@ -1,6 +1,6 @@
 ﻿#include "pch.h"
 #include "reverseCard.h"
 
-namespace Cards
+namespace cards
 {
 }

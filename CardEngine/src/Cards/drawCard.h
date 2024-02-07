@@ -1,8 +1,9 @@
 ﻿#pragma once
 #include "ICard.h"
 #include "../../framework.h"
+#include "ActionTypes/draw.h"
 
-namespace Cards
+namespace cards
 {
     class ENGINE_API drawCard : public ICard
     {
@@ -11,10 +12,16 @@ namespace Cards
         {
             this->number = drawCount;
             this->color = color;
+            action = std::make_unique<actions::draw>();
         }
 
         bool equal(const ICard& other) const override;
 
         bool sameNumber(const ICard& other) const override;
+
+        bool hasAction() const override
+        {
+            return true;
+        }
     };
 }

@@ -3,7 +3,7 @@
 #include "ICard.h"
 #include "../../framework.h"
 
-namespace Cards
+namespace cards
 {
     class ENGINE_API baseCard : public ICard
     {
@@ -22,6 +22,11 @@ namespace Cards
             }
 
             return number == other.Number() && color == other.Color();
+        }
+
+        bool hasAction() const override
+        {
+            return false;
         }
     };
 }

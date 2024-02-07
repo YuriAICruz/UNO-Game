@@ -10,7 +10,7 @@
 #include "reverseCard.h"
 #include "skipCard.h"
 
-namespace Cards
+namespace cards
 {
     template <typename Type>
     ICard* createAndAddInstance(std::vector<std::unique_ptr<ICard>>& instances, int n, char c)

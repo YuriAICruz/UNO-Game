@@ -2,7 +2,7 @@
 #include "drawCard.h"
 #include <vcruntime_typeinfo.h>
 
-namespace Cards
+namespace cards
 {
     bool drawCard::equal(const ICard& other) const
     {

@@ -1,8 +1,9 @@
 ﻿#pragma once
 #include "ICard.h"
 #include "../../framework.h"
+#include "ActionTypes/reverse.h"
 
-namespace Cards
+namespace cards
 {
     class ENGINE_API reverseCard : public ICard
     {
@@ -10,6 +11,7 @@ namespace Cards
         explicit reverseCard(char color)
         {
             this->color = color;
+            action = std::make_unique<actions::reverse>();
         }
 
         explicit reverseCard(int number, char color): reverseCard(color)
@@ -19,6 +21,11 @@ namespace Cards
         bool equal(const ICard& other) const override
         {
             return false;
+        }
+
+        bool hasAction() const override
+        {
+            return true;
         }
     };
 }
