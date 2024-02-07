@@ -1,9 +1,9 @@
 ﻿#include "pch.h"
 #include "IDeck.h"
 
-namespace Decks
+namespace decks
 {
-    std::list<Cards::ICard*> IDeck::Cards()
+    std::list<cards::ICard*> IDeck::Cards()
     {
         return cards;
     }

@@ -6,7 +6,7 @@
 #include "../../json.hpp"
 #include "../Cards/baseCard.h"
 
-namespace Decks
+namespace decks
 {
     deck::deck()
     {
@@ -17,36 +17,41 @@ namespace Decks
         return cards.size();
     }
 
-    Cards::ICard* deck::peek()
+    cards::ICard* deck::peek()
     {
         return cards.front();
     }
 
     void deck::shuffle()
     {
-        std::vector<Cards::ICard*> v(cards.begin(), cards.end());
         std::random_device rng;
-        std::mt19937 generator(rng());
+        shuffle(rng());
+    }
+
+    void deck::shuffle(size_t seed)
+    {
+        std::vector<cards::ICard*> v(cards.begin(), cards.end());
+        std::mt19937 generator(seed);
         std::shuffle(v.begin(), v.end(), generator);
         cards.assign(v.begin(), v.end());
     }
 
-    Cards::ICard* deck::peekLast()
+    cards::ICard* deck::peekLast()
     {
         return cards.back();
     }
 
-    void deck::stack(Cards::ICard* card)
+    void deck::stack(cards::ICard* card)
     {
         return cards.push_front(card);
     }
 
-    void deck::enqueue(Cards::ICard* card)
+    void deck::enqueue(cards::ICard* card)
     {
         return cards.push_back(card);
     }
 
-    Cards::ICard* deck::dequeue()
+    cards::ICard* deck::dequeue()
     {
         auto card = cards.front();
         cards.pop_front();

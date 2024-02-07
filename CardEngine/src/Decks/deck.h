@@ -1,18 +1,19 @@
 ﻿#pragma once
 #include "IDeck.h"
 
-namespace Decks
+namespace decks
 {
     class deck : public IDeck
     {
     public:
         deck();
         unsigned int count() override;
-        Cards::ICard* peek() override;
+        cards::ICard* peek() override;
         void shuffle() override;
-        Cards::ICard* peekLast() override;
-        void stack(Cards::ICard* card) override;
-        void enqueue(Cards::ICard* card) override;
-        Cards::ICard* dequeue() override;
+        void shuffle(size_t seed) override;
+        cards::ICard* peekLast() override;
+        void stack(cards::ICard* card) override;
+        void enqueue(cards::ICard* card) override;
+        cards::ICard* dequeue() override;
     };
 }
