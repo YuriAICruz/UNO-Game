@@ -3,5 +3,5 @@
 class IStateManager
 {
 public:
-    
+    virtual ~IStateManager() = default;
 };

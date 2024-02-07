@@ -28,6 +28,16 @@ namespace turnSystem
         return players[currentTurn].get();
     }
 
+    IPlayer* turnSystem::getNextPlayer() const
+    {
+        return players[nextTurnIndex()].get();
+    }
+
+    IPlayer* turnSystem::getPlayer(int i) const
+    {
+        return players[i].get();
+    }
+
     void turnSystem::turnEnded(Events::endTurnEventData& data)
     {
         endTurn();
@@ -35,11 +45,7 @@ namespace turnSystem
 
     void turnSystem::endTurn()
     {
-        currentTurn = (currentTurn + direction) % playersCount();
-        if (currentTurn < 0)
-        {
-            currentTurn = playersCount() + currentTurn;
-        }
+        currentTurn = nextTurnIndex();
     }
 
     int turnSystem::playersCount() const
@@ -50,5 +56,15 @@ namespace turnSystem
     void turnSystem::reverse()
     {
         direction *= -1;
+    }
+
+    int turnSystem::nextTurnIndex() const
+    {
+        int index = (currentTurn + direction) % playersCount();
+        if (index < 0)
+        {
+            index = playersCount() + index;
+        }
+        return index;
     }
 }
