@@ -1,9 +1,9 @@
 ﻿#pragma once
 #include "../Decks/deck.h"
 
-namespace Decks
+namespace decks
 {
-    class jsonDeck : public Decks::deck
+    class jsonDeck : public deck
     {
     public:
         explicit jsonDeck(const char* jsonFilePath);
