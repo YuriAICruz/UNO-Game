@@ -1,7 +1,7 @@
 ﻿#pragma once
-#include <vcruntime_typeinfo.h>
 #include "ICard.h"
 #include "../../framework.h"
+#include "ActionTypes/base.h"
 
 namespace cards
 {
@@ -12,6 +12,7 @@ namespace cards
         {
             this->number = number;
             this->color = color;
+            action = std::make_unique<actions::base>();
         }
 
         bool equal(const ICard& other) const override
@@ -21,7 +22,7 @@ namespace cards
                 return false;
             }
 
-            return number == other.Number() && color == other.Color();
+            return sameNumber(other) && sameColor(other);
         }
 
         bool hasAction() const override

@@ -38,7 +38,7 @@ namespace cards
 
         virtual bool equal(const ICard& other) const = 0;
 
-        virtual bool sameColor(ICard& other) const
+        virtual bool sameColor(const ICard& other) const
         {
             return color == other.color;
         }
@@ -46,6 +46,11 @@ namespace cards
         virtual bool sameNumber(const ICard& other) const
         {
             return number == other.number;
+        }
+
+        virtual bool sameType(const ICard& other) const
+        {
+            return actionType()->isEqual(typeid(*other.action));
         }
 
         virtual bool hasAction() const = 0;

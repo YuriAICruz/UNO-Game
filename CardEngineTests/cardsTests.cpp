@@ -75,6 +75,13 @@ TEST(Cards, actions)
     EXPECT_TRUE(dCard->hasAction());
     EXPECT_FALSE(bCard->hasAction());
 
+    EXPECT_FALSE(sCard->sameType(*rCard));
+    EXPECT_FALSE(sCard->sameType(*dCard));
+    EXPECT_FALSE(sCard->sameType(*bCard));
+    EXPECT_FALSE(rCard->sameType(*dCard));
+    EXPECT_FALSE(rCard->sameType(*bCard));
+    EXPECT_FALSE(dCard->sameType(*bCard));
+
     EXPECT_TRUE(sCard->actionType()->isEqual(typeid(cards::actions::skip)));
     EXPECT_TRUE(rCard->actionType()->isEqual(typeid(cards::actions::reverse)));
     EXPECT_TRUE(dCard->actionType()->isEqual(typeid(cards::actions::draw)));

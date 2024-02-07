@@ -20,7 +20,7 @@ namespace cards
 
         bool equal(const ICard& other) const override
         {
-            return false;
+            return sameType(other) && sameColor(other);
         }
 
         bool hasAction() const override
