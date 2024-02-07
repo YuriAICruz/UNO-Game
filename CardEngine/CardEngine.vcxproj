@@ -144,6 +144,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="src\Bootstrapper\bootstrapper.h" />
     <ClInclude Include="src\Cards\ActionTypes\actionType.h" />
+    <ClInclude Include="src\Cards\ActionTypes\base.h" />
     <ClInclude Include="src\Cards\ActionTypes\draw.h" />
     <ClInclude Include="src\Cards\ActionTypes\reverse.h" />
     <ClInclude Include="src\Cards\ActionTypes\skip.h" />
