@@ -7,7 +7,7 @@
 #include "../EventBus/eventBus.h"
 #include "Events/endTurnEventData.h"
 
-namespace TurnSystem
+namespace turnSystem
 {
     class turnSystem : public ITurnSystem
     {
@@ -16,6 +16,7 @@ namespace TurnSystem
         int currentTurn = 0;
         int playersSize;
         std::shared_ptr<eventBus::eventBus> events;
+        int direction = 1;
 
     public:
         turnSystem(int numberOfPlayers);
@@ -23,5 +24,6 @@ namespace TurnSystem
         void turnEnded(Events::endTurnEventData& data);
         void endTurn() override;
         int playersCount() const override;
+        void reverse() override;
     };
 }

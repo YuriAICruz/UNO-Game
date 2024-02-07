@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "IPlayer.h"
 
-namespace TurnSystem
+namespace turnSystem
 {
     class ITurnSystem
     {
@@ -10,5 +10,6 @@ namespace TurnSystem
         virtual IPlayer* getCurrentPlayer() const = 0;
         virtual void endTurn() = 0;
         virtual int playersCount() const = 0;
+        virtual void reverse() = 0;
     };
 }

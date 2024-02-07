@@ -7,7 +7,7 @@
 #include "../EventBus/eventBus.h"
 #include "Events/endTurnEventData.h"
 
-namespace TurnSystem
+namespace turnSystem
 {
     turnSystem::turnSystem(int numberOfPlayers)
     {
@@ -35,11 +35,20 @@ namespace TurnSystem
 
     void turnSystem::endTurn()
     {
-        currentTurn = (currentTurn + 1) % playersCount();
+        currentTurn = (currentTurn + direction) % playersCount();
+        if (currentTurn < 0)
+        {
+            currentTurn = playersCount() + currentTurn;
+        }
     }
 
     int turnSystem::playersCount() const
     {
         return playersSize;
+    }
+
+    void turnSystem::reverse()
+    {
+        direction *= -1;
     }
 }
