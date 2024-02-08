@@ -375,6 +375,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
+    <ClInclude Include="renderer\bufferData.h" />
     <ClInclude Include="renderer\elements\card.h" />
     <ClInclude Include="renderer\elements\frame.h" />
     <ClInclude Include="renderer\elements\element.h" />

@@ -4,6 +4,11 @@
 #include "../guidGenerator.h"
 #include "../pch.h"
 
+namespace renderer
+{
+    struct bufferData;
+}
+
 namespace elements
 {
     class element
@@ -21,7 +26,7 @@ namespace elements
         }
 
         virtual ~element() = default;
-        virtual void draw(std::vector<std::vector<char>>* buffer) const = 0;
+        virtual void draw(std::vector<std::vector<renderer::bufferData>>* buffer) const = 0;
 
         size_t getId()
         {

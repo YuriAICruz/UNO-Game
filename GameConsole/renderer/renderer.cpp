@@ -3,6 +3,7 @@
 #include <vector>
 #include <vector>
 
+#include "bufferData.h"
 #include "rendererException.h"
 
 namespace elements
@@ -19,13 +20,17 @@ namespace renderer
             throw rendererException("Error setting up console handler.");
         }
 
+        std::locale::global(std::locale("en_US.UTF-8"));
+
         hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+        CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+        GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+        defaultAttributes = consoleInfo.wAttributes;
 
         lastWindowSize = getConsoleWindowSize();
         updateBuffer();
-        
-        SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-    
+
         SetConsoleScreenBufferSize(hConsole, lastWindowSize);
         dirty = true;
     }
@@ -62,11 +67,16 @@ namespace renderer
             elements.at(i)->draw(&windowBuffer);
         }
 
+        char lastColor = 'w';
         for (int y = 0; y < lastWindowSize.Y; ++y)
         {
             for (int x = 0; x < lastWindowSize.X; ++x)
             {
-                std::cout << windowBuffer.at(y).at(x);
+                if (lastColor != windowBuffer.at(y).at(x).color)
+                {
+                    setColor(windowBuffer.at(y).at(x).color);
+                }
+                std::wcout << windowBuffer.at(y).at(x).c;
             }
             std::cout << "\n";
         }
@@ -113,6 +123,32 @@ namespace renderer
         return size;
     }
 
+    void renderer::setColor(char color)
+    {
+        switch (color)
+        {
+        case 'r':
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+            return;
+        case 'g':
+            SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+            return;
+        case 'b':
+            SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+            return;
+        case 'c':
+            SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+            return;
+        case 'p':
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+            return;
+        case 'y':
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+            return;
+        }
+        SetConsoleTextAttribute(hConsole, defaultAttributes);
+    }
+
     void renderer::clearScreen()
     {
         COORD topLeft = {0, 0};
@@ -135,17 +171,18 @@ namespace renderer
         {
             for (int y = 0; y < lastWindowSize.Y; ++y)
             {
-                windowBuffer.at(y).at(x) = ' ';
+                windowBuffer.at(y).at(x).c = ' ';
+                windowBuffer.at(y).at(x).color = 'w';
             }
         }
     }
 
     void renderer::updateBuffer()
     {
-        windowBuffer = std::vector<std::vector<char>>(lastWindowSize.Y);
+        windowBuffer = std::vector<std::vector<bufferData>>(lastWindowSize.Y);
         for (int y = 0; y < lastWindowSize.Y; ++y)
         {
-            windowBuffer.at(y) = std::vector<char>(lastWindowSize.X);
+            windowBuffer.at(y) = std::vector<bufferData>(lastWindowSize.X);
         }
     }
 }

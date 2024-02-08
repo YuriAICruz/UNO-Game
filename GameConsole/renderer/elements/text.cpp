@@ -1,6 +1,8 @@
 ﻿#include "text.h"
 
-void elements::text::draw(std::vector<std::vector<char>>* buffer) const
+#include "../bufferData.h"
+
+void elements::text::draw(std::vector<std::vector<renderer::bufferData>>* buffer) const
 {    
     int xSize = buffer->at(0).size();
     int ySize = buffer->size();
@@ -14,7 +16,8 @@ void elements::text::draw(std::vector<std::vector<char>>* buffer) const
             if (y == position.Y &&
                 x >= position.X && x < position.X + length)
             {
-                buffer->at(y).at(x) = textValue[x - position.X];
+                buffer->at(y).at(x).c = textValue[x - position.X];
+                buffer->at(y).at(x).color = color;
             }
         }
     }

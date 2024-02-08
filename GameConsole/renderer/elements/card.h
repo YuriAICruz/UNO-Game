@@ -10,34 +10,39 @@ namespace elements
     class card : public element
     {
     private:
-        const std::string title;
+        const COORD size;
         const frame frameElement;
         const text textElement;
-        const COORD size;
+        const text centerTextElement;
 
     public:
-        card(const COORD& pos, const COORD& size, char drawC, const char& c, std::string title) :
+        card(const COORD& pos, const COORD& size, char drawC, const char& c, std::string title,
+             std::string centerText) :
             element(pos, drawC, c),
-            title(title),
             size(size),
             frameElement(pos, size, drawC, c),
             textElement(
                 COORD{
-                    static_cast<SHORT>(position.X + 1),
+                    static_cast<SHORT>(position.X + (size.X / 2) - title.length() / 2),
                     static_cast<SHORT>(position.Y + 1)
                 },
                 drawC,
                 c,
                 title
+            ),
+            centerTextElement(
+                COORD{
+                    static_cast<SHORT>(position.X + (size.X / 2) - centerText.length() / 2),
+                    static_cast<SHORT>(position.Y + (size.Y / 2))
+                },
+                drawC,
+                c,
+                centerText
             )
         {
         }
 
-        void draw(std::vector<std::vector<char>>* buffer) const override
-        {
-            frameElement.draw(buffer);
-            textElement.draw(buffer);
-        }
+        void draw(std::vector<std::vector<renderer::bufferData>>* buffer) const override;
 
     private:
     };

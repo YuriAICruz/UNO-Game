@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include "elements/element.h"
+#include "bufferData.h"
 #include "../wInclude.h"
 
 namespace renderer
@@ -13,7 +14,7 @@ namespace renderer
         COORD lastWindowSize;
         bool dirty;
         std::vector<std::unique_ptr<elements::element>> elements;
-        std::vector<std::vector<char>> windowBuffer;
+        WORD defaultAttributes;
 
     public:
         renderer();
@@ -25,9 +26,11 @@ namespace renderer
         void removeElement(size_t id);
 
     private:
+        std::vector<std::vector<bufferData>> windowBuffer;
         static BOOL consoleHandlerRoutine(DWORD dwCtrlType);
         static COORD getConsoleWindowSize();
 
+        void setColor(char color);
         void clearScreen();
         void clearBuffer();
         void updateBuffer();

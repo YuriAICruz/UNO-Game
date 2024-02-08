@@ -16,6 +16,6 @@ namespace elements
         {
             
         }
-        void draw(std::vector<std::vector<char>>* buffer) const override;
+        void draw(std::vector<std::vector<renderer::bufferData>>* buffer) const override;
     };
 }
