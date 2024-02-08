@@ -1,4 +1,7 @@
 #include <memory>
+
+#include "Bootstrapper/bootstrapper.h"
+#include "input/inputHandler.h"
 #include "renderer/renderer.h"
 #include "renderer/elements/card.h"
 #include "renderer/elements/frame.h"
@@ -8,7 +11,12 @@
 
 int main()
 {
+    std::unique_ptr<bootstrapper> strapper = std::make_unique<bootstrapper>();
+    strapper->bind<eventBus::eventBus>()->to<eventBus::eventBus>()->asSingleton();
+
     auto rdr = std::make_unique<renderer::renderer>();
+    auto inputH = std::make_unique<input::inputHandler>(strapper->create<eventBus::eventBus>());
+
 
     rdr->addElement<elements::frame>(COORD{10, 10}, COORD{5, 10}, '*', 'w');
     rdr->addElement<elements::text>(COORD{8, 19}, '*', 'r', "/\\square/\\");
@@ -21,7 +29,7 @@ int main()
     rdr->addElement<elements::square>(COORD{0, 21}, COORD{1000, 1}, '<', 'o');
     rdr->addElement<elements::square>(COORD{0, 22}, COORD{1000, 1}, '>', 'p');
     rdr->addElement<elements::square>(COORD{0, 23}, COORD{1000, 1}, '┌', 'c');
-    
+
     auto lGroupId = rdr->addElement<elements::horizontalLayoutGroup>(COORD{10, 1}, '+', 'g', 2);
     auto lGroup = static_cast<elements::horizontalLayoutGroup*>(rdr->getElement(lGroupId));
     SHORT sizeX = 6;
@@ -36,6 +44,17 @@ int main()
 
     while (true)
     {
+        std::vector<input::inputData> inputs = inputH->readInput();
+        if (inputs.size() > 0)
+        {
+            for (auto input : inputs)
+            {
+                if (input.up)
+                {
+                    int i;
+                }
+            }
+        }
         if (rdr->isDirty())
         {
             rdr->draw();
