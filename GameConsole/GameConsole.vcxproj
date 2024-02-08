@@ -132,11 +132,30 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GameConsole.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="renderer\element.cpp" />
+    <ClCompile Include="renderer\guidGenerator.cpp" />
+    <ClCompile Include="renderer\renderer.cpp" />
+    <ClCompile Include="renderer\rendererException.cpp" />
+    <ClCompile Include="renderer\square.cpp" />
+    <ClCompile Include="wInclude.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CardEngine\CardEngine.vcxproj">
       <Project>{5271d90a-72bb-4b58-861c-7725e0fb7105}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="src\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="renderer\element.h" />
+    <ClInclude Include="renderer\guidGenerator.h" />
+    <ClInclude Include="renderer\renderer.h" />
+    <ClInclude Include="renderer\rendererException.h" />
+    <ClInclude Include="renderer\square.h" />
+    <ClInclude Include="wInclude.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
