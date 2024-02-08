@@ -16,6 +16,7 @@ namespace renderer
 {
     renderer::renderer()
     {
+        running = true;
         if (!SetConsoleCtrlHandler(consoleHandlerRoutine, TRUE))
         {
             throw rendererException("Error setting up console handler.");
@@ -66,7 +67,12 @@ namespace renderer
 
     bool renderer::canEnd() const
     {
-        return false;
+        return !running;
+    }
+
+    void renderer::exit()
+    {
+        running = false;
     }
 
     void renderer::draw()

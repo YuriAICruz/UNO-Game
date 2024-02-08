@@ -147,6 +147,7 @@
     <ClCompile Include="renderer\rendererException.cpp" />
     <ClCompile Include="screens\IScreen.cpp" />
     <ClCompile Include="screens\mainMenuScreen.cpp" />
+    <ClCompile Include="screens\transitionData.cpp" />
     <ClCompile Include="wInclude.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -171,6 +172,7 @@
     <ClInclude Include="renderer\rendererException.h" />
     <ClInclude Include="screens\IScreen.h" />
     <ClInclude Include="screens\mainMenuScreen.h" />
+    <ClInclude Include="screens\transitionData.h" />
     <ClInclude Include="wInclude.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

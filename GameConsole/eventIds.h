@@ -1,9 +1,16 @@
 ﻿#ifndef UNO_INPUT_DATA
 #define UNO_INPUT_DATA
 
-#define INPUT_UP 101
-#define INPUT_DOWN 102
-#define INPUT_LEFT 103
-#define INPUT_RIGHT 104
+#define INPUT_UP        101
+#define INPUT_DOWN      102
+#define INPUT_LEFT      103
+#define INPUT_RIGHT     104
+#define INPUT_OK        100
+#define INPUT_CANCEL    110
+
+#define NAVIGATION_MAIN_MENU 201
+#define NAVIGATION_GAME 202
+#define NAVIGATION_SETTINGS 203
+#define NAVIGATION_GAME_OVER 204
 
 #endif //UNO_INPUT_DATA

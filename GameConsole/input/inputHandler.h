@@ -58,6 +58,17 @@ namespace input
                         d.down = true;
                         events->fireEvent(INPUT_DOWN, d);
                     }
+                    else if (irInBuf[i].Event.KeyEvent.wVirtualKeyCode == VK_RETURN)
+                    {
+                        d.ok = true;
+                        events->fireEvent(INPUT_OK, d);
+                    }
+                    else if (irInBuf[i].Event.KeyEvent.wVirtualKeyCode == VK_ESCAPE ||
+                        irInBuf[i].Event.KeyEvent.wVirtualKeyCode == VK_DELETE)
+                    {
+                        d.cancel = true;
+                        events->fireEvent(INPUT_CANCEL, d);
+                    }
 
                     inputs.emplace_back(d);
                 }

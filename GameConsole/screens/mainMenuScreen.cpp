@@ -1,4 +1,6 @@
 ﻿#include "mainMenuScreen.h"
+
+#include "transitionData.h"
 #include "../renderer/elements/card.h"
 
 namespace screens
@@ -25,7 +27,7 @@ namespace screens
             'w',
             title
         );
-        buttons[0] = rdr->addElement<elements::card>(
+        buttons[0].id = rdr->addElement<elements::card>(
             COORD{
                 static_cast<SHORT>(lastX),
                 static_cast<SHORT>(lastY),
@@ -33,9 +35,13 @@ namespace screens
                 static_cast<SHORT>(buttonWidth),
                 static_cast<SHORT>(buttonHeight),
             }, '+', 'g', "", "Start Game");
+        buttons[0].action = [this]
+        {
+            events->fireEvent(NAVIGATION_GAME, transitionData());
+        };
 
         lastY = lastY + buttonHeight + offset;
-        buttons[1] = rdr->addElement<elements::card>(
+        buttons[1].id = rdr->addElement<elements::card>(
             COORD{
                 static_cast<SHORT>(lastX),
                 static_cast<SHORT>(lastY),
@@ -43,9 +49,13 @@ namespace screens
                 static_cast<SHORT>(buttonWidth),
                 static_cast<SHORT>(buttonHeight),
             }, '+', 'g', "", "Settings");
+        buttons[1].action = [this]
+        {
+            events->fireEvent(NAVIGATION_SETTINGS, transitionData());
+        };
 
         lastY = lastY + buttonHeight + offset;
-        buttons[2] = rdr->addElement<elements::card>(
+        buttons[2].id = rdr->addElement<elements::card>(
             COORD{
                 static_cast<SHORT>(lastX),
                 static_cast<SHORT>(lastY),
@@ -53,6 +63,10 @@ namespace screens
                 static_cast<SHORT>(buttonWidth),
                 static_cast<SHORT>(buttonHeight),
             }, '+', 'g', "", "Exit");
+        buttons[2].action = [this]
+        {
+            rdr->exit();
+        };
 
         selectButton(currentButton);
     }
@@ -85,15 +99,25 @@ namespace screens
     {
     }
 
+    void mainMenuScreen::accept(input::inputData data)
+    {
+        buttons[currentButton].action();
+    }
+
+    void mainMenuScreen::cancel(input::inputData data)
+    {
+        rdr->exit();
+    }
+
     void mainMenuScreen::deselectButton(int index) const
     {
-        auto button = static_cast<elements::card*>(rdr->getElement(buttons[index]));
+        auto button = static_cast<elements::card*>(rdr->getElement(buttons[index].id));
         button->deselect();
     }
 
     void mainMenuScreen::selectButton(int index) const
     {
-        auto button = static_cast<elements::card*>(rdr->getElement(buttons[index]));
+        auto button = static_cast<elements::card*>(rdr->getElement(buttons[index].id));
         button->select();
     }
 }

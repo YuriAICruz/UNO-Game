@@ -22,12 +22,16 @@ namespace screens
             events->subscribe<input::inputData>(INPUT_DOWN, std::bind(&IScreen::moveDown, this, std::placeholders::_1));
             events->subscribe<input::inputData>(INPUT_LEFT, std::bind(&IScreen::moveLeft, this, std::placeholders::_1));
             events->subscribe<input::inputData>(INPUT_RIGHT, std::bind(&IScreen::moveRight, this, std::placeholders::_1));
+            events->subscribe<input::inputData>(INPUT_OK, std::bind(&IScreen::accept, this, std::placeholders::_1));
+            events->subscribe<input::inputData>(INPUT_CANCEL, std::bind(&IScreen::cancel, this, std::placeholders::_1));
         }
 
         virtual void moveUp(input::inputData data) = 0;
         virtual void moveDown(input::inputData data) = 0;
         virtual void moveLeft(input::inputData data) = 0;
         virtual void moveRight(input::inputData data) = 0;
+        virtual void accept(input::inputData data) = 0;
+        virtual void cancel(input::inputData data) = 0;
 
         virtual void show() = 0;
     };

@@ -19,6 +19,12 @@ int main()
     events->bindEvent<input::inputData>(INPUT_DOWN);
     events->bindEvent<input::inputData>(INPUT_LEFT);
     events->bindEvent<input::inputData>(INPUT_RIGHT);
+    events->bindEvent<input::inputData>(INPUT_OK);
+    events->bindEvent<input::inputData>(INPUT_CANCEL);
+    events->bindEvent<input::inputData>(NAVIGATION_MAIN_MENU);
+    events->bindEvent<input::inputData>(NAVIGATION_GAME);
+    events->bindEvent<input::inputData>(NAVIGATION_SETTINGS);
+    events->bindEvent<input::inputData>(NAVIGATION_GAME_OVER);
 
     auto inputH = std::make_unique<input::inputHandler>(strapper->create<eventBus::eventBus>());
 
@@ -26,7 +32,7 @@ int main()
         strapper->create<renderer::renderer>(),
         strapper->create<eventBus::eventBus>()
     );
-    mainMenu->show();
+    events->fireEvent(NAVIGATION_MAIN_MENU, screens::transitionData());
 
     while (true)
     {

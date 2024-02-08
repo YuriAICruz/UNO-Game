@@ -15,6 +15,7 @@ namespace renderer
         bool dirty;
         std::vector<std::unique_ptr<elements::element>> elements;
         WORD defaultAttributes;
+        bool running;
 
     public:
         renderer();
@@ -23,6 +24,7 @@ namespace renderer
         void setDirty();
         COORD getWindowSize() const;
         bool canEnd() const;
+        void exit();
         void draw();
         void clear();
 
