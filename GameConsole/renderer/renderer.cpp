@@ -5,6 +5,11 @@
 
 #include "rendererException.h"
 
+namespace elements
+{
+    class element;
+}
+
 namespace renderer
 {
     renderer::renderer()
@@ -18,7 +23,9 @@ namespace renderer
 
         lastWindowSize = getConsoleWindowSize();
         updateBuffer();
-
+        
+        SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+    
         SetConsoleScreenBufferSize(hConsole, lastWindowSize);
         dirty = true;
     }
@@ -65,7 +72,7 @@ namespace renderer
         }
     }
 
-    void renderer::addElement(std::unique_ptr<element> valuePtr)
+    void renderer::addElement(std::unique_ptr<elements::element> valuePtr)
     {
         elements.push_back(std::move(valuePtr));
     }

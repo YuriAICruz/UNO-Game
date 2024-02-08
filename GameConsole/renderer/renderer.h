@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <iostream>
 #include <vector>
-#include "square.h"
+#include "elements/element.h"
 #include "../wInclude.h"
 
 namespace renderer
@@ -12,7 +12,7 @@ namespace renderer
         HANDLE hConsole;
         COORD lastWindowSize;
         bool dirty;
-        std::vector<std::unique_ptr<element>> elements;
+        std::vector<std::unique_ptr<elements::element>> elements;
         std::vector<std::vector<char>> windowBuffer;
 
     public:
@@ -21,7 +21,7 @@ namespace renderer
         bool isDirty();
         bool canEnd() const;
         void draw();
-        void addElement(std::unique_ptr<element> valuePtr);
+        void addElement(std::unique_ptr<elements::element> valuePtr);
         void removeElement(size_t id);
 
     private:
