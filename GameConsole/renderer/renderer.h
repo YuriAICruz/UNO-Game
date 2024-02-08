@@ -22,7 +22,8 @@ namespace renderer
         bool isDirty();
         bool canEnd() const;
         void draw();
-        void addElement(std::unique_ptr<elements::element> valuePtr);
+        size_t addElement(std::unique_ptr<elements::element> valuePtr);
+        elements::element* getElement(size_t id) const;
         void removeElement(size_t id);
 
     private:

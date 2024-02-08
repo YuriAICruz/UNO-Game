@@ -9,7 +9,7 @@ namespace elements
         COORD size;
 
     public:
-        square(const COORD& position, const COORD& size, const char drawChar, const char& color): element(position, drawChar, color), size(size)
+        square(const COORD& position, const COORD& size, const char drawChar, const char& color): element(position, size, drawChar, color), size(size)
         {
         }
 

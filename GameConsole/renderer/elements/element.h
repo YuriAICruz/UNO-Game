@@ -14,23 +14,38 @@ namespace elements
     class element
     {
     protected:
-        size_t id;
+        const size_t id;
         COORD position;
+        COORD size;
         char drawChar;
         char color;
 
     public:
-        element(const COORD& position, char drawChar, const char& color) : position(position), drawChar(drawChar), color(color)
+        element(const COORD& position, COORD size, char drawChar, const char& color) :
+            position(position),
+            size(size),
+            drawChar(drawChar),
+            color(color),
+            id(guidGenerator::generateGUID())
         {
-            id = guidGenerator::generateGUID();
         }
 
         virtual ~element() = default;
-        virtual void draw(std::vector<std::vector<renderer::bufferData>>* buffer) const = 0;
+        virtual void draw(std::vector<std::vector<renderer::bufferData>>* buffer) const const = 0;
 
         size_t getId()
         {
             return id;
+        }
+
+        virtual void setPosition(COORD position)
+        {
+            this->position = position;
+        }
+
+        COORD getSize()
+        {
+            return size;
         }
     };
 }

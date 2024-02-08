@@ -72,9 +72,11 @@ namespace renderer
         {
             for (int x = 0; x < lastWindowSize.X; ++x)
             {
-                if (lastColor != windowBuffer.at(y).at(x).color)
+                char c = windowBuffer.at(y).at(x).color;
+                if (lastColor != c)
                 {
-                    setColor(windowBuffer.at(y).at(x).color);
+                    lastColor = c;
+                    setColor(c);
                 }
                 std::wcout << windowBuffer.at(y).at(x).c;
             }
@@ -82,9 +84,24 @@ namespace renderer
         }
     }
 
-    void renderer::addElement(std::unique_ptr<elements::element> valuePtr)
+    size_t renderer::addElement(std::unique_ptr<elements::element> valuePtr)
     {
         elements.push_back(std::move(valuePtr));
+        return elements.back()->getId();
+    }
+
+    elements::element* renderer::getElement(size_t id) const
+    {
+        int index = 0;
+        for (int n = elements.size(); index < n; ++index)
+        {
+            if (elements.at(index)->getId() == id)
+            {
+                break;
+            }
+        }
+
+        return elements.at(index).get();
     }
 
     void renderer::removeElement(size_t id)
@@ -171,7 +188,7 @@ namespace renderer
         {
             for (int y = 0; y < lastWindowSize.Y; ++y)
             {
-                windowBuffer.at(y).at(x).c = ' ';
+                windowBuffer.at(y).at(x).c = L' ';
                 windowBuffer.at(y).at(x).color = 'w';
             }
         }

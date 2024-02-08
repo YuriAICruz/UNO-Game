@@ -2,6 +2,7 @@
 #include "renderer/renderer.h"
 #include "renderer/elements/card.h"
 #include "renderer/elements/frame.h"
+#include "renderer/elements/horizontalLayoutGroup.h"
 #include "renderer/elements/square.h"
 #include "renderer/elements/text.h"
 
@@ -12,11 +13,26 @@ int main()
     rdr->addElement(std::make_unique<elements::frame>(COORD{10, 10}, COORD{5, 10}, '*', 'w'));
     rdr->addElement(std::make_unique<elements::text>(COORD{8, 19}, '*', 'r', "/\\square/\\"));
     rdr->addElement(std::make_unique<elements::card>(COORD{40, 5}, COORD{6, 8}, '+', 'g', "draw", "+2"));
+    auto cardId = rdr->addElement(std::make_unique<elements::card>(COORD{34, 5}, COORD{6, 8}, '+', 'g', "draw", "+2"));
+    auto card = rdr->getElement(cardId);
+    static_cast<elements::card*>(card)->select();
     rdr->addElement(std::make_unique<elements::square>(COORD{15, 0}, COORD{10, 10}, '.', 'b'));
     rdr->addElement(std::make_unique<elements::square>(COORD{0, 20}, COORD{1000, 1}, '_', 'y'));
     rdr->addElement(std::make_unique<elements::square>(COORD{0, 21}, COORD{1000, 1}, '<', 'o'));
     rdr->addElement(std::make_unique<elements::square>(COORD{0, 22}, COORD{1000, 1}, '>', 'p'));
     rdr->addElement(std::make_unique<elements::square>(COORD{0, 23}, COORD{1000, 1}, '┌', 'c'));
+
+    auto lGroupId = rdr->addElement(std::make_unique<elements::horizontalLayoutGroup>(COORD{10, 1}, '+', 'g', 2));
+    auto lGroup = static_cast<elements::horizontalLayoutGroup*>(rdr->getElement(lGroupId));
+    SHORT sizeX = 6;
+    SHORT sizeY = 8;
+    lGroup->addElement(std::make_unique<elements::card>(COORD{0, 0}, COORD{sizeX, sizeY}, '+', 'g', "draw", "+2"));
+    lGroup->addElement(std::make_unique<elements::card>(COORD{0, 0}, COORD{sizeX, sizeY}, '+', 'r', "UNO", "1"));
+    lGroup->addElement(std::make_unique<elements::card>(COORD{0, 0}, COORD{sizeX, sizeY}, '+', 'g', "UNO", "3"));
+    lGroup->addElement(std::make_unique<elements::card>(COORD{0, 0}, COORD{sizeX, sizeY}, '+', 'y', "UNO", "9"));
+    lGroup->addElement(std::make_unique<elements::card>(COORD{0, 0}, COORD{sizeX, sizeY}, '+', 'b', "UNO", "4"));
+    lGroup->addElement(std::make_unique<elements::card>(COORD{0, 0}, COORD{sizeX, sizeY}, '+', 'y', "UNO", "8"));
+    lGroup->addElement(std::make_unique<elements::card>(COORD{0, 0}, COORD{sizeX, sizeY}, '+', 'r', "UNO", "7"));
 
     while (true)
     {

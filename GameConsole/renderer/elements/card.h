@@ -10,17 +10,18 @@ namespace elements
     class card : public element
     {
     private:
-        const COORD size;
-        const frame frameElement;
-        const text textElement;
-        const text centerTextElement;
+        frame frameElement;
+        text textElement;
+        text centerTextElement;
+        std::string centerText;
+        std::string title;
 
     public:
         card(const COORD& pos, const COORD& size, char drawC, const char& c, std::string title,
              std::string centerText) :
-            element(pos, drawC, c),
-            size(size),
+            element(pos, size, drawC, c),
             frameElement(pos, size, drawC, c),
+            title(title),
             textElement(
                 COORD{
                     static_cast<SHORT>(position.X + (size.X / 2) - title.length() / 2),
@@ -30,6 +31,7 @@ namespace elements
                 c,
                 title
             ),
+            centerText(centerText),
             centerTextElement(
                 COORD{
                     static_cast<SHORT>(position.X + (size.X / 2) - centerText.length() / 2),
@@ -43,6 +45,10 @@ namespace elements
         }
 
         void draw(std::vector<std::vector<renderer::bufferData>>* buffer) const override;
+
+        void select();
+        void deselect();
+        void setPosition(COORD pos) override;
 
     private:
     };

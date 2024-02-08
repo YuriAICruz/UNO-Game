@@ -12,7 +12,7 @@ namespace elements
 
     public:
         text(const COORD& pos, char drawC, const char& c, std::string text)
-            : element(pos, drawC, c), textValue(text)
+            : element(pos, COORD{static_cast<SHORT>(text.length()), 1}, drawC, c), textValue(text)
         {
             
         }
