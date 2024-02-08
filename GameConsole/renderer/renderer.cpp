@@ -179,16 +179,7 @@ namespace renderer
 
     void renderer::clearScreen()
     {
-        COORD topLeft = {0, 0};
-        HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-        CONSOLE_SCREEN_BUFFER_INFO screen;
-        DWORD written;
-
-        GetConsoleScreenBufferInfo(consoleHandle, &screen);
-        FillConsoleOutputCharacter(consoleHandle, ' ', screen.dwSize.X * screen.dwSize.Y, topLeft, &written);
-        FillConsoleOutputAttribute(consoleHandle, FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE,
-                                   screen.dwSize.X * screen.dwSize.Y, topLeft, &written);
-        SetConsoleCursorPosition(consoleHandle, topLeft);
+        system("cls");
 
         clearBuffer();
     }
