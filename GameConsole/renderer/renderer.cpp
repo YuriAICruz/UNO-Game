@@ -54,6 +54,16 @@ namespace renderer
         return false;
     }
 
+    void renderer::setDirty()
+    {
+        dirty = true;
+    }
+
+    COORD renderer::getWindowSize() const
+    {
+        return lastWindowSize;
+    }
+
     bool renderer::canEnd() const
     {
         return false;
@@ -84,7 +94,13 @@ namespace renderer
             std::cout << "\n";
         }
     }
-    
+
+    void renderer::clear()
+    {
+        elements.clear();
+        clearScreen();
+    }
+
     elements::element* renderer::getElement(size_t id) const
     {
         int index = 0;

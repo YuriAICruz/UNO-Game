@@ -20,8 +20,12 @@ namespace renderer
         renderer();
 
         bool isDirty();
+        void setDirty();
+        COORD getWindowSize() const;
         bool canEnd() const;
         void draw();
+        void clear();
+
 
         template <typename T, typename... Args>
         size_t addElement(Args... args)

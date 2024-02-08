@@ -2,6 +2,7 @@
 #include "../wInclude.h"
 #include "inputData.h"
 #include "EventBus/eventBus.h"
+#include "../eventIds.h"
 
 namespace input
 {
@@ -40,18 +41,22 @@ namespace input
                     if (irInBuf[i].Event.KeyEvent.wVirtualKeyCode == VK_LEFT)
                     {
                         d.left = true;
+                        events->fireEvent(INPUT_LEFT, d);
                     }
                     else if (irInBuf[i].Event.KeyEvent.wVirtualKeyCode == VK_RIGHT)
                     {
                         d.right = true;
+                        events->fireEvent(INPUT_RIGHT, d);
                     }
                     else if (irInBuf[i].Event.KeyEvent.wVirtualKeyCode == VK_UP)
                     {
                         d.up = true;
+                        events->fireEvent(INPUT_UP, d);
                     }
                     else if (irInBuf[i].Event.KeyEvent.wVirtualKeyCode == VK_DOWN)
                     {
                         d.down = true;
+                        events->fireEvent(INPUT_DOWN, d);
                     }
 
                     inputs.emplace_back(d);

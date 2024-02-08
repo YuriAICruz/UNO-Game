@@ -1,0 +1,9 @@
+﻿#ifndef UNO_INPUT_DATA
+#define UNO_INPUT_DATA
+
+#define INPUT_UP 101
+#define INPUT_DOWN 102
+#define INPUT_LEFT 103
+#define INPUT_RIGHT 104
+
+#endif //UNO_INPUT_DATA

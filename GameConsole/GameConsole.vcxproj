@@ -131,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="eventIds.h" />
     <ClCompile Include="GameConsole.cpp" />
     <ClCompile Include="input\inputHandler.cpp" />
     <ClCompile Include="pch.cpp" />
@@ -144,15 +145,14 @@
     <ClCompile Include="renderer\guidGenerator.cpp" />
     <ClCompile Include="renderer\renderer.cpp" />
     <ClCompile Include="renderer\rendererException.cpp" />
+    <ClCompile Include="screens\IScreen.cpp" />
+    <ClCompile Include="screens\mainMenuScreen.cpp" />
     <ClCompile Include="wInclude.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CardEngine\CardEngine.vcxproj">
       <Project>{5271d90a-72bb-4b58-861c-7725e0fb7105}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="src\" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="input\inputData.h" />
@@ -169,6 +169,8 @@
     <ClInclude Include="renderer\guidGenerator.h" />
     <ClInclude Include="renderer\renderer.h" />
     <ClInclude Include="renderer\rendererException.h" />
+    <ClInclude Include="screens\IScreen.h" />
+    <ClInclude Include="screens\mainMenuScreen.h" />
     <ClInclude Include="wInclude.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

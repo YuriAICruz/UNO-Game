@@ -3,58 +3,34 @@
 #include "Bootstrapper/bootstrapper.h"
 #include "input/inputHandler.h"
 #include "renderer/renderer.h"
-#include "renderer/elements/card.h"
-#include "renderer/elements/frame.h"
-#include "renderer/elements/horizontalLayoutGroup.h"
-#include "renderer/elements/square.h"
-#include "renderer/elements/text.h"
+#include "screens/mainMenuScreen.h"
+#include "eventIds.h"
 
 int main()
 {
     std::unique_ptr<bootstrapper> strapper = std::make_unique<bootstrapper>();
     strapper->bind<eventBus::eventBus>()->to<eventBus::eventBus>()->asSingleton();
+    strapper->bind<renderer::renderer>()->to<renderer::renderer>()->asSingleton();
 
-    auto rdr = std::make_unique<renderer::renderer>();
+    auto rdr = strapper->create<renderer::renderer>();
+    auto events = strapper->create<eventBus::eventBus>();
+
+    events->bindEvent<input::inputData>(INPUT_UP);
+    events->bindEvent<input::inputData>(INPUT_DOWN);
+    events->bindEvent<input::inputData>(INPUT_LEFT);
+    events->bindEvent<input::inputData>(INPUT_RIGHT);
+
     auto inputH = std::make_unique<input::inputHandler>(strapper->create<eventBus::eventBus>());
 
-
-    rdr->addElement<elements::frame>(COORD{10, 10}, COORD{5, 10}, '*', 'w');
-    rdr->addElement<elements::text>(COORD{8, 19}, '*', 'r', "/\\square/\\");
-    rdr->addElement<elements::card>(COORD{40, 5}, COORD{6, 8}, '+', 'g', "draw", "+2");
-    auto cardId = rdr->addElement<elements::card>(COORD{34, 5}, COORD{6, 8}, '+', 'g', "draw", "+2");
-    auto card = rdr->getElement(cardId);
-    static_cast<elements::card*>(card)->select();
-    rdr->addElement<elements::square>(COORD{15, 0}, COORD{10, 10}, '.', 'b');
-    rdr->addElement<elements::square>(COORD{0, 20}, COORD{1000, 1}, '_', 'y');
-    rdr->addElement<elements::square>(COORD{0, 21}, COORD{1000, 1}, '<', 'o');
-    rdr->addElement<elements::square>(COORD{0, 22}, COORD{1000, 1}, '>', 'p');
-    rdr->addElement<elements::square>(COORD{0, 23}, COORD{1000, 1}, '┌', 'c');
-
-    auto lGroupId = rdr->addElement<elements::horizontalLayoutGroup>(COORD{10, 1}, '+', 'g', 2);
-    auto lGroup = static_cast<elements::horizontalLayoutGroup*>(rdr->getElement(lGroupId));
-    SHORT sizeX = 6;
-    SHORT sizeY = 5;
-    lGroup->addElement<elements::card>(COORD{0, 0}, COORD{sizeX, sizeY}, '+', 'g', "draw", "+2");
-    lGroup->addElement<elements::card>(COORD{0, 0}, COORD{sizeX, sizeY}, '+', 'r', "UNO", "1");
-    lGroup->addElement<elements::card>(COORD{0, 0}, COORD{sizeX, sizeY}, '+', 'g', "UNO", "3");
-    lGroup->addElement<elements::card>(COORD{0, 0}, COORD{sizeX, sizeY}, '+', 'y', "UNO", "9");
-    lGroup->addElement<elements::card>(COORD{0, 0}, COORD{sizeX, sizeY}, '+', 'b', "UNO", "4");
-    lGroup->addElement<elements::card>(COORD{0, 0}, COORD{sizeX, sizeY}, '+', 'y', "UNO", "8");
-    lGroup->addElement<elements::card>(COORD{0, 0}, COORD{sizeX, sizeY}, '+', 'r', "UNO", "7");
+    std::unique_ptr<screens::IScreen> mainMenu = std::make_unique<screens::mainMenuScreen>(
+        strapper->create<renderer::renderer>(),
+        strapper->create<eventBus::eventBus>()
+    );
+    mainMenu->show();
 
     while (true)
     {
         std::vector<input::inputData> inputs = inputH->readInput();
-        if (inputs.size() > 0)
-        {
-            for (auto input : inputs)
-            {
-                if (input.up)
-                {
-                    int i;
-                }
-            }
-        }
         if (rdr->isDirty())
         {
             rdr->draw();
