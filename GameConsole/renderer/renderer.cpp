@@ -5,6 +5,7 @@
 
 #include "bufferData.h"
 #include "rendererException.h"
+#include "elements/frame.h"
 
 namespace elements
 {
@@ -83,13 +84,7 @@ namespace renderer
             std::cout << "\n";
         }
     }
-
-    size_t renderer::addElement(std::unique_ptr<elements::element> valuePtr)
-    {
-        elements.push_back(std::move(valuePtr));
-        return elements.back()->getId();
-    }
-
+    
     elements::element* renderer::getElement(size_t id) const
     {
         int index = 0;

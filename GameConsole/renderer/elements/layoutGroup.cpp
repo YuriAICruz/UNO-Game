@@ -2,13 +2,6 @@
 
 namespace elements
 {
-    size_t layoutGroup::addElement(std::unique_ptr<element> valuePtr)
-    {
-        elements.push_back(std::move(valuePtr));
-        resize();
-        return elements.back()->getId();
-    }
-
     element* layoutGroup::getElement(size_t id) const
     {
         int index = 0;

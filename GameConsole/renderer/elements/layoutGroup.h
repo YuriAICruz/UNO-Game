@@ -14,11 +14,18 @@ namespace elements
 
     public:
         layoutGroup(const COORD& pos, char drawC, const char& c, int offset)
-            : element(pos, COORD{1,1}, drawC, c), offset(offset)
+            : element(pos, COORD{1, 1}, drawC, c), offset(offset)
         {
         }
 
-        size_t addElement(std::unique_ptr<element> valuePtr);
+        template <typename T, typename... Args>
+        size_t addElement(Args... args)
+        {
+            elements.emplace_back(std::make_unique<T>(args...));
+            resize();
+            return elements.back()->getId();
+        }
+
         element* getElement(size_t id) const;
         void removeElement(size_t id);
         virtual void resize() = 0;

@@ -22,7 +22,14 @@ namespace renderer
         bool isDirty();
         bool canEnd() const;
         void draw();
-        size_t addElement(std::unique_ptr<elements::element> valuePtr);
+
+        template <typename T, typename... Args>
+        size_t addElement(Args... args)
+        {
+            elements.emplace_back(std::make_unique<T>(args...));
+            return elements.back()->getId();
+        }
+
         elements::element* getElement(size_t id) const;
         void removeElement(size_t id);
 
