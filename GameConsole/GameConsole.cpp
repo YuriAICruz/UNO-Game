@@ -6,6 +6,7 @@
 #include "screens/mainMenuScreen.h"
 #include "eventIds.h"
 #include "screens/settingsMenu.h"
+#include "StateManager/gameStateManager.h"
 
 int main()
 {
@@ -33,11 +34,14 @@ int main()
         strapper->create<renderer::renderer>(),
         strapper->create<eventBus::eventBus>()
     );
-    std::unique_ptr<screens::IScreen> settingsMenu = std::make_unique<screens::settingsMenu>(
+    std::unique_ptr<screens::settingsMenu> settingsMenu = std::make_unique<screens::settingsMenu>(
         strapper->create<renderer::renderer>(),
         strapper->create<eventBus::eventBus>()
     );
     events->fireEvent(NAVIGATION_MAIN_MENU, screens::transitionData());
+
+    // std::make_unique<gameStateManager>(settingsMenu->getPlayers(), settingsMenu->getHandCount(),
+    //                                    settingsMenu->getConfigFilePath(), settingsMenu->getSettings());
 
     while (true)
     {

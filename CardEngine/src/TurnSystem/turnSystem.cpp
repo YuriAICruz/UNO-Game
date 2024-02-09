@@ -19,7 +19,21 @@ namespace turnSystem
 
         for (int i = 0; i < playersSize; ++i)
         {
-            players.emplace_back(std::make_unique<localPlayer>(events, i));
+            players.emplace_back(std::make_unique<localPlayer>("player " + i, events, i));
+        }
+    }
+
+    turnSystem::turnSystem(std::vector<std::string> numberOfPlayers)
+    {
+        events = std::make_shared<eventBus::eventBus>();
+        events->bindEvent<Events::endTurnEventData&>(0);
+        events->subscribe<Events::endTurnEventData&>(0, std::bind(&turnSystem::turnEnded, this, std::placeholders::_1));
+
+        playersSize = numberOfPlayers.size();
+
+        for (int i = 0; i < playersSize; ++i)
+        {
+            players.emplace_back(std::make_unique<localPlayer>(numberOfPlayers[i], events, i));
         }
     }
 
