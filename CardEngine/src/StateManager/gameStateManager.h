@@ -15,9 +15,12 @@ private:
     std::unique_ptr<turnSystem::turnSystem> turner;
     size_t seed;
     int handSize;
+    std::shared_ptr<eventBus::eventBus> events;
+    bool running = false;
 
 public:
-    gameStateManager();
+    gameStateManager(std::shared_ptr<eventBus::eventBus> events);
+    bool isGameStarted();
     void makePlayerDraw(turnSystem::IPlayer* player, int count);
     virtual void setupGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath, size_t seed);
     virtual void startGame();
@@ -29,6 +32,7 @@ public:
     int getStartHandSize();
 
 private:
+    void bindGameEvents();
     void finishAction(cards::ICard* card) const;
     bool isActionCardValid(cards::ICard* card, cards::ICard* topCard) const;
     bool isCardValid(cards::ICard* card, cards::ICard* topCard) const;

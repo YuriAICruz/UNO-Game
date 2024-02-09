@@ -1,6 +1,9 @@
 ﻿#include "pch.h"
 #include "gameStateManager.h"
 
+#include "gameEventData.h"
+#include "turnEventData.h"
+#include "../coreEventIds.h"
 #include "../Cards/ActionTypes/draw.h"
 #include "../Cards/ActionTypes/reverse.h"
 #include "../Cards/ActionTypes/skip.h"
@@ -8,8 +11,27 @@
 #include "../Decks/jsonDeck.h"
 #include "../TurnSystem/turnSystem.h"
 
-gameStateManager::gameStateManager()
+gameStateManager::gameStateManager(std::shared_ptr<eventBus::eventBus> events): events(events)
 {
+    bindGameEvents();
+}
+
+bool gameStateManager::isGameStarted()
+{
+    return running;
+}
+
+void gameStateManager::bindGameEvents()
+{
+    events->bindEvent<gameEventData>(GAME_SETUP);
+    events->bindEvent<gameEventData>(GAME_START);
+    events->bindEvent<gameEventData>(GAME_END);
+    events->bindEvent<gameEventData>(GAME_WON);
+    events->bindEvent<gameEventData>(GAME_LOST);
+    events->bindEvent<gameEventData>(GAME_UNO);
+    
+    events->bindEvent<turnEventData>(TURN_BEGIN);
+    events->bindEvent<turnEventData>(TURN_END);
 }
 
 void gameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
@@ -21,14 +43,17 @@ void gameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
 }
 
 void gameStateManager::setupGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath,
-    size_t seed)
+                                 size_t seed)
 {
+    running = false;
     this->handSize = handSize;
     mainDeck = std::make_unique<decks::jsonDeck>(deckConfigFilePath);
     discardDeck = std::make_unique<decks::deck>();
 
     turner = std::make_unique<turnSystem::turnSystem>(players);
     mainDeck->shuffle(seed);
+
+    events->fireEvent(GAME_SETUP, gameEventData());
 }
 
 void gameStateManager::startGame()
@@ -41,6 +66,9 @@ void gameStateManager::startGame()
 
     auto card = mainDeck->dequeue();
     discardDeck->stack(card);
+
+    events->fireEvent(GAME_START, gameEventData());
+    running = true;
 }
 
 turnSystem::IPlayer* gameStateManager::getCurrentPlayer() const
@@ -105,7 +133,12 @@ int gameStateManager::getStartHandSize()
 void gameStateManager::finishAction(cards::ICard* card) const
 {
     discardDeck->stack(card);
+
+    events->fireEvent(TURN_END, turnEventData());
+
     turner->endTurn();
+
+    events->fireEvent(TURN_BEGIN, turnEventData());
 }
 
 bool gameStateManager::isActionCardValid(cards::ICard* card, cards::ICard* topCard) const
