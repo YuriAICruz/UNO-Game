@@ -16,6 +16,7 @@ namespace renderer
         std::vector<std::unique_ptr<elements::element>> elements;
         WORD defaultAttributes;
         bool running;
+        bool forceNextFrame = true;
 
     public:
         renderer();
@@ -42,12 +43,17 @@ namespace renderer
 
     private:
         std::vector<std::vector<bufferData>> windowBuffer;
+        std::vector<std::vector<bufferData>> windowBufferB;
+        std::vector<std::vector<bufferData>>* currentBuffer;
+        std::vector<std::vector<bufferData>>* nextBuffer;
         static BOOL consoleHandlerRoutine(DWORD dwCtrlType);
         static COORD getConsoleWindowSize();
 
         void setColor(char color);
         void clearScreen();
+        void resetScreen();
         void clearBuffer();
+        void SwapBuffers();
         void updateBuffer();
     };
 }
