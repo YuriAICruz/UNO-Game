@@ -1,5 +1,7 @@
 ﻿#pragma once
 #include <list>
+#include <string>
+
 #include "../Cards/ICard.h"
 
 namespace turnSystem
@@ -8,6 +10,7 @@ namespace turnSystem
     {
     protected:
         size_t id;
+        std::string name;
 
     public:
         IPlayer(size_t id) : id(id)
@@ -31,6 +34,11 @@ namespace turnSystem
         size_t Id() const
         {
             return id;
+        }
+
+        std::string getName()
+        {
+            return name;
         }
 
         virtual void endTurn() = 0;
