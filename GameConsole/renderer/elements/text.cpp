@@ -3,7 +3,7 @@
 #include "../bufferData.h"
 
 void elements::text::draw(std::vector<std::vector<renderer::bufferData>>* buffer) const
-{    
+{
     int xSize = buffer->at(0).size();
     int ySize = buffer->size();
 
@@ -21,4 +21,10 @@ void elements::text::draw(std::vector<std::vector<renderer::bufferData>>* buffer
             }
         }
     }
+}
+
+void elements::text::setText(const std::string& newText)
+{
+    textValue = newText;
+    size = COORD{static_cast<SHORT>(textValue.length()), 1};
 }

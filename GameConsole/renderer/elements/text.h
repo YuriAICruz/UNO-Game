@@ -8,7 +8,7 @@ namespace elements
     class text : public element
     {
     private:
-        const std::string textValue;
+        std::string textValue;
 
     public:
         text(const COORD& pos, char drawC, const char& c, std::string text)
@@ -17,5 +17,6 @@ namespace elements
             
         }
         void draw(std::vector<std::vector<renderer::bufferData>>* buffer) const override;
+        void setText(const std::string& title);
     };
 }
