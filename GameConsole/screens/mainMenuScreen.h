@@ -37,15 +37,16 @@ namespace screens
         {
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
             {
-                size_t id = events->subscribe<transitionData>(transitionMap.first, transitionMap.second.action);   
+                size_t id = events->subscribe<transitionData>(transitionMap.first, transitionMap.second.action);
                 transitionsMap[transitionMap.first].uid = id;
             }
         }
+
         ~mainMenuScreen() override
         {
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
             {
-                events->unsubscribe<transitionData>(transitionMap.first, transitionMap.second);   
+                events->unsubscribe<transitionData>(transitionMap.first, transitionMap.second);
             }
         }
 
