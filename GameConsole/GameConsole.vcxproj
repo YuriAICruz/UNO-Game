@@ -148,6 +148,7 @@
     <ClCompile Include="renderer\renderer.cpp" />
     <ClCompile Include="renderer\rendererException.cpp" />
     <ClCompile Include="screens\buttons.cpp" />
+    <ClCompile Include="screens\gameScreen.cpp" />
     <ClCompile Include="screens\IScreen.cpp" />
     <ClCompile Include="screens\mainMenuScreen.cpp" />
     <ClCompile Include="screens\settingsMenu.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="renderer\renderer.h" />
     <ClInclude Include="renderer\rendererException.h" />
     <ClInclude Include="screens\buttons.h" />
+    <ClInclude Include="screens\gameScreen.h" />
     <ClInclude Include="screens\IScreen.h" />
     <ClInclude Include="screens\mainMenuScreen.h" />
     <ClInclude Include="screens\settingsMenu.h" />
@@ -181,7 +183,7 @@
     <ClInclude Include="wInclude.h" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\CardEngineTests\Data\deck_setup.json" />
+    <Content Include="Data\deck_setup.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

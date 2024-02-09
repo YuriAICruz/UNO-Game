@@ -5,6 +5,7 @@
 #include "renderer/renderer.h"
 #include "screens/mainMenuScreen.h"
 #include "eventIds.h"
+#include "screens/gameScreen.h"
 #include "screens/settingsMenu.h"
 #include "StateManager/gameStateManager.h"
 
@@ -40,16 +41,26 @@ int main()
         strapper->create<renderer::renderer>(),
         strapper->create<eventBus::eventBus>()
     );
+    std::shared_ptr<screens::gameScreen> game = std::make_shared<screens::gameScreen>(
+        strapper->create<renderer::renderer>(),
+        strapper->create<eventBus::eventBus>(),
+        strapper->create<gameStateManager>()
+    );
 
     events->subscribe<screens::transitionData>(
-        NAVIGATION_GAME, [settingsMenu, gameManager](screens::transitionData data)
+        NAVIGATION_MAIN_MENU, [settingsMenu, gameManager](screens::transitionData data)
         {
-            gameManager->startGame(
+            gameManager->setupGame(
                 settingsMenu->getPlayers(),
                 settingsMenu->getHandCount(),
                 settingsMenu->getConfigFilePath(),
                 settingsMenu->getSeed()
             );
+        });
+    events->subscribe<screens::transitionData>(
+        NAVIGATION_GAME, [settingsMenu, gameManager](screens::transitionData data)
+        {
+            gameManager->startGame();
         });
 
     events->fireEvent(NAVIGATION_MAIN_MENU, screens::transitionData());
