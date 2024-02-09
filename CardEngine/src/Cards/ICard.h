@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <memory>
+#include <string>
 
 #include "../../framework.h"
 #include "ActionTypes/actionType.h"
@@ -59,5 +60,7 @@ namespace cards
         {
             return action.get();
         }
+
+        virtual std::string typeName() const = 0;
     };
 }

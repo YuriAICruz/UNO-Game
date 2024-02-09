@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include <string>
+
 #include "ICard.h"
 #include "../../framework.h"
 #include "ActionTypes/base.h"
@@ -28,6 +30,11 @@ namespace cards
         bool hasAction() const override
         {
             return false;
+        }
+
+        std::string typeName() const override
+        {
+            return "";
         }
     };
 }

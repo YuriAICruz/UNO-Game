@@ -52,5 +52,10 @@ namespace elements
         {
             this->size = s;
         }
+
+        virtual void setColor(char c)
+        {
+            color = c;
+        }
     };
 }
