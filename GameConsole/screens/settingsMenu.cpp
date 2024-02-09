@@ -14,16 +14,17 @@ namespace screens
         COORD winSize = rdr->getWindowSize();
 
         std::string title = "Settings";
-        int buttonWidth = 40;
+        int border = 40;
+        int buttonWidth = winSize.X - border;
         int buttonHeight = 3;
         int offset = 1;
 
-        int lastX = winSize.X / 2 - buttonWidth / 2;
+        int lastX = winSize.X / 2 - title.length() / 2;
         int lastY = 5;
 
         size_t titleId = rdr->addElement<elements::text>(
             COORD{
-                static_cast<SHORT>(winSize.X / 2 - title.length() / 2),
+                static_cast<SHORT>(lastX),
                 static_cast<SHORT>(lastY),
             },
             '+',
@@ -31,101 +32,106 @@ namespace screens
             title
         );
 
-        lastX = 10;
+        lastX = border / 2;
         lastY += offset + buttonHeight + offset;
 
         std::stringstream ss;
-        ss << "Number of cards [" << handCount << "]";
-
-        buttons[0].id = rdr->addElement<elements::card>(
-            COORD{
-                static_cast<SHORT>(lastX),
-                static_cast<SHORT>(lastY),
-            }, COORD{
-                static_cast<SHORT>(buttonWidth),
-                static_cast<SHORT>(buttonHeight),
+        configureButton(
+            0,
+            buttonWidth, buttonHeight,
+            lastX, lastY,
+            handCount,
+            "Number of starting cards [", "]",
+            ss,
+            nullptr,
+            [this]
+            {
+                handCount = max(2, handCount-1);
+                updateStartingCardsNumber(0);
             },
-            '+',
-            'g',
-            "",
-            ss.str()
-        );
-        buttons[0].actionLeft = [this]
-        {
-            handCount = max(2, handCount-1);
-
-            std::stringstream ss;
-            ss << "Number of cards [" << handCount << "]";
-            auto cardsNumbersButton = static_cast<elements::card*>(rdr->getElement(buttons[0].id));
-            cardsNumbersButton->setCenterText(ss.str());
-            rdr->setDirty();
-        };
-        buttons[0].actionRight = [this]
-        {
-            handCount = min(12, handCount+1);
-
-            std::stringstream ss;
-            ss << "Number of cards [" << handCount << "]";
-            auto cardsNumbersButton = static_cast<elements::card*>(rdr->getElement(buttons[0].id));
-            cardsNumbersButton->setCenterText(ss.str());
-            rdr->setDirty();
-        };
+            [this]
+            {
+                handCount = min(12, handCount+1);
+                updateStartingCardsNumber(0);
+            });
 
         lastY += buttonHeight + offset;
         ss.str("");
-        ss << "Deck configuration json path: \"" << configFilePath << "\"";
-        buttons[1].id = rdr->addElement<elements::card>(
-            COORD{
-                static_cast<SHORT>(lastX),
-                static_cast<SHORT>(lastY),
-            }, COORD{
-                static_cast<SHORT>(buttonWidth),
-                static_cast<SHORT>(buttonHeight),
-            },
-            '+',
-            'g',
-            "",
-            ss.str()
-        );
-        buttons[1].action = [this]
-        {
-            openStringEditBox("Deck configuration json path", configFilePath, [this]
+        configureButton(
+            1,
+            buttonWidth, buttonHeight,
+            lastX, lastY,
+            configFilePath,
+            "Deck configuration json path: \"", "\"",
+            ss,
+            [this]
             {
-                std::stringstream ss;
-                ss << "Deck configuration json path: \"" << configFilePath << "\"";
-                auto filePathButton = static_cast<elements::card*>(rdr->getElement(buttons[1].id));
-                filePathButton->setCenterText(ss.str());
-                rdr->setDirty();
-            });
-        };
+                openStringEditBox("Deck configuration json path", configFilePath, [this]
+                {
+                    std::stringstream ss;
+                    ss << "Deck configuration json path: \"" << configFilePath << "\"";
+                    auto filePathButton = static_cast<elements::card*>(rdr->getElement(buttons[1].id));
+                    filePathButton->setCenterText(ss.str());
+                    rdr->setDirty();
+                });
+            },
+            nullptr,
+            nullptr
+        );
 
         lastY += buttonHeight + offset;
-        ss.str("");
-        ss << "Random Seed: [" << seed << "]";
-        buttons[2].id = rdr->addElement<elements::card>(
-            COORD{
-                static_cast<SHORT>(lastX),
-                static_cast<SHORT>(lastY),
-            }, COORD{
-                static_cast<SHORT>(buttonWidth),
-                static_cast<SHORT>(buttonHeight),
-            },
-            '+',
-            'g',
-            "",
-            ss.str()
-        );
-        buttons[2].action = [this]
-        {
-            openSizeTEditBox("Random Seed", seed, [this]
+        configureButton(
+            2,
+            buttonWidth, buttonHeight,
+            lastX, lastY,
+            seed,
+            "Random Seed: [", "]",
+            ss,
+            [this]
             {
-                std::stringstream ss;
-                ss << "Random Seed: [" << seed << "]";
-                auto seedButton = static_cast<elements::card*>(rdr->getElement(buttons[2].id));
-                seedButton->setCenterText(ss.str());
-                rdr->setDirty();
-            });
-        };
+                openSizeTEditBox("Random Seed", seed, [this]
+                {
+                    std::stringstream ss;
+                    ss << "Random Seed: [" << seed << "]";
+                    auto seedButton = static_cast<elements::card*>(rdr->getElement(buttons[2].id));
+                    seedButton->setCenterText(ss.str());
+                    rdr->setDirty();
+                });
+            },
+            nullptr,
+            nullptr
+        );
+
+        lastY += buttonHeight + offset;
+        configureButton(
+            3,
+            buttonWidth, buttonHeight,
+            lastX, lastY,
+            players.size(),
+            "Number of Players: [", "]",
+            ss,
+            nullptr,
+            [this]
+            {
+                int lastSize = players.size();
+                int size = min(10, max(2, lastSize - 1));
+                if (lastSize == size)
+                {
+                    return;
+                }
+                updatePlyersCount(3,size);
+            },
+            [this]
+            {
+                int lastSize = players.size();
+                int size = min(10, max(2, lastSize + 1));
+                if (lastSize == size)
+                {
+                    return;
+                }
+                updatePlyersCount(3,size);
+            }
+        );
 
         selectButton(currentButton);
         rdr->setDirty();
@@ -268,5 +274,61 @@ namespace screens
             }
         }
         editBoxTearDown(callback);
+    }
+
+    void settingsMenu::updateStartingCardsNumber(int index)
+    {
+        std::stringstream ss;
+        ss << "Number of starting cards [" << handCount << "]";
+        auto cardsNumbersButton = static_cast<elements::card*>(rdr->getElement(buttons[index].id));
+        cardsNumbersButton->setCenterText(ss.str());
+        rdr->setDirty();
+    }
+
+    void settingsMenu::updatePlyersCount(int index, int size)
+    {
+        players.resize(size);
+        std::stringstream ss;
+        ss << "Number of Players: [" << size << "]";
+        auto playersButton = static_cast<elements::card*>(rdr->getElement(buttons[index].id));
+        playersButton->setCenterText(ss.str());
+        rdr->setDirty();
+    }
+
+    template <typename T>
+    void settingsMenu::configureButton(
+        int index,
+        int buttonWidth,
+        int buttonHeight,
+        int positionX,
+        int positionY,
+        T value,
+        std::string prefix,
+        std::string suffix,
+        std::stringstream& ss,
+        std::function<void()> action,
+        std::function<void()> actionLeft,
+        std::function<void()> actionRight
+    )
+    {
+        ss.str("");
+        ss << prefix << value << suffix;
+
+        buttons[index].id = rdr->addElement<elements::card>(
+            COORD{
+                static_cast<SHORT>(positionX),
+                static_cast<SHORT>(positionY),
+            }, COORD{
+                static_cast<SHORT>(buttonWidth),
+                static_cast<SHORT>(buttonHeight),
+            },
+            '+',
+            'g',
+            "",
+            ss.str()
+        );
+        buttons[index].action = action;
+        buttons[index].actionLeft = actionLeft;
+        buttons[index].actionRight = actionRight;
     }
 }

@@ -98,5 +98,23 @@ namespace screens
         {
             return seed;
         }
+    private:
+        void updateStartingCardsNumber(int index);
+        void updatePlyersCount(int index, int size);
+        template<typename T>
+        void configureButton(
+            int index,
+            int buttonWidth,
+            int buttonHeight,
+            int positionX,
+            int positionY,
+            T value,
+            std::string prefix,
+            std::string suffix,
+            std::stringstream& ss,
+            std::function<void()> action,
+            std::function<void()> actionLeft,
+            std::function<void()> actionRight
+        );
     };
 }
