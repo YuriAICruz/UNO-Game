@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <vector>
 
-#include "../guidGenerator.h"
+#include "guidGenerator.h"
 #include "../pch.h"
 
 namespace renderer

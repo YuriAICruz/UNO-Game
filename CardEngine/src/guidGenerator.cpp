@@ -1,4 +1,5 @@
-﻿#include "guidGenerator.h"
+﻿#include "pch.h"
+#include "guidGenerator.h"
 #include <chrono>
 
 size_t guidGenerator::counter = 0;

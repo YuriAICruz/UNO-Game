@@ -41,4 +41,26 @@ namespace elements
                     static_cast<SHORT>(pos.Y + (size.Y / 2))
                 });
     }
+
+    void card::setTitleText(std::string newText)
+    {
+        title = newText;
+        textElement.setText(title);
+        textElement.setPosition(
+                COORD{
+                    static_cast<SHORT>(position.X + (size.X / 2) - title.length() / 2),
+                    static_cast<SHORT>(position.Y + 1)
+                });
+    }
+
+    void card::setCenterText(std::string newText)
+    {
+        centerText = newText;
+        textElement.setText(centerText);
+        centerTextElement.setPosition(
+                COORD{
+                    static_cast<SHORT>(position.X + (size.X / 2) - centerText.length() / 2),
+                    static_cast<SHORT>(position.Y + (size.Y / 2))
+                });
+    }
 }

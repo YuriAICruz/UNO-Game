@@ -28,9 +28,20 @@ namespace eventBus
         }
 
         template <typename T>
-        void subscribe(int id, std::function<void(T)> func)
+        size_t subscribe(int id, std::function<void(T)> func)
         {
-            static_cast<event<T>*>(events.at(id).get())->subscribe(func);
+            return static_cast<event<T>*>(events.at(id).get())->subscribe(func);
+        }
+        template <typename T>
+        void unsubscribe(int id, delegate<T> function)
+        {
+            static_cast<event<T>*>(events.at(id).get())->unsubscribe(function);
+        }
+
+        template <typename T>
+        void clear(int id)
+        {
+            static_cast<event<T>*>(events.at(id).get())->clear();
         }
 
         template <typename T>
