@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "buttons.h"
 #include "IScreen.h"
 #include "transitionData.h"
 #include "EventBus/eventBus.h"
@@ -8,24 +9,49 @@ namespace screens
     class mainMenuScreen : public IScreen
     {
     private:
-        struct button
-        {
-            size_t id;
-            std::function<void()> action;
-        };
-
         size_t titleId;
         int currentButton = 0;
         button buttons[3];
+        std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
+            {
+                NAVIGATION_MAIN_MENU,
+                eventBus::delegate<transitionData>{std::bind(&mainMenuScreen::onShow, this, std::placeholders::_1)}
+            },
+            {
+                NAVIGATION_SETTINGS,
+                eventBus::delegate<transitionData>{std::bind(&mainMenuScreen::onHide, this, std::placeholders::_1)}
+            },
+            {
+                NAVIGATION_GAME,
+                eventBus::delegate<transitionData>{std::bind(&mainMenuScreen::onHide, this, std::placeholders::_1)}
+            },
+            {
+                NAVIGATION_GAME_OVER,
+                eventBus::delegate<transitionData>{std::bind(&mainMenuScreen::onHide, this, std::placeholders::_1)}
+            },
+        };
 
     public:
         explicit mainMenuScreen(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events):
             IScreen(rdr, events), titleId(0), buttons{}
         {
-            events->subscribe<transitionData>(
-                NAVIGATION_MAIN_MENU,
-                std::bind(&mainMenuScreen::onShow, this, std::placeholders::_1)
-            );
+            for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
+            {
+                size_t id = events->subscribe<transitionData>(transitionMap.first, transitionMap.second.action);   
+                transitionsMap[transitionMap.first].uid = id;
+            }
+        }
+        ~mainMenuScreen() override
+        {
+            for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
+            {
+                events->unsubscribe<transitionData>(transitionMap.first, transitionMap.second);   
+            }
+        }
+
+        void onHide(transitionData data)
+        {
+            hide();
         }
 
         void onShow(transitionData data)
@@ -40,7 +66,7 @@ namespace screens
         void moveRight(input::inputData data) override;
         void accept(input::inputData data) override;
         void cancel(input::inputData data) override;
-        void deselectButton(int index) const;
         void selectButton(int index) const;
+        void deselectButton(int index) const;
     };
 }

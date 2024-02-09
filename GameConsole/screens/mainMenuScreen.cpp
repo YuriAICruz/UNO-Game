@@ -7,6 +7,8 @@ namespace screens
 {
     void mainMenuScreen::show()
     {
+        IScreen::show();
+
         rdr->clear();
         COORD winSize = rdr->getWindowSize();
 
@@ -65,14 +67,21 @@ namespace screens
             }, '+', 'g', "", "Exit");
         buttons[2].action = [this]
         {
+            hide();
             rdr->exit();
         };
 
         selectButton(currentButton);
+        rdr->setDirty();
     }
 
     void mainMenuScreen::moveUp(input::inputData data)
     {
+        if (blockInputs)
+        {
+            return;
+        }
+
         deselectButton(currentButton);
         currentButton -= 1;
         if (currentButton < 0)
@@ -85,6 +94,11 @@ namespace screens
 
     void mainMenuScreen::moveDown(input::inputData data)
     {
+        if (blockInputs)
+        {
+            return;
+        }
+
         deselectButton(currentButton);
         currentButton = (currentButton + 1) % std::size(buttons);
         selectButton(currentButton);
@@ -101,23 +115,31 @@ namespace screens
 
     void mainMenuScreen::accept(input::inputData data)
     {
+        if (blockInputs)
+        {
+            return;
+        }
         buttons[currentButton].action();
     }
 
     void mainMenuScreen::cancel(input::inputData data)
     {
+        if (blockInputs)
+        {
+            return;
+        }
         rdr->exit();
-    }
-
-    void mainMenuScreen::deselectButton(int index) const
-    {
-        auto button = static_cast<elements::card*>(rdr->getElement(buttons[index].id));
-        button->deselect();
     }
 
     void mainMenuScreen::selectButton(int index) const
     {
         auto button = static_cast<elements::card*>(rdr->getElement(buttons[index].id));
         button->select();
+    }
+
+    void mainMenuScreen::deselectButton(int index) const
+    {
+        auto button = static_cast<elements::card*>(rdr->getElement(buttons[index].id));
+        button->deselect();
     }
 }
