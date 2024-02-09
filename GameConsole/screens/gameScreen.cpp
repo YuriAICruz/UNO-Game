@@ -155,18 +155,81 @@ namespace screens
 
     void gameScreen::moveUp(input::inputData data)
     {
+        if (blockInputs)
+        {
+            return;
+        }
+        if (selectingCards)
+        {
+            switchToOptions();
+            return;
+        }
+        if (selectingOptions)
+        {
+            deselectOptionButton(currentOptionButton);
+            currentOptionButton = max(0, currentOptionButton-1);
+            selectOptionButton(currentOptionButton);
+            rdr->setDirty();
+            return;
+        }
     }
 
     void gameScreen::moveDown(input::inputData data)
     {
+        if (blockInputs)
+        {
+            return;
+        }
+        if (selectingOptions)
+        {
+            int size = std::size(optionButtons);
+            if (currentOptionButton >= size-1)
+            {
+                switchToCards();
+                return;
+            }
+            deselectOptionButton(currentOptionButton);
+            currentOptionButton = min(size, currentOptionButton+1);
+            selectOptionButton(currentOptionButton);
+            rdr->setDirty();
+            return;
+        }
     }
 
     void gameScreen::moveLeft(input::inputData data)
     {
+        if (blockInputs)
+        {
+            return;
+        }
+        if (selectingCards)
+        {
+            deselectCardButton(currentCardButton);
+            currentCardButton -= 1;
+            if (currentCardButton < 0)
+            {
+                currentCardButton = cardListButtons.size() + currentCardButton;
+            }
+            selectCardButton(currentCardButton);
+            rdr->setDirty();
+            return;
+        }
     }
 
     void gameScreen::moveRight(input::inputData data)
     {
+        if (blockInputs)
+        {
+            return;
+        }
+        if (selectingCards)
+        {
+            deselectCardButton(currentCardButton);
+            currentCardButton = (currentCardButton + 1) % cardListButtons.size();
+            selectCardButton(currentCardButton);
+            rdr->setDirty();
+            return;
+        }
     }
 
     void gameScreen::accept(input::inputData data)
@@ -186,7 +249,7 @@ namespace screens
         }
         if (selectingCards)
         {
-            cardListButtons[currentCardButton].action();
+            selectCard(currentCardButton);
             return;
         }
     }
@@ -250,6 +313,8 @@ namespace screens
         auto pool = dynamic_cast<elements::horizontalLayoutGroup*>(rdr->getElement(handCardsPoolId));
         auto cardElement = dynamic_cast<elements::card*>(pool->getElement(button.id));
         cardElement->setSize(COORD{0, 0});
+        cardElement->setTitleText("");
+        cardElement->setCenterText("");
     }
 
     void gameScreen::showCurrentPlayerCards()
@@ -274,6 +339,12 @@ namespace screens
         }
         updateTopCard();
         updateCurrentPlayerName();
+
+        selectingCards = true;
+
+        selectCardButton(currentCardButton);
+
+        rdr->setDirty();
     }
 
     void gameScreen::setCardData(elements::card* cardElement, cards::ICard* card)
@@ -339,5 +410,64 @@ namespace screens
         popup->setTitleText("Warning");
         popup->setCenterText(bodyText);
         rdr->setDirty();
+    }
+
+    void gameScreen::selectCard(int index)
+    {
+        auto player = gameManager->getCurrentPlayer();
+        auto card = player->pickCard(index);
+        if (gameManager->tryExecutePlayerAction(card))
+        {
+            showCurrentPlayerCards();
+            return;
+        }
+        player->receiveCard(card);
+        showCurrentPlayerCards();
+    }
+
+    void gameScreen::switchToCards()
+    {
+        selectingCards = true;
+        selectingOptions = false;
+        selectCardButton(currentCardButton);
+        deselectOptionButton(currentOptionButton);
+        rdr->setDirty();
+    }
+
+    void gameScreen::switchToOptions()
+    {
+        int size = std::size(optionButtons);
+        currentOptionButton = size-1;
+        selectingCards = false;
+        selectingOptions = true;
+        deselectCardButton(currentCardButton);
+        selectOptionButton(currentOptionButton);
+        rdr->setDirty();
+    }
+
+    void gameScreen::selectCardButton(int index) const
+    {
+        auto pool = dynamic_cast<elements::horizontalLayoutGroup*>(rdr->getElement(handCardsPoolId));
+        auto button = static_cast<elements::card*>(pool->getElement(cardListButtons[index].id));
+        button->select();
+    }
+
+    void gameScreen::deselectCardButton(int index) const
+    {
+        auto pool = dynamic_cast<elements::horizontalLayoutGroup*>(rdr->getElement(handCardsPoolId));
+        auto button = static_cast<elements::card*>(pool->getElement(cardListButtons[index].id));
+        button->deselect();
+    }
+
+    void gameScreen::selectOptionButton(int index) const
+    {
+        auto button = static_cast<elements::card*>(rdr->getElement(optionButtons[index].id));
+        button->select();
+    }
+
+    void gameScreen::deselectOptionButton(int index) const
+    {
+        auto button = static_cast<elements::card*>(rdr->getElement(optionButtons[index].id));
+        button->deselect();
     }
 }

@@ -20,7 +20,9 @@ namespace screens
         button popupButton;
         bool isPopupOpen = false;
         bool selectingCards = false;
-        int currentCardButton;
+        bool selectingOptions = false;
+        int currentCardButton = 0;
+        int currentOptionButton = 0;
         size_t topCardId;
         int cardSizeX = 8;
         int cardSizeY = 6;
@@ -49,7 +51,6 @@ namespace screens
                 eventBus::delegate<gameEventData>{std::bind(&gameScreen::onGameStart, this, std::placeholders::_1)}
             },
         };
-        
 
     public:
         gameScreen(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events,
@@ -112,5 +113,12 @@ namespace screens
         void updateCurrentPlayerName() const;
         void hidePopup();
         void openWarningPopup(std::string bodyText);
+        void selectCard(int index);
+        void switchToCards();
+        void switchToOptions();
+        void selectCardButton(int index) const;
+        void deselectCardButton(int index) const;
+        void selectOptionButton(int index) const;
+        void deselectOptionButton(int index) const;
     };
 }
