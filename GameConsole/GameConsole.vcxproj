@@ -142,11 +142,12 @@
     <ClCompile Include="renderer\elements\layoutGroup.cpp" />
     <ClCompile Include="renderer\elements\square.cpp" />
     <ClCompile Include="renderer\elements\text.cpp" />
-    <ClCompile Include="renderer\guidGenerator.cpp" />
     <ClCompile Include="renderer\renderer.cpp" />
     <ClCompile Include="renderer\rendererException.cpp" />
+    <ClCompile Include="screens\buttons.cpp" />
     <ClCompile Include="screens\IScreen.cpp" />
     <ClCompile Include="screens\mainMenuScreen.cpp" />
+    <ClCompile Include="screens\settingsMenu.cpp" />
     <ClCompile Include="screens\transitionData.cpp" />
     <ClCompile Include="wInclude.cpp" />
   </ItemGroup>
@@ -167,11 +168,12 @@
     <ClInclude Include="renderer\elements\layoutGroup.h" />
     <ClInclude Include="renderer\elements\square.h" />
     <ClInclude Include="renderer\elements\text.h" />
-    <ClInclude Include="renderer\guidGenerator.h" />
     <ClInclude Include="renderer\renderer.h" />
     <ClInclude Include="renderer\rendererException.h" />
+    <ClInclude Include="screens\buttons.h" />
     <ClInclude Include="screens\IScreen.h" />
     <ClInclude Include="screens\mainMenuScreen.h" />
+    <ClInclude Include="screens\settingsMenu.h" />
     <ClInclude Include="screens\transitionData.h" />
     <ClInclude Include="wInclude.h" />
   </ItemGroup>
