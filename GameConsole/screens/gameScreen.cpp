@@ -80,6 +80,11 @@ namespace screens
             "Pass",
             ""
         );
+        optionButtons[0].action = [this]
+        {
+            tryToPass();
+        };
+
         lastY += buttonHeight;
         optionButtons[1].id = rdr->addElement<elements::card>(
             COORD{
@@ -92,9 +97,14 @@ namespace screens
             },
             ' ',
             'y',
-            "Play Card",
+            "Yell UNO",
             ""
         );
+        optionButtons[1].action = [this]
+        {
+            tryYellUno();
+        };
+
         lastY += buttonHeight;
         optionButtons[2].id = rdr->addElement<elements::card>(
             COORD{
@@ -110,6 +120,10 @@ namespace screens
             "Draw",
             ""
         );
+        optionButtons[2].action = [this]
+        {
+            tryDrawMoreCards();
+        };
 
         topCardId = rdr->addElement<elements::card>(
             COORD{
@@ -145,6 +159,7 @@ namespace screens
             showCurrentPlayerCards();
         }
 
+        switchToCards();
         rdr->setDirty();
     }
 
@@ -157,6 +172,15 @@ namespace screens
     {
         if (blockInputs)
         {
+            return;
+        }
+        if (isPopupOpen)
+        {
+            hidePopup();
+            if (popupButton.actionLeft != nullptr)
+            {
+                popupButton.actionLeft();
+            }
             return;
         }
         if (selectingCards)
@@ -180,10 +204,19 @@ namespace screens
         {
             return;
         }
+        if (isPopupOpen)
+        {
+            hidePopup();
+            if (popupButton.actionLeft != nullptr)
+            {
+                popupButton.actionLeft();
+            }
+            return;
+        }
         if (selectingOptions)
         {
             int size = std::size(optionButtons);
-            if (currentOptionButton >= size-1)
+            if (currentOptionButton >= size - 1)
             {
                 switchToCards();
                 return;
@@ -202,13 +235,23 @@ namespace screens
         {
             return;
         }
+        if (isPopupOpen)
+        {
+            hidePopup();
+            if (popupButton.actionLeft != nullptr)
+            {
+                popupButton.actionLeft();
+            }
+            return;
+        }
         if (selectingCards)
         {
+            int handSize = gameManager->getCurrentPlayer()->getHand().size();
             deselectCardButton(currentCardButton);
             currentCardButton -= 1;
             if (currentCardButton < 0)
             {
-                currentCardButton = cardListButtons.size() + currentCardButton;
+                currentCardButton = handSize + currentCardButton;
             }
             selectCardButton(currentCardButton);
             rdr->setDirty();
@@ -224,8 +267,9 @@ namespace screens
         }
         if (selectingCards)
         {
+            int handSize = gameManager->getCurrentPlayer()->getHand().size();
             deselectCardButton(currentCardButton);
-            currentCardButton = (currentCardButton + 1) % cardListButtons.size();
+            currentCardButton = (currentCardButton + 1) % handSize;
             selectCardButton(currentCardButton);
             rdr->setDirty();
             return;
@@ -252,6 +296,14 @@ namespace screens
             selectCard(currentCardButton);
             return;
         }
+        if (selectingOptions)
+        {
+            if (optionButtons[currentOptionButton].action != nullptr)
+            {
+                optionButtons[currentOptionButton].action();
+            }
+            return;
+        }
     }
 
     void gameScreen::cancel(input::inputData data)
@@ -270,6 +322,8 @@ namespace screens
             return;
         }
 
+        popupButton.actionLeft = nullptr;
+        popupButton.actionRight = nullptr;
         popupButton.action = [this]
         {
             events->fireEvent(NAVIGATION_MAIN_MENU, transitionData());
@@ -280,6 +334,70 @@ namespace screens
         );
     }
 
+    void gameScreen::tryYellUno()
+    {
+        if (gameManager->canYellUno())
+        {
+            gameManager->yellUno();
+            return;
+        }
+        popupButton.action = nullptr;
+        popupButton.actionLeft = nullptr;
+        popupButton.actionRight = nullptr;
+        openWarningPopup("You can only yell UNO with two cards");
+    }
+
+    void gameScreen::onUnoPenalty(gameEventData data)
+    {
+        popupButton.action = nullptr;
+        popupButton.actionLeft = nullptr;
+        popupButton.actionRight = nullptr;
+        openWarningPopup("You forgot to yell UNO, received two cards");
+    }
+
+    void gameScreen::tryToPass()
+    {
+        if (gameManager->canSkipTurn())
+        {
+            gameManager->skipTurn();
+            showCurrentPlayerCards();
+            return;
+        }
+        popupButton.action = nullptr;
+        popupButton.actionLeft = nullptr;
+        popupButton.actionRight = nullptr;
+        openWarningPopup("You can only skip if you already draw a card");
+    }
+
+    void gameScreen::tryDrawMoreCards()
+    {
+        if (gameManager->playerHasValidCardOnHand(gameManager->getCurrentPlayer()))
+        {
+            popupButton.action = [this]
+            {
+                drawOneCard();
+            };
+            popupButton.actionLeft = nullptr;
+            popupButton.actionRight = nullptr;
+            openWarningPopup("You have playable cards, are you sure?");
+        }
+        if (gameManager->canDrawCard())
+        {
+            drawOneCard();
+            return;
+        }
+        popupButton.action = nullptr;
+        popupButton.actionLeft = nullptr;
+        popupButton.actionRight = nullptr;
+        openWarningPopup("You can only draw on card per turn, you can skip now");
+    }
+
+    void gameScreen::drawOneCard()
+    {
+        gameManager->makePlayerDraw(gameManager->getCurrentPlayer(), 1);
+        showCurrentPlayerCards();
+    }
+
     void gameScreen::expandCardsPool(int handSize)
     {
         COORD windowSize = rdr->getWindowSize();
@@ -287,9 +405,9 @@ namespace screens
         int lastX = border;
         int lastY = windowSize.Y - cardSizeY;
         auto pool = dynamic_cast<elements::horizontalLayoutGroup*>(rdr->getElement(handCardsPoolId));
-        int offset = handSize - cardListButtons.size();
+        int currentListSize = cardListButtons.size();
         cardListButtons.resize(handSize);
-        for (int i = 0; i < offset; ++i)
+        for (int i = currentListSize; i < handSize; ++i)
         {
             cardListButtons[i].id = pool->addElement<elements::card>(
                 COORD{
@@ -339,10 +457,6 @@ namespace screens
         }
         updateTopCard();
         updateCurrentPlayerName();
-
-        selectingCards = true;
-
-        selectCardButton(currentCardButton);
 
         rdr->setDirty();
     }
@@ -437,7 +551,7 @@ namespace screens
     void gameScreen::switchToOptions()
     {
         int size = std::size(optionButtons);
-        currentOptionButton = size-1;
+        currentOptionButton = size - 1;
         selectingCards = false;
         selectingOptions = true;
         deselectCardButton(currentCardButton);

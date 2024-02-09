@@ -29,15 +29,31 @@ void gameStateManager::bindGameEvents()
     events->bindEvent<gameEventData>(GAME_WON);
     events->bindEvent<gameEventData>(GAME_LOST);
     events->bindEvent<gameEventData>(GAME_UNO);
-    
+    events->bindEvent<gameEventData>(GAME_NO_UNO_PENALTY);
+
     events->bindEvent<turnEventData>(TURN_BEGIN);
     events->bindEvent<turnEventData>(TURN_END);
+}
+
+void gameStateManager::beginTurn()
+{
+    currentPlayerCardsDraw = 0;
+
+    auto player = getCurrentPlayer();
+    if (player->getHand().size() < 2 && !player->isInUnoMode())
+    {
+        events->fireEvent(GAME_NO_UNO_PENALTY, gameEventData());
+        makePlayerDraw(player, 2);
+    }
+
+    events->fireEvent(TURN_BEGIN, turnEventData());
 }
 
 void gameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
 {
     for (int j = 0; j < count; ++j)
     {
+        currentPlayerCardsDraw++;
         player->receiveCard(mainDeck->dequeue());
     }
 }
@@ -69,6 +85,7 @@ void gameStateManager::startGame()
 
     events->fireEvent(GAME_START, gameEventData());
     running = true;
+    beginTurn();
 }
 
 turnSystem::IPlayer* gameStateManager::getCurrentPlayer() const
@@ -118,11 +135,26 @@ bool gameStateManager::tryExecutePlayerAction(cards::ICard* card)
         return false;
     }
 
-    if (isCardValid(card, topCard))
+    if (isBaseCardValid(card, topCard))
     {
         finishAction(card);
         return true;
     }
+}
+
+bool gameStateManager::playerHasValidCardOnHand(turnSystem::IPlayer* player)
+{
+    auto hand = player->getHand();
+    auto top = getTopCard();
+    for (auto card : hand)
+    {
+        if (isCardValid(card, top))
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 int gameStateManager::getStartHandSize()
@@ -130,15 +162,46 @@ int gameStateManager::getStartHandSize()
     return handSize;
 }
 
-void gameStateManager::finishAction(cards::ICard* card) const
+bool gameStateManager::canYellUno()
+{
+    return getCurrentPlayer()->getHand().size() == 2 && !getCurrentPlayer()->isInUnoMode();
+}
+
+void gameStateManager::yellUno()
+{
+    events->fireEvent(GAME_UNO, gameEventData());
+    getCurrentPlayer()->setUnoMode();
+}
+
+bool gameStateManager::canSkipTurn()
+{
+    return currentPlayerCardsDraw > 0;
+}
+
+bool gameStateManager::canDrawCard()
+{
+    return currentPlayerCardsDraw == 0;
+}
+
+void gameStateManager::skipTurn()
+{
+    endTurn();
+}
+
+void gameStateManager::finishAction(cards::ICard* card)
 {
     discardDeck->stack(card);
 
+    endTurn();
+}
+
+void gameStateManager::endTurn()
+{
     events->fireEvent(TURN_END, turnEventData());
 
     turner->endTurn();
 
-    events->fireEvent(TURN_BEGIN, turnEventData());
+    beginTurn();
 }
 
 bool gameStateManager::isActionCardValid(cards::ICard* card, cards::ICard* topCard) const
@@ -146,7 +209,32 @@ bool gameStateManager::isActionCardValid(cards::ICard* card, cards::ICard* topCa
     return card->sameType(*topCard) || card->sameColor(*topCard);
 }
 
-bool gameStateManager::isCardValid(cards::ICard* card, cards::ICard* topCard) const
+bool gameStateManager::isBaseCardValid(cards::ICard* card, cards::ICard* topCard) const
 {
     return card->sameColor(*topCard) || card->sameNumber(*topCard);
+}
+
+bool gameStateManager::isCardValid(cards::ICard* card, cards::ICard* topCard) const
+{
+    if (card->hasAction())
+    {
+        if (isActionCardValid(card, topCard) && card->actionType()->isEqual(typeid(cards::actions::draw)))
+        {
+            return true;
+        }
+        if (isActionCardValid(card, topCard) && card->actionType()->isEqual(typeid(cards::actions::skip)))
+        {
+            return true;
+        }
+        if (isActionCardValid(card, topCard) && card->actionType()->isEqual(typeid(cards::actions::reverse)))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    if (isBaseCardValid(card, topCard))
+    {
+        return true;
+    }
 }

@@ -17,6 +17,7 @@ private:
     int handSize;
     std::shared_ptr<eventBus::eventBus> events;
     bool running = false;
+    int currentPlayerCardsDraw = 0;
 
 public:
     gameStateManager(std::shared_ptr<eventBus::eventBus> events);
@@ -29,11 +30,20 @@ public:
     virtual turnSystem::IPlayer* getPlayer(int i) const;
     virtual cards::ICard* getTopCard() const;
     virtual bool tryExecutePlayerAction(cards::ICard* card);
+    virtual bool playerHasValidCardOnHand(turnSystem::IPlayer* player);
     int getStartHandSize();
+    bool canYellUno();
+    bool canSkipTurn();
+    bool canDrawCard();
+    void skipTurn();
+    void endTurn();
+    void yellUno();
 
 private:
     void bindGameEvents();
-    void finishAction(cards::ICard* card) const;
+    void beginTurn();
+    void finishAction(cards::ICard* card);
     bool isActionCardValid(cards::ICard* card, cards::ICard* topCard) const;
+    bool isBaseCardValid(cards::ICard* card, cards::ICard* topCard) const;
     bool isCardValid(cards::ICard* card, cards::ICard* topCard) const;
 };

@@ -50,6 +50,10 @@ namespace screens
                 GAME_START,
                 eventBus::delegate<gameEventData>{std::bind(&gameScreen::onGameStart, this, std::placeholders::_1)}
             },
+            {
+                GAME_NO_UNO_PENALTY,
+                eventBus::delegate<gameEventData>{std::bind(&gameScreen::onUnoPenalty, this, std::placeholders::_1)}
+            },
         };
 
     public:
@@ -86,14 +90,6 @@ namespace screens
             hide();
         }
 
-        void onShow(transitionData data)
-        {
-            show();
-        }
-        void onGameStart(gameEventData data)
-        {
-            showCurrentPlayerCards();
-        }
 
         void show() override;
         void hide() override;
@@ -105,8 +101,23 @@ namespace screens
         void cancel(input::inputData data) override;
 
     private:
+        void onShow(transitionData data)
+        {
+            show();
+        }
+        void onGameStart(gameEventData data)
+        {
+            switchToCards();
+            showCurrentPlayerCards();
+        }
+        void onUnoPenalty(gameEventData data);
+        
+        void tryYellUno();
+        void tryToPass();
+        void tryDrawMoreCards();
         void expandCardsPool(int hand_size);
         void hideCard(std::vector<button>::const_reference button);
+        void drawOneCard();
         void showCurrentPlayerCards();
         void setCardData(elements::card* cardElement, cards::ICard* card);
         void updateTopCard();

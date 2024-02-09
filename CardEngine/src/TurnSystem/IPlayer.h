@@ -11,6 +11,7 @@ namespace turnSystem
     protected:
         size_t id;
         std::string name;
+        bool inUnoMode = false;
 
     public:
         IPlayer(size_t id, std::string name) : id(id), name(name)
@@ -45,5 +46,20 @@ namespace turnSystem
         virtual std::list<cards::ICard*> getHand() const = 0;
         virtual cards::ICard* pickCard(int index) = 0;
         virtual void receiveCard(cards::ICard* card) = 0;
+
+        virtual void setUnoMode()
+        {
+            inUnoMode = true;
+        }
+
+        virtual bool isInUnoMode()
+        {
+            if (getHand().size() > 2)
+            {
+                inUnoMode = false;
+            }
+
+            return inUnoMode;
+        }
     };
 }

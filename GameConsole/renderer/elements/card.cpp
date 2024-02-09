@@ -48,6 +48,8 @@ namespace elements
         frameElement.setSize(s);
         textElement.setSize(s);
         centerTextElement.setSize(s);
+
+        setPosition(position);
     }
 
     void card::setColor(char c)
