@@ -5,6 +5,7 @@
 #include "renderer/renderer.h"
 #include "screens/mainMenuScreen.h"
 #include "eventIds.h"
+#include "screens/settingsMenu.h"
 
 int main()
 {
@@ -29,6 +30,10 @@ int main()
     auto inputH = std::make_unique<input::inputHandler>(strapper->create<eventBus::eventBus>());
 
     std::unique_ptr<screens::IScreen> mainMenu = std::make_unique<screens::mainMenuScreen>(
+        strapper->create<renderer::renderer>(),
+        strapper->create<eventBus::eventBus>()
+    );
+    std::unique_ptr<screens::IScreen> settingsMenu = std::make_unique<screens::settingsMenu>(
         strapper->create<renderer::renderer>(),
         strapper->create<eventBus::eventBus>()
     );
