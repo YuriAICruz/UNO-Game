@@ -3,6 +3,8 @@
 #include "IScreen.h"
 #include "transitionData.h"
 #include "StateManager/gameStateManager.h"
+#include "coreEventIds.h"
+#include "StateManager/gameEventData.h"
 
 namespace screens
 {
@@ -18,6 +20,7 @@ namespace screens
         bool isPopupOpen = false;
         bool selectingCards = false;
         int currentCardButton;
+        size_t topCardId;
 
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
@@ -37,6 +40,13 @@ namespace screens
                 eventBus::delegate<transitionData>{std::bind(&gameScreen::onHide, this, std::placeholders::_1)}
             },
         };
+        std::map<int, eventBus::delegate<gameEventData>> gameEventsMap = {
+            {
+                GAME_START,
+                eventBus::delegate<gameEventData>{std::bind(&gameScreen::onGameStart, this, std::placeholders::_1)}
+            },
+        };
+        
 
     public:
         gameScreen(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events,
@@ -48,6 +58,11 @@ namespace screens
                 size_t id = events->subscribe<transitionData>(transitionMap.first, transitionMap.second.action);
                 transitionsMap[transitionMap.first].uid = id;
             }
+            for (std::pair<const int, eventBus::delegate<gameEventData>> gameEventMap : gameEventsMap)
+            {
+                size_t id = events->subscribe<gameEventData>(gameEventMap.first, gameEventMap.second.action);
+                gameEventsMap[gameEventMap.first].uid = id;
+            }
         }
 
         ~gameScreen() override
@@ -55,6 +70,10 @@ namespace screens
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
             {
                 events->unsubscribe<transitionData>(transitionMap.first, transitionMap.second);
+            }
+            for (std::pair<const int, eventBus::delegate<gameEventData>> gameEventMap : gameEventsMap)
+            {
+                events->unsubscribe<gameEventData>(gameEventMap.first, gameEventMap.second);
             }
         }
 
@@ -67,6 +86,10 @@ namespace screens
         {
             show();
         }
+        void onGameStart(gameEventData data)
+        {
+            showCurrentPlayerCards();
+        }
 
         void show() override;
         void hide() override;
@@ -78,8 +101,9 @@ namespace screens
         void cancel(input::inputData data) override;
 
     private:
-        void ShowCurrentPlayerCards();
-        void UpdateCurrentPlayerName();
+        void showCurrentPlayerCards();
+        void updateTopCard();
+        void updateCurrentPlayerName() const;
         void hidePopup();
         void openWarningPopup(std::string bodyText);
     };

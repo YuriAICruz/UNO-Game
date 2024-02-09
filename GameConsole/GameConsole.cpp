@@ -14,12 +14,12 @@ int main()
     std::unique_ptr<bootstrapper> strapper = std::make_unique<bootstrapper>();
     strapper->bind<eventBus::eventBus>()->to<eventBus::eventBus>()->asSingleton();
     strapper->bind<renderer::renderer>()->to<renderer::renderer>()->asSingleton();
-    strapper->bind<gameStateManager>()->to<gameStateManager>()->asSingleton();
+    strapper->bind<gameStateManager, std::shared_ptr<eventBus::eventBus>>()->to<gameStateManager>()->asSingleton();
 
-    auto gameManager = strapper->create<gameStateManager>();
+    auto gameManager = strapper->create<gameStateManager>(strapper->create<eventBus::eventBus>());
     auto rdr = strapper->create<renderer::renderer>();
     auto events = strapper->create<eventBus::eventBus>();
-
+    
     events->bindEvent<input::inputData>(INPUT_UP);
     events->bindEvent<input::inputData>(INPUT_DOWN);
     events->bindEvent<input::inputData>(INPUT_LEFT);
@@ -30,9 +30,9 @@ int main()
     events->bindEvent<input::inputData>(NAVIGATION_GAME);
     events->bindEvent<input::inputData>(NAVIGATION_SETTINGS);
     events->bindEvent<input::inputData>(NAVIGATION_GAME_OVER);
-
+    
     auto inputH = std::make_unique<input::inputHandler>(strapper->create<eventBus::eventBus>());
-
+    
     std::unique_ptr<screens::IScreen> mainMenu = std::make_unique<screens::mainMenuScreen>(
         strapper->create<renderer::renderer>(),
         strapper->create<eventBus::eventBus>()
@@ -46,7 +46,7 @@ int main()
         strapper->create<eventBus::eventBus>(),
         strapper->create<gameStateManager>()
     );
-
+    
     events->subscribe<screens::transitionData>(
         NAVIGATION_MAIN_MENU, [settingsMenu, gameManager](screens::transitionData data)
         {
@@ -62,9 +62,9 @@ int main()
         {
             gameManager->startGame();
         });
-
+    
     events->fireEvent(NAVIGATION_MAIN_MENU, screens::transitionData());
-
+    
     while (true)
     {
         std::vector<input::inputData> inputs = inputH->readInput();
@@ -72,7 +72,7 @@ int main()
         {
             rdr->draw();
         }
-
+    
         if (rdr->canEnd())
         {
             break;

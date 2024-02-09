@@ -3,6 +3,8 @@
 #include "../renderer/elements/card.h"
 #include "../renderer/elements/horizontalLayoutGroup.h"
 #include "../renderer/elements/text.h"
+#include "Cards/ActionTypes/base.h"
+#include "Cards/ActionTypes/draw.h"
 
 namespace screens
 {
@@ -112,6 +114,21 @@ namespace screens
         int cardSizeX = 8;
         int cardSizeY = 6;
 
+        topCardId = rdr->addElement<elements::card>(
+            COORD{
+                static_cast<SHORT>(windowSize.X / 2),
+                static_cast<SHORT>(windowSize.Y / 2)
+            },
+            COORD{
+                static_cast<SHORT>(cardSizeX),
+                static_cast<SHORT>(cardSizeY)
+            },
+            ' ',
+            'w',
+            "top",
+            "card"
+        );
+
         lastX = border;
         lastY = windowSize.Y - cardSizeY;
         handCardsPoolId = rdr->addElement<elements::horizontalLayoutGroup>(
@@ -144,7 +161,10 @@ namespace screens
         }
         pool->resize();
 
-        ShowCurrentPlayerCards();
+        if(gameManager->isGameStarted())
+        {
+            showCurrentPlayerCards();   
+        }
 
         rdr->setDirty();
     }
@@ -218,11 +238,34 @@ namespace screens
         );
     }
 
-    void gameScreen::ShowCurrentPlayerCards()
+    void gameScreen::showCurrentPlayerCards()
     {
+        updateTopCard();
+        updateCurrentPlayerName();
     }
 
-    void gameScreen::UpdateCurrentPlayerName()
+    void gameScreen::updateTopCard()
+    {
+        auto topCardElement = dynamic_cast<elements::card*>(rdr->getElement(topCardId));
+        auto topCard = gameManager->getTopCard();
+
+        topCardElement->setTitleText(topCard->typeName());
+
+        if (topCard->actionType()->isEqual(typeid(cards::actions::base)) ||
+            topCard->actionType()->isEqual(typeid(cards::actions::draw)))
+        {
+            topCardElement->setCenterText(std::to_string(topCard->Number()));
+        }
+        else
+        {
+            topCardElement->setCenterText("");
+        }
+
+        topCardElement->setColor(topCard->Color());
+        rdr->isDirty();
+    }
+
+    void gameScreen::updateCurrentPlayerName() const
     {
         auto playerName = dynamic_cast<elements::card*>(rdr->getElement(currentPlayerInfoId));
         playerName->setCenterText(gameManager->getCurrentPlayer()->getName());
