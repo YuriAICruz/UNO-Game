@@ -73,7 +73,11 @@ namespace screens
         void cancel(input::inputData data) override;
         void selectButton(int index) const;
         void deselectButton(int index) const;
+        template <typename T>
+        bool editBoxSetup(std::string title, T& data, std::string& newValue);
+        void editBoxTearDown(const std::function<void()>& callback);
         void openStringEditBox(std::string title, std::string& data, const std::function<void()>& callback);
+        void openSizeTEditBox(std::string title, size_t& data, const std::function<void()>& callback);
 
         std::vector<std::string>& getPlayers()
         {

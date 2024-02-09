@@ -99,6 +99,34 @@ namespace screens
             });
         };
 
+        lastY += buttonHeight + offset;
+        ss.str("");
+        ss << "Random Seed: [" << seed << "]";
+        buttons[2].id = rdr->addElement<elements::card>(
+            COORD{
+                static_cast<SHORT>(lastX),
+                static_cast<SHORT>(lastY),
+            }, COORD{
+                static_cast<SHORT>(buttonWidth),
+                static_cast<SHORT>(buttonHeight),
+            },
+            '+',
+            'g',
+            "",
+            ss.str()
+        );
+        buttons[2].action = [this]
+        {
+            openSizeTEditBox("Random Seed", seed, [this]
+            {
+                std::stringstream ss;
+                ss << "Random Seed: [" << seed << "]";
+                auto seedButton = static_cast<elements::card*>(rdr->getElement(buttons[2].id));
+                seedButton->setCenterText(ss.str());
+                rdr->setDirty();
+            });
+        };
+
         selectButton(currentButton);
         rdr->setDirty();
     }
@@ -139,7 +167,10 @@ namespace screens
         {
             return;
         }
-        buttons[currentButton].actionLeft();
+        if (buttons[currentButton].actionLeft != nullptr)
+        {
+            buttons[currentButton].actionLeft();
+        }
     }
 
     void settingsMenu::moveRight(input::inputData data)
@@ -148,7 +179,10 @@ namespace screens
         {
             return;
         }
-        buttons[currentButton].actionRight();
+        if (buttons[currentButton].actionRight != nullptr)
+        {
+            buttons[currentButton].actionRight();
+        }
     }
 
     void settingsMenu::accept(input::inputData data)
@@ -157,7 +191,10 @@ namespace screens
         {
             return;
         }
-        buttons[currentButton].action();
+        if (buttons[currentButton].action != nullptr)
+        {
+            buttons[currentButton].action();
+        }
     }
 
     void settingsMenu::cancel(input::inputData data)
@@ -182,19 +219,54 @@ namespace screens
         button->deselect();
     }
 
-    void settingsMenu::openStringEditBox(std::string title, std::string& data, const std::function<void()>& callback)
+    template <typename T>
+    bool settingsMenu::editBoxSetup(std::string title, T& data, std::string& newValue)
     {
         blockInputs = true;
         rdr->blank();
-        std::string newValue;
         std::cout << "Enter a new value for " << title << ", you can cancel by typing 'quit'" << "\n";
         std::cout << "Current value is: " << data << "\n";
         std::getline(std::cin, newValue);
-        if(newValue != "quit")
+        if (newValue != "quit")
+        {
+            return true;
+        }
+        return false;
+    }
+
+    void settingsMenu::editBoxTearDown(const std::function<void()>& callback)
+    {
+        callback();
+        blockInputs = false;
+    }
+
+    void settingsMenu::openStringEditBox(std::string title, std::string& data, const std::function<void()>& callback)
+    {
+        std::string newValue;
+        if (editBoxSetup(title, data, newValue))
         {
             data = newValue;
         }
-        callback();
-        blockInputs = false;
+        editBoxTearDown(callback);
+    }
+
+    void settingsMenu::openSizeTEditBox(std::string title, size_t& data, const std::function<void()>& callback)
+    {
+        std::string newValue;
+        if (editBoxSetup(title, data, newValue))
+        {
+            try
+            {
+                data = std::stoul(newValue);
+            }
+            catch (const std::invalid_argument& e)
+            {
+                std::cerr << "ERROR: Invalid argument: " << e.what() << std::endl;
+            } catch (const std::out_of_range& e)
+            {
+                std::cerr << "ERROR: Out of range: " << e.what() << std::endl;
+            }
+        }
+        editBoxTearDown(callback);
     }
 }
