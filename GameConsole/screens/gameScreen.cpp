@@ -355,6 +355,12 @@ namespace screens
         openWarningPopup("You forgot to yell UNO, received two cards");
     }
 
+    void gameScreen::onGameEnded(gameEventData data)
+    {
+        events->fireEvent(NAVIGATION_GAME_OVER, transitionData(data.player));
+        hide();
+    }
+
     void gameScreen::tryToPass()
     {
         if (gameManager->canSkipTurn())

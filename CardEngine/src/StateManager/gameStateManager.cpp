@@ -188,6 +188,16 @@ void gameStateManager::skipTurn()
     endTurn();
 }
 
+void gameStateManager::cheatWin()
+{
+    endGame();
+}
+
+void gameStateManager::endGame()
+{
+    events->fireEvent(GAME_END, gameEventData(getCurrentPlayer()));
+}
+
 void gameStateManager::finishAction(cards::ICard* card)
 {
     discardDeck->stack(card);
@@ -198,6 +208,11 @@ void gameStateManager::finishAction(cards::ICard* card)
 void gameStateManager::endTurn()
 {
     events->fireEvent(TURN_END, turnEventData());
+
+    if (getCurrentPlayer()->getHand().size() <= 0)
+    {
+        endGame();
+    }
 
     turner->endTurn();
 

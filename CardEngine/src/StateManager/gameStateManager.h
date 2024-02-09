@@ -36,6 +36,8 @@ public:
     bool canSkipTurn();
     bool canDrawCard();
     void skipTurn();
+    void cheatWin();
+    void endGame();
     void endTurn();
     void yellUno();
 

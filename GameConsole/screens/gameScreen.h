@@ -54,6 +54,10 @@ namespace screens
                 GAME_NO_UNO_PENALTY,
                 eventBus::delegate<gameEventData>{std::bind(&gameScreen::onUnoPenalty, this, std::placeholders::_1)}
             },
+            {
+                GAME_END,
+                eventBus::delegate<gameEventData>{std::bind(&gameScreen::onGameEnded, this, std::placeholders::_1)}
+            },
         };
 
     public:
@@ -111,6 +115,7 @@ namespace screens
             showCurrentPlayerCards();
         }
         void onUnoPenalty(gameEventData data);
+        void onGameEnded(gameEventData data);
         
         void tryYellUno();
         void tryToPass();
