@@ -157,7 +157,7 @@ namespace renderer
         CONSOLE_SCREEN_BUFFER_INFO info;
         GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
         SHORT x = info.srWindow.Right - info.srWindow.Left + 1;
-        SHORT y = info.srWindow.Bottom - info.srWindow.Top + 1;
+        SHORT y = info.srWindow.Bottom - info.srWindow.Top ;
         COORD size = COORD{x, y};
         return size;
     }
