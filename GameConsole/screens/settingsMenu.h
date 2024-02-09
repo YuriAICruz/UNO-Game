@@ -19,7 +19,7 @@ namespace screens
         std::string configFilePath = "Data\\deck_setup.json";
         int handCount = 7;
         size_t seed = 12341234;
-        bool editingPlayers;
+        bool editingPlayers = false;
 
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
@@ -53,11 +53,12 @@ namespace screens
             }
 
             players.resize(2);
+            std::stringstream ss;
             for (int i = 0, n = players.size(); i < n; ++i)
             {
-                std::stringstream ss;
                 ss << "Player 0" << (i + 1);
                 players[i] = ss.str();
+                ss.str("");
             }
             playersButtons.resize(12);
         }

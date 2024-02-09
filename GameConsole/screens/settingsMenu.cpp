@@ -36,7 +36,7 @@ namespace screens
         );
 
         lastX = border;
-        lastY += offset + buttonHeight + offset;
+        lastY = offset*2;
 
         std::stringstream ss;
         configureButton(
@@ -141,6 +141,7 @@ namespace screens
         updatePlayersCount(3, players.size());
 
         selectButton(currentButton);
+        exitPlayerEditMode();
         rdr->setDirty();
     }
 
@@ -397,7 +398,7 @@ namespace screens
         auto windowSize = rdr->getWindowSize();
         int offset = 0;
         int border = 1;
-        int upperSide = 20;
+        int upperSide = 16;
         int columnCount = 4;
         int lineCount = 3;
         int playerButtonWidth = windowSize.X / columnCount - border * 2 - offset;
