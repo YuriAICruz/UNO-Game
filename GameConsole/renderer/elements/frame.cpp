@@ -26,6 +26,16 @@ namespace elements
             });
     }
 
+    void frame::setSize(COORD s)
+    {
+        element::setSize(s);
+        squareIn.setSize(
+            COORD{
+                static_cast<SHORT>(s.X - 2),
+                static_cast<SHORT>(s.Y - 2)
+            });
+    }
+
     void frame::setDefault()
     {
         setFrame(L'┌',

@@ -11,16 +11,19 @@ namespace screens
         IScreen::show();
 
         rdr->clear();
+
+        setupPlayerButton();
+
         COORD winSize = rdr->getWindowSize();
 
         std::string title = "Settings";
-        int border = 40;
-        int buttonWidth = winSize.X - border;
+        int border = 20;
+        int buttonWidth = winSize.X - border * 2;
         int buttonHeight = 3;
         int offset = 1;
 
         int lastX = winSize.X / 2 - title.length() / 2;
-        int lastY = 5;
+        int lastY = 1;
 
         size_t titleId = rdr->addElement<elements::text>(
             COORD{
@@ -32,7 +35,7 @@ namespace screens
             title
         );
 
-        lastX = border / 2;
+        lastX = border;
         lastY += offset + buttonHeight + offset;
 
         std::stringstream ss;
@@ -110,28 +113,32 @@ namespace screens
             players.size(),
             "Number of Players: [", "]",
             ss,
-            nullptr,
             [this]
             {
-                int lastSize = players.size();
-                int size = min(10, max(2, lastSize - 1));
-                if (lastSize == size)
-                {
-                    return;
-                }
-                updatePlyersCount(3,size);
+                enterPlayerEditMode();
             },
             [this]
             {
                 int lastSize = players.size();
-                int size = min(10, max(2, lastSize + 1));
+                int size = min(playersButtons.size(), max(2, lastSize - 1));
                 if (lastSize == size)
                 {
                     return;
                 }
-                updatePlyersCount(3,size);
+                updatePlayersCount(3, size);
+            },
+            [this]
+            {
+                int lastSize = players.size();
+                int size = min(playersButtons.size(), max(2, lastSize + 1));
+                if (lastSize == size)
+                {
+                    return;
+                }
+                updatePlayersCount(3, size);
             }
         );
+        updatePlayersCount(3, players.size());
 
         selectButton(currentButton);
         rdr->setDirty();
@@ -144,13 +151,26 @@ namespace screens
             return;
         }
 
-        deselectButton(currentButton);
-        currentButton -= 1;
-        if (currentButton < 0)
+        if (editingPlayers)
         {
-            currentButton = std::size(buttons) + currentButton;
+            deselectPlayerButton(currentPlayerButton);
+            currentPlayerButton -= 1;
+            if (currentPlayerButton < 0)
+            {
+                currentPlayerButton = std::size(players) + currentPlayerButton;
+            }
+            selectPlayerButton(currentPlayerButton);
         }
-        selectButton(currentButton);
+        else
+        {
+            deselectButton(currentButton);
+            currentButton -= 1;
+            if (currentButton < 0)
+            {
+                currentButton = std::size(buttons) + currentButton;
+            }
+            selectButton(currentButton);
+        }
         rdr->setDirty();
     }
 
@@ -161,15 +181,28 @@ namespace screens
             return;
         }
 
-        deselectButton(currentButton);
-        currentButton = (currentButton + 1) % std::size(buttons);
-        selectButton(currentButton);
+        if (editingPlayers)
+        {
+            deselectPlayerButton(currentPlayerButton);
+            currentPlayerButton = (currentPlayerButton + 1) % std::size(players);
+            selectPlayerButton(currentPlayerButton);
+        }
+        else
+        {
+            deselectButton(currentButton);
+            currentButton = (currentButton + 1) % std::size(buttons);
+            selectButton(currentButton);
+        }
         rdr->setDirty();
     }
 
     void settingsMenu::moveLeft(input::inputData data)
     {
         if (blockInputs)
+        {
+            return;
+        }
+        if (editingPlayers)
         {
             return;
         }
@@ -185,6 +218,10 @@ namespace screens
         {
             return;
         }
+        if (editingPlayers)
+        {
+            return;
+        }
         if (buttons[currentButton].actionRight != nullptr)
         {
             buttons[currentButton].actionRight();
@@ -197,9 +234,19 @@ namespace screens
         {
             return;
         }
-        if (buttons[currentButton].action != nullptr)
+        if (editingPlayers)
         {
-            buttons[currentButton].action();
+            if (playersButtons[currentPlayerButton].action != nullptr)
+            {
+                playersButtons[currentPlayerButton].action();
+            }
+        }
+        else
+        {
+            if (buttons[currentButton].action != nullptr)
+            {
+                buttons[currentButton].action();
+            }
         }
     }
 
@@ -209,8 +256,15 @@ namespace screens
         {
             return;
         }
-        events->fireEvent(NAVIGATION_MAIN_MENU, transitionData());
-        hide();
+        if (editingPlayers)
+        {
+            exitPlayerEditMode();
+        }
+        else
+        {
+            events->fireEvent(NAVIGATION_MAIN_MENU, transitionData());
+            hide();
+        }
     }
 
     void settingsMenu::selectButton(int index) const
@@ -222,6 +276,18 @@ namespace screens
     void settingsMenu::deselectButton(int index) const
     {
         auto button = static_cast<elements::card*>(rdr->getElement(buttons[index].id));
+        button->deselect();
+    }
+
+    void settingsMenu::selectPlayerButton(int index) const
+    {
+        auto button = static_cast<elements::card*>(rdr->getElement(playersButtons[index].id));
+        button->select();
+    }
+
+    void settingsMenu::deselectPlayerButton(int index) const
+    {
+        auto button = static_cast<elements::card*>(rdr->getElement(playersButtons[index].id));
         button->deselect();
     }
 
@@ -285,13 +351,108 @@ namespace screens
         rdr->setDirty();
     }
 
-    void settingsMenu::updatePlyersCount(int index, int size)
+    void settingsMenu::setupPlayerButton()
+    {
+        int size = 12;
+        playersButtons.resize(size);
+
+        std::stringstream ss;
+        int playerButtonWidth = 1;
+        int playerButtonHeight = 1;
+        int lastX = 0;
+        int lastY = 0;
+
+        for (int i = 0; i < size; ++i)
+        {
+            configurePlayerButton(
+                i,
+                playerButtonWidth, playerButtonHeight,
+                lastX, lastY,
+                "Not Setup",
+                "Player: ", "",
+                ss,
+                [this, i]
+                {
+                    openStringEditBox("Enter Player Name:", players[i], [this, i]
+                    {
+                        auto playerButton = static_cast<elements::card*>(rdr->getElement(playersButtons[i].id));
+                        playerButton->setCenterText(players[i]);
+                        rdr->setDirty();
+                    });
+                },
+                nullptr,
+                nullptr
+            );
+        }
+    }
+
+    void settingsMenu::updatePlayersCount(int index, int size)
     {
         players.resize(size);
         std::stringstream ss;
         ss << "Number of Players: [" << size << "]";
         auto playersButton = static_cast<elements::card*>(rdr->getElement(buttons[index].id));
         playersButton->setCenterText(ss.str());
+
+        auto windowSize = rdr->getWindowSize();
+        int offset = 0;
+        int border = 1;
+        int upperSide = 20;
+        int columnCount = 4;
+        int lineCount = 3;
+        int playerButtonWidth = windowSize.X / columnCount - border * 2 - offset;
+        int playerButtonHeight = max(3, (windowSize.Y - border * 2 - upperSide) / (size) - offset);
+        int column = 0;
+        int line = 0;
+        int lastX = border;
+        int lastY = upperSide + border;
+
+        int i = 0;
+        for (; i < size; ++i)
+        {
+            elements::card* playerButton = static_cast<elements::card*>(rdr->getElement(playersButtons[i].id));
+            playerButton->setPosition(COORD{
+                static_cast<SHORT>(lastX),
+                static_cast<SHORT>(lastY)
+            });
+            playerButton->setSize(COORD{
+                static_cast<SHORT>(playerButtonWidth),
+                static_cast<SHORT>(playerButtonHeight)
+            });
+            playerButton->setCenterText(players[i]);
+            line++;
+            if (line >= lineCount)
+            {
+                line = 0;
+                column++;
+            }
+            lastX = border + column * playerButtonWidth + offset;
+            lastY = upperSide + border + line * playerButtonHeight + offset;
+        }
+        for (int n = playersButtons.size(); i < n; ++i)
+        {
+            elements::card* playerButton = static_cast<elements::card*>(rdr->getElement(playersButtons[i].id));
+            playerButton->setPosition(COORD{0, 0});
+            playerButton->setSize(COORD{0, 0});
+            playerButton->setCenterText("");
+        }
+
+        rdr->setDirty();
+    }
+
+    void settingsMenu::enterPlayerEditMode()
+    {
+        editingPlayers = true;
+        deselectButton(currentButton);
+        selectPlayerButton(currentPlayerButton);
+        rdr->setDirty();
+    }
+
+    void settingsMenu::exitPlayerEditMode()
+    {
+        editingPlayers = false;
+        selectButton(currentButton);
+        deselectPlayerButton(currentPlayerButton);
         rdr->setDirty();
     }
 
@@ -330,5 +491,42 @@ namespace screens
         buttons[index].action = action;
         buttons[index].actionLeft = actionLeft;
         buttons[index].actionRight = actionRight;
+    }
+
+    template <typename T>
+    void settingsMenu::configurePlayerButton(
+        int index,
+        int buttonWidth,
+        int buttonHeight,
+        int positionX,
+        int positionY,
+        T value,
+        std::string prefix,
+        std::string suffix,
+        std::stringstream& ss,
+        std::function<void()> action,
+        std::function<void()> actionLeft,
+        std::function<void()> actionRight
+    )
+    {
+        ss.str("");
+        ss << prefix << value << suffix;
+
+        playersButtons[index].id = rdr->addElement<elements::card>(
+            COORD{
+                static_cast<SHORT>(positionX),
+                static_cast<SHORT>(positionY),
+            }, COORD{
+                static_cast<SHORT>(buttonWidth),
+                static_cast<SHORT>(buttonHeight),
+            },
+            '+',
+            'g',
+            "",
+            ss.str()
+        );
+        playersButtons[index].action = action;
+        playersButtons[index].actionLeft = actionLeft;
+        playersButtons[index].actionRight = actionRight;
     }
 }

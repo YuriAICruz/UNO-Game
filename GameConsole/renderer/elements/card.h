@@ -49,6 +49,7 @@ namespace elements
         void select();
         void deselect();
         void setPosition(COORD pos) override;
+        void setSize(COORD s) override;
         void setTitleText(std::string newText);
         void setCenterText(std::string newText);
 

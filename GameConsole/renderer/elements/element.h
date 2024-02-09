@@ -31,21 +31,26 @@ namespace elements
         }
 
         virtual ~element() = default;
-        virtual void draw(std::vector<std::vector<renderer::bufferData>>* buffer) const const = 0;
+        virtual void draw(std::vector<std::vector<renderer::bufferData>>* buffer) const = 0;
 
         size_t getId()
         {
             return id;
         }
 
-        virtual void setPosition(COORD position)
+        virtual void setPosition(COORD pos)
         {
-            this->position = position;
+            this->position = pos;
         }
 
         COORD getSize()
         {
             return size;
+        }
+
+        virtual void setSize(COORD s)
+        {
+            this->size = s;
         }
     };
 }

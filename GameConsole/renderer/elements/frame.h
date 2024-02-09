@@ -35,5 +35,6 @@ namespace elements
         void setFrame(wchar_t topLeft, wchar_t topRight, wchar_t bottomLeft, wchar_t bottomRight, wchar_t horizontal,
                       wchar_t vertical);
         void setPosition(COORD pos) override;
+        void setSize(COORD s) override;
     };
 }

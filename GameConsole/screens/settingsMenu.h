@@ -13,6 +13,14 @@ namespace screens
         button buttons[4];
         std::vector<button> playersButtons;
         int currentButton = 0;
+        int currentPlayerButton = 0;
+
+        std::vector<std::string> players;
+        std::string configFilePath = "Data\\deck_setup.json";
+        int handCount = 7;
+        size_t seed = 12341234;
+        bool editingPlayers;
+
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
                 NAVIGATION_MAIN_MENU,
@@ -32,10 +40,7 @@ namespace screens
             },
         };
 
-        std::vector<std::string> players;
-        std::string configFilePath = "Data\\deck_setup.json";
-        int handCount = 7;
-        size_t seed = 12341234;
+        void setupPlayerButton();
 
     public:
         settingsMenu(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events)
@@ -54,6 +59,7 @@ namespace screens
                 ss << "Player 0" << (i + 1);
                 players[i] = ss.str();
             }
+            playersButtons.resize(12);
         }
 
         ~settingsMenu() override
@@ -83,6 +89,8 @@ namespace screens
         void cancel(input::inputData data) override;
         void selectButton(int index) const;
         void deselectButton(int index) const;
+        void selectPlayerButton(int index) const;
+        void deselectPlayerButton(int index) const;
         template <typename T>
         bool editBoxSetup(std::string title, T& data, std::string& newValue);
         void editBoxTearDown(const std::function<void()>& callback);
@@ -111,7 +119,9 @@ namespace screens
 
     private:
         void updateStartingCardsNumber(int index);
-        void updatePlyersCount(int index, int size);
+        void updatePlayersCount(int index, int size);
+        void enterPlayerEditMode();
+        void exitPlayerEditMode();
         template <typename T>
         void configureButton(
             int index,
@@ -127,5 +137,10 @@ namespace screens
             std::function<void()> actionLeft,
             std::function<void()> actionRight
         );
+        template <class T>
+        void configurePlayerButton(int index, int buttonWidth, int buttonHeight, int positionX, int positionY, T value,
+                                   std::string prefix, std::string suffix, std::stringstream& ss,
+                                   std::function<void()> action,
+                                   std::function<void()> actionLeft, std::function<void()> actionRight);
     };
 }

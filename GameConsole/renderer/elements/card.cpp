@@ -42,6 +42,14 @@ namespace elements
                 });
     }
 
+    void card::setSize(COORD s)
+    {
+        element::setSize(s);
+        frameElement.setSize(s);
+        textElement.setSize(s);
+        centerTextElement.setSize(s);
+    }
+
     void card::setTitleText(std::string newText)
     {
         title = newText;
