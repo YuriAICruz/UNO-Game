@@ -7,7 +7,7 @@
 
 namespace screens
 {
-    class settingsMenu : public IScreen
+    class settingsMenuScreen : public IScreen
     {
     private:
         button buttons[4];
@@ -24,26 +24,26 @@ namespace screens
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
                 NAVIGATION_MAIN_MENU,
-                eventBus::delegate<transitionData>{std::bind(&settingsMenu::onHide, this, std::placeholders::_1)}
+                eventBus::delegate<transitionData>{std::bind(&settingsMenuScreen::onHide, this, std::placeholders::_1)}
             },
             {
                 NAVIGATION_SETTINGS,
-                eventBus::delegate<transitionData>{std::bind(&settingsMenu::onShow, this, std::placeholders::_1)}
+                eventBus::delegate<transitionData>{std::bind(&settingsMenuScreen::onShow, this, std::placeholders::_1)}
             },
             {
                 NAVIGATION_GAME,
-                eventBus::delegate<transitionData>{std::bind(&settingsMenu::onHide, this, std::placeholders::_1)}
+                eventBus::delegate<transitionData>{std::bind(&settingsMenuScreen::onHide, this, std::placeholders::_1)}
             },
             {
                 NAVIGATION_GAME_OVER,
-                eventBus::delegate<transitionData>{std::bind(&settingsMenu::onHide, this, std::placeholders::_1)}
+                eventBus::delegate<transitionData>{std::bind(&settingsMenuScreen::onHide, this, std::placeholders::_1)}
             },
         };
 
         void setupPlayerButton();
 
     public:
-        settingsMenu(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events)
+        settingsMenuScreen(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events)
             : IScreen(rdr, events)
         {
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
@@ -63,7 +63,7 @@ namespace screens
             playersButtons.resize(12);
         }
 
-        ~settingsMenu() override
+        ~settingsMenuScreen() override
         {
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
             {

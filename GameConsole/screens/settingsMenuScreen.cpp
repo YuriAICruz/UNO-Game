@@ -1,4 +1,4 @@
-﻿#include "settingsMenu.h"
+﻿#include "settingsMenuScreen.h"
 
 #include <sstream>
 
@@ -6,7 +6,7 @@
 
 namespace screens
 {
-    void settingsMenu::show()
+    void settingsMenuScreen::show()
     {
         IScreen::show();
 
@@ -145,7 +145,7 @@ namespace screens
         rdr->setDirty();
     }
 
-    void settingsMenu::moveUp(input::inputData data)
+    void settingsMenuScreen::moveUp(input::inputData data)
     {
         if (blockInputs)
         {
@@ -175,7 +175,7 @@ namespace screens
         rdr->setDirty();
     }
 
-    void settingsMenu::moveDown(input::inputData data)
+    void settingsMenuScreen::moveDown(input::inputData data)
     {
         if (blockInputs)
         {
@@ -197,7 +197,7 @@ namespace screens
         rdr->setDirty();
     }
 
-    void settingsMenu::moveLeft(input::inputData data)
+    void settingsMenuScreen::moveLeft(input::inputData data)
     {
         if (blockInputs)
         {
@@ -213,7 +213,7 @@ namespace screens
         }
     }
 
-    void settingsMenu::moveRight(input::inputData data)
+    void settingsMenuScreen::moveRight(input::inputData data)
     {
         if (blockInputs)
         {
@@ -229,7 +229,7 @@ namespace screens
         }
     }
 
-    void settingsMenu::accept(input::inputData data)
+    void settingsMenuScreen::accept(input::inputData data)
     {
         if (blockInputs)
         {
@@ -251,7 +251,7 @@ namespace screens
         }
     }
 
-    void settingsMenu::cancel(input::inputData data)
+    void settingsMenuScreen::cancel(input::inputData data)
     {
         if (blockInputs)
         {
@@ -268,32 +268,32 @@ namespace screens
         }
     }
 
-    void settingsMenu::selectButton(int index) const
+    void settingsMenuScreen::selectButton(int index) const
     {
         auto button = static_cast<elements::card*>(rdr->getElement(buttons[index].id));
         button->select();
     }
 
-    void settingsMenu::deselectButton(int index) const
+    void settingsMenuScreen::deselectButton(int index) const
     {
         auto button = static_cast<elements::card*>(rdr->getElement(buttons[index].id));
         button->deselect();
     }
 
-    void settingsMenu::selectPlayerButton(int index) const
+    void settingsMenuScreen::selectPlayerButton(int index) const
     {
         auto button = static_cast<elements::card*>(rdr->getElement(playersButtons[index].id));
         button->select();
     }
 
-    void settingsMenu::deselectPlayerButton(int index) const
+    void settingsMenuScreen::deselectPlayerButton(int index) const
     {
         auto button = static_cast<elements::card*>(rdr->getElement(playersButtons[index].id));
         button->deselect();
     }
 
     template <typename T>
-    bool settingsMenu::editBoxSetup(std::string title, T& data, std::string& newValue)
+    bool settingsMenuScreen::editBoxSetup(std::string title, T& data, std::string& newValue)
     {
         blockInputs = true;
         rdr->blank();
@@ -307,13 +307,13 @@ namespace screens
         return false;
     }
 
-    void settingsMenu::editBoxTearDown(const std::function<void()>& callback)
+    void settingsMenuScreen::editBoxTearDown(const std::function<void()>& callback)
     {
         callback();
         blockInputs = false;
     }
 
-    void settingsMenu::openStringEditBox(std::string title, std::string& data, const std::function<void()>& callback)
+    void settingsMenuScreen::openStringEditBox(std::string title, std::string& data, const std::function<void()>& callback)
     {
         std::string newValue;
         if (editBoxSetup(title, data, newValue))
@@ -323,7 +323,7 @@ namespace screens
         editBoxTearDown(callback);
     }
 
-    void settingsMenu::openSizeTEditBox(std::string title, size_t& data, const std::function<void()>& callback)
+    void settingsMenuScreen::openSizeTEditBox(std::string title, size_t& data, const std::function<void()>& callback)
     {
         std::string newValue;
         if (editBoxSetup(title, data, newValue))
@@ -343,7 +343,7 @@ namespace screens
         editBoxTearDown(callback);
     }
 
-    void settingsMenu::updateStartingCardsNumber(int index)
+    void settingsMenuScreen::updateStartingCardsNumber(int index)
     {
         std::stringstream ss;
         ss << "Number of starting cards [" << handCount << "]";
@@ -352,7 +352,7 @@ namespace screens
         rdr->setDirty();
     }
 
-    void settingsMenu::setupPlayerButton()
+    void settingsMenuScreen::setupPlayerButton()
     {
         int size = 12;
         playersButtons.resize(size);
@@ -387,7 +387,7 @@ namespace screens
         }
     }
 
-    void settingsMenu::updatePlayersCount(int index, int size)
+    void settingsMenuScreen::updatePlayersCount(int index, int size)
     {
         players.resize(size);
         std::stringstream ss;
@@ -441,7 +441,7 @@ namespace screens
         rdr->setDirty();
     }
 
-    void settingsMenu::enterPlayerEditMode()
+    void settingsMenuScreen::enterPlayerEditMode()
     {
         editingPlayers = true;
         deselectButton(currentButton);
@@ -449,7 +449,7 @@ namespace screens
         rdr->setDirty();
     }
 
-    void settingsMenu::exitPlayerEditMode()
+    void settingsMenuScreen::exitPlayerEditMode()
     {
         editingPlayers = false;
         selectButton(currentButton);
@@ -458,7 +458,7 @@ namespace screens
     }
 
     template <typename T>
-    void settingsMenu::configureButton(
+    void settingsMenuScreen::configureButton(
         int index,
         int buttonWidth,
         int buttonHeight,
@@ -495,7 +495,7 @@ namespace screens
     }
 
     template <typename T>
-    void settingsMenu::configurePlayerButton(
+    void settingsMenuScreen::configurePlayerButton(
         int index,
         int buttonWidth,
         int buttonHeight,

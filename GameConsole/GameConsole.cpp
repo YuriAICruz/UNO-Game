@@ -6,7 +6,7 @@
 #include "screens/mainMenuScreen.h"
 #include "eventIds.h"
 #include "screens/gameScreen.h"
-#include "screens/settingsMenu.h"
+#include "screens/settingsMenuScreen.h"
 #include "StateManager/gameStateManager.h"
 
 int main()
@@ -37,7 +37,7 @@ int main()
         strapper->create<renderer::renderer>(),
         strapper->create<eventBus::eventBus>()
     );
-    std::shared_ptr<screens::settingsMenu> settingsMenu = std::make_shared<screens::settingsMenu>(
+    std::shared_ptr<screens::settingsMenuScreen> settingsMenu = std::make_shared<screens::settingsMenuScreen>(
         strapper->create<renderer::renderer>(),
         strapper->create<eventBus::eventBus>()
     );
