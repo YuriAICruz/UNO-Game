@@ -19,12 +19,14 @@ private:
 public:
     gameStateManager();
     void makePlayerDraw(turnSystem::IPlayer* player, int count);
-    virtual void startGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath, size_t seed);
+    virtual void setupGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath, size_t seed);
+    virtual void startGame();
     virtual turnSystem::IPlayer* getCurrentPlayer() const;
     virtual turnSystem::IPlayer* getNextPlayer() const;
     virtual turnSystem::IPlayer* getPlayer(int i) const;
     virtual cards::ICard* getTopCard() const;
     virtual bool tryExecutePlayerAction(cards::ICard* card);
+    int getStartHandSize();
 
 private:
     void finishAction(cards::ICard* card) const;

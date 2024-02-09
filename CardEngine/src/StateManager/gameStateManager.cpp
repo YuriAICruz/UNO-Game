@@ -20,19 +20,19 @@ void gameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
     }
 }
 
-void gameStateManager::startGame(
-    std::vector<std::string>& players,
-    int handSize,
-    std::string deckConfigFilePath,
-    size_t seed
-)
+void gameStateManager::setupGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath,
+    size_t seed)
 {
+    this->handSize = handSize;
     mainDeck = std::make_unique<decks::jsonDeck>(deckConfigFilePath);
     discardDeck = std::make_unique<decks::deck>();
 
     turner = std::make_unique<turnSystem::turnSystem>(players);
     mainDeck->shuffle(seed);
+}
 
+void gameStateManager::startGame()
+{
     for (int i = 0, n = turner->playersCount(); i < n; ++i)
     {
         auto player = turner->getPlayer(i);
@@ -95,6 +95,11 @@ bool gameStateManager::tryExecutePlayerAction(cards::ICard* card)
         finishAction(card);
         return true;
     }
+}
+
+int gameStateManager::getStartHandSize()
+{
+    return handSize;
 }
 
 void gameStateManager::finishAction(cards::ICard* card) const
