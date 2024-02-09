@@ -14,6 +14,10 @@ namespace screens
         size_t handCardsPoolId;
         std::vector<button> cardListButtons;
         button optionButtons[3];
+        button popupButton;
+        bool isPopupOpen = false;
+        bool selectingCards = false;
+        int currentCardButton;
 
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
@@ -76,5 +80,7 @@ namespace screens
     private:
         void ShowCurrentPlayerCards();
         void UpdateCurrentPlayerName();
+        void hidePopup();
+        void openWarningPopup(std::string bodyText);
     };
 }
