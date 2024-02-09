@@ -15,7 +15,7 @@ namespace turnSystem
         std::shared_ptr<eventBus::eventBus> events;
 
     public:
-        localPlayer(std::string name, std::shared_ptr<eventBus::eventBus> events, size_t id) : IPlayer(id),
+        localPlayer(std::string name, std::shared_ptr<eventBus::eventBus> events, size_t id) : IPlayer(id, name),
             events(events)
         {
         }

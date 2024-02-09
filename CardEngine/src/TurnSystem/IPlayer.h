@@ -13,7 +13,7 @@ namespace turnSystem
         std::string name;
 
     public:
-        IPlayer(size_t id) : id(id)
+        IPlayer(size_t id, std::string name) : id(id), name(name)
         {
         }
 

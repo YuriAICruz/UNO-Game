@@ -111,9 +111,6 @@ namespace screens
             ""
         );
 
-        int cardSizeX = 8;
-        int cardSizeY = 6;
-
         topCardId = rdr->addElement<elements::card>(
             COORD{
                 static_cast<SHORT>(windowSize.X / 2),
@@ -140,30 +137,12 @@ namespace screens
             'w',
             1
         );
-        auto pool = dynamic_cast<elements::horizontalLayoutGroup*>(rdr->getElement(handCardsPoolId));
         int baseCardPoolSize = gameManager->getStartHandSize();
-        cardListButtons.resize(baseCardPoolSize);
-        for (int i = 0; i < baseCardPoolSize; ++i)
-        {
-            cardListButtons[i].id = pool->addElement<elements::card>(
-                COORD{
-                    static_cast<SHORT>(lastX),
-                    static_cast<SHORT>(lastY)
-                },
-                COORD{
-                    static_cast<SHORT>(cardSizeX),
-                    static_cast<SHORT>(cardSizeY)
-                },
-                ' ',
-                'w',
-                "type",
-                "num");
-        }
-        pool->resize();
+        expandCardsPool(baseCardPoolSize);
 
-        if(gameManager->isGameStarted())
+        if (gameManager->isGameStarted())
         {
-            showCurrentPlayerCards();   
+            showCurrentPlayerCards();
         }
 
         rdr->setDirty();
@@ -238,30 +217,94 @@ namespace screens
         );
     }
 
+    void gameScreen::expandCardsPool(int handSize)
+    {
+        COORD windowSize = rdr->getWindowSize();
+        int border = 5;
+        int lastX = border;
+        int lastY = windowSize.Y - cardSizeY;
+        auto pool = dynamic_cast<elements::horizontalLayoutGroup*>(rdr->getElement(handCardsPoolId));
+        int offset = handSize - cardListButtons.size();
+        cardListButtons.resize(handSize);
+        for (int i = 0; i < offset; ++i)
+        {
+            cardListButtons[i].id = pool->addElement<elements::card>(
+                COORD{
+                    static_cast<SHORT>(lastX),
+                    static_cast<SHORT>(lastY)
+                },
+                COORD{
+                    static_cast<SHORT>(cardSizeX),
+                    static_cast<SHORT>(cardSizeY)
+                },
+                ' ',
+                'w',
+                "type",
+                "num");
+        }
+        pool->resize();
+    }
+
+    void gameScreen::hideCard(std::vector<button>::const_reference button)
+    {
+        auto pool = dynamic_cast<elements::horizontalLayoutGroup*>(rdr->getElement(handCardsPoolId));
+        auto cardElement = dynamic_cast<elements::card*>(pool->getElement(button.id));
+        cardElement->setSize(COORD{0, 0});
+    }
+
     void gameScreen::showCurrentPlayerCards()
     {
+        auto pool = dynamic_cast<elements::horizontalLayoutGroup*>(rdr->getElement(handCardsPoolId));
+        std::list<cards::ICard*> hand = gameManager->getCurrentPlayer()->getHand();
+        int handSize = hand.size();
+        if (handSize > cardListButtons.size())
+        {
+            expandCardsPool(handSize);
+        }
+        int i = 0;
+        for (auto card : hand)
+        {
+            auto cardElement = dynamic_cast<elements::card*>(pool->getElement(cardListButtons[i].id));
+            setCardData(cardElement, card);
+            i++;
+        }
+        for (int n = cardListButtons.size(); i < n; ++i)
+        {
+            hideCard(cardListButtons[i]);
+        }
         updateTopCard();
         updateCurrentPlayerName();
     }
 
-    void gameScreen::updateTopCard()
+    void gameScreen::setCardData(elements::card* cardElement, cards::ICard* card)
     {
-        auto topCardElement = dynamic_cast<elements::card*>(rdr->getElement(topCardId));
-        auto topCard = gameManager->getTopCard();
+        cardElement->setTitleText(card->typeName());
 
-        topCardElement->setTitleText(topCard->typeName());
-
-        if (topCard->actionType()->isEqual(typeid(cards::actions::base)) ||
-            topCard->actionType()->isEqual(typeid(cards::actions::draw)))
+        if (card->actionType()->isEqual(typeid(cards::actions::base)) ||
+            card->actionType()->isEqual(typeid(cards::actions::draw)))
         {
-            topCardElement->setCenterText(std::to_string(topCard->Number()));
+            cardElement->setCenterText(std::to_string(card->Number()));
         }
         else
         {
-            topCardElement->setCenterText("");
+            cardElement->setCenterText("");
         }
 
-        topCardElement->setColor(topCard->Color());
+        cardElement->setColor(card->Color());
+        cardElement->setSize(
+            COORD{
+                static_cast<SHORT>(cardSizeX),
+                static_cast<SHORT>(cardSizeY)
+            }
+        );
+    }
+
+    void gameScreen::updateTopCard()
+    {
+        elements::card* topCardElement = dynamic_cast<elements::card*>(rdr->getElement(topCardId));
+        cards::ICard* topCard = gameManager->getTopCard();
+        setCardData(topCardElement, topCard);
+
         rdr->isDirty();
     }
 
