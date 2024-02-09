@@ -7,7 +7,7 @@
 #include "../EventBus/eventBus.h"
 #include "Events/endTurnEventData.h"
 
-namespace TurnSystem
+namespace turnSystem
 {
     turnSystem::turnSystem(int numberOfPlayers)
     {
@@ -28,6 +28,16 @@ namespace TurnSystem
         return players[currentTurn].get();
     }
 
+    IPlayer* turnSystem::getNextPlayer() const
+    {
+        return players[nextTurnIndex()].get();
+    }
+
+    IPlayer* turnSystem::getPlayer(int i) const
+    {
+        return players[i].get();
+    }
+
     void turnSystem::turnEnded(Events::endTurnEventData& data)
     {
         endTurn();
@@ -35,11 +45,26 @@ namespace TurnSystem
 
     void turnSystem::endTurn()
     {
-        currentTurn = (currentTurn + 1) % playersCount();
+        currentTurn = nextTurnIndex();
     }
 
     int turnSystem::playersCount() const
     {
         return playersSize;
+    }
+
+    void turnSystem::reverse()
+    {
+        direction *= -1;
+    }
+
+    int turnSystem::nextTurnIndex() const
+    {
+        int index = (currentTurn + direction) % playersCount();
+        if (index < 0)
+        {
+            index = playersCount() + index;
+        }
+        return index;
     }
 }

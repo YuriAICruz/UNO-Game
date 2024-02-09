@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-namespace TurnSystem
+namespace turnSystem
 {
     namespace Events
     {

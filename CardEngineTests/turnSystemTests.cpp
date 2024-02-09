@@ -2,9 +2,9 @@
 
 #include "TurnSystem/turnSystem.h"
 
-std::unique_ptr<TurnSystem::ITurnSystem> createTurnSystem(int players)
+std::unique_ptr<turnSystem::ITurnSystem> createTurnSystem(int players)
 {
-    return std::make_unique<TurnSystem::turnSystem>(players);
+    return std::make_unique<turnSystem::turnSystem>(players);
 }
 
 TEST(TurnSystem, Setup)
@@ -22,11 +22,11 @@ TEST(TurnSystem, GetAvailablePlayer)
 
 TEST(TurnSystem, NextTurn)
 {
-    std::unique_ptr<TurnSystem::ITurnSystem> turner = createTurnSystem(2);
-    TurnSystem::IPlayer* player = turner->getCurrentPlayer();
+    std::unique_ptr<turnSystem::ITurnSystem> turner = createTurnSystem(2);
+    turnSystem::IPlayer* player = turner->getCurrentPlayer();
     EXPECT_TRUE(player!=nullptr);
     turner->endTurn();
-    TurnSystem::IPlayer* player2 = turner->getCurrentPlayer();
+    turnSystem::IPlayer* player2 = turner->getCurrentPlayer();
     EXPECT_NE(*player, *player2);
     player2->endTurn();
     EXPECT_EQ(*player, *turner->getCurrentPlayer());
@@ -36,10 +36,28 @@ TEST(TurnSystem, RunFullCircle)
 {
     auto turner = createTurnSystem(10);
     int count = turner->playersCount();
-    TurnSystem::IPlayer* player = turner->getCurrentPlayer();
+    turnSystem::IPlayer* player = turner->getCurrentPlayer();
     for (int i = 0; i < count; ++i)
     {
         turner->endTurn();
     }
     EXPECT_EQ(*player, *turner->getCurrentPlayer());
+}
+
+TEST(TurnSystem, Reverse)
+{
+    auto turner = createTurnSystem(3);
+
+    turnSystem::IPlayer* playerA = turner->getCurrentPlayer();
+    turner->endTurn();
+    EXPECT_NE(*playerA, *turner->getCurrentPlayer());
+    
+    turnSystem::IPlayer* playerB = turner->getCurrentPlayer();
+    turner->reverse();
+    turner->endTurn();
+    EXPECT_EQ(*playerA, *turner->getCurrentPlayer());
+    
+    turner->endTurn();
+    EXPECT_NE(*playerA, *turner->getCurrentPlayer());
+    EXPECT_NE(*playerB, *turner->getCurrentPlayer());
 }

@@ -142,19 +142,27 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="json.hpp" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="src\Bootstrapper\bootstrapper.h" />
+    <ClInclude Include="src\Cards\ActionTypes\actionType.h" />
+    <ClInclude Include="src\Cards\ActionTypes\base.h" />
+    <ClInclude Include="src\Cards\ActionTypes\draw.h" />
+    <ClInclude Include="src\Cards\ActionTypes\reverse.h" />
+    <ClInclude Include="src\Cards\ActionTypes\skip.h" />
     <ClInclude Include="src\Cards\cardFactory.h" />
     <ClInclude Include="src\Cards\drawCard.h" />
     <ClInclude Include="src\Cards\baseCard.h" />
     <ClInclude Include="src\Cards\ICard.h" />
-    <ClInclude Include="src\Cards\jsonDeck.h" />
     <ClInclude Include="src\Cards\reverseCard.h" />
     <ClInclude Include="src\Cards\skipCard.h" />
     <ClInclude Include="src\Decks\deck.h" />
     <ClInclude Include="src\Decks\IDeck.h" />
+    <ClInclude Include="src\Decks\jsonDeck.h" />
     <ClInclude Include="src\EventBus\abstractEventBase.h" />
     <ClInclude Include="src\EventBus\alreadyExistException.h" />
     <ClInclude Include="src\EventBus\event.h" />
     <ClInclude Include="src\EventBus\eventBus.h" />
+    <ClInclude Include="src\StateManager\gameStateManager.h" />
+    <ClInclude Include="src\StateManager\IStateManager.h" />
     <ClInclude Include="src\TurnSystem\Events\endTurnEventData.h" />
     <ClInclude Include="src\TurnSystem\IPlayer.h" />
     <ClInclude Include="src\TurnSystem\ITurnSystem.h" />
@@ -169,91 +177,21 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\Bootstrapper\bootstrapper.cpp" />
     <ClCompile Include="src\Cards\cardFactory.cpp" />
     <ClCompile Include="src\Cards\drawCard.cpp" />
     <ClCompile Include="src\Cards\baseCard.cpp" />
-    <ClCompile Include="src\Cards\jsonDeck.cpp" />
     <ClCompile Include="src\Cards\reverseCard.cpp" />
     <ClCompile Include="src\Cards\skipCard.cpp" />
     <ClCompile Include="src\Decks\deck.cpp" />
     <ClCompile Include="src\Decks\IDeck.cpp" />
+    <ClCompile Include="src\Decks\jsonDeck.cpp"/>
     <ClCompile Include="src\EventBus\abstractEventBase.cpp" />
     <ClCompile Include="src\EventBus\alreadyExistException.cpp" />
     <ClCompile Include="src\EventBus\event.cpp" />
-    <ClCompile Include="src\EventBus\eventBus.cpp">
-      <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <Optimization>Disabled</Optimization>
-      <SupportJustMyCode>true</SupportJustMyCode>
-      <AssemblerOutput>NoListing</AssemblerOutput>
-      <AssemblerListingLocation>x64\Debug\</AssemblerListingLocation>
-      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
-      <BrowseInformation>false</BrowseInformation>
-      <BrowseInformationFile>x64\Debug\</BrowseInformationFile>
-      <CompileAs>Default</CompileAs>
-      <ConformanceMode>true</ConformanceMode>
-      <DiagnosticsFormat>Column</DiagnosticsFormat>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ErrorReporting>Prompt</ErrorReporting>
-      <ExpandAttributedSource>false</ExpandAttributedSource>
-      <ExceptionHandling>Sync</ExceptionHandling>
-      <EnableASAN>false</EnableASAN>
-      <EnableFuzzer>false</EnableFuzzer>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <FloatingPointModel>Precise</FloatingPointModel>
-      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
-      <GenerateModuleDependencies>false</GenerateModuleDependencies>
-      <GenerateSourceDependencies>false</GenerateSourceDependencies>
-      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <IntrinsicFunctions>false</IntrinsicFunctions>
-      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
-      <LanguageStandard>Default</LanguageStandard>
-      <LanguageStandard_C>Default</LanguageStandard_C>
-      <MinimalRebuild>false</MinimalRebuild>
-      <ModuleDependenciesFile>x64\Debug\</ModuleDependenciesFile>
-      <ModuleOutputFile>x64\Debug\</ModuleOutputFile>
-      <OmitDefaultLibName>false</OmitDefaultLibName>
-      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <ObjectFileName>x64\Debug\</ObjectFileName>
-      <CallingConvention>Cdecl</CallingConvention>
-      <ProgramDataBaseFileName>G:\Projects\Cpp\UnoGame\x64\Debug\CardEngine.pdb</ProgramDataBaseFileName>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>x64\Debug\CardEngine.pch</PrecompiledHeaderOutputFile>
-      <PreprocessToFile>false</PreprocessToFile>
-      <PreprocessKeepComments>false</PreprocessKeepComments>
-      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
-      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
-      <ShowIncludes>false</ShowIncludes>
-      <SourceDependenciesFile>x64\Debug\</SourceDependenciesFile>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <BufferSecurityCheck>true</BufferSecurityCheck>
-      <SmallerTypeCheck>false</SmallerTypeCheck>
-      <SpectreMitigation>false</SpectreMitigation>
-      <StructMemberAlignment>Default</StructMemberAlignment>
-      <TrackerLogDirectory>x64\Debug\CardEngine.tlog\</TrackerLogDirectory>
-      <TranslateIncludes>false</TranslateIncludes>
-      <MinimalRebuildFromTracking>true</MinimalRebuildFromTracking>
-      <TreatWarningAsError>false</TreatWarningAsError>
-      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-      <UseFullPaths>true</UseFullPaths>
-      <WarningLevel>Level3</WarningLevel>
-      <XMLDocumentationFileName>x64\Debug\</XMLDocumentationFileName>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <IntelJCCErratum>false</IntelJCCErratum>
-      <BuildStlModules>false</BuildStlModules>
-      <TreatAngleIncludeAsExternal>false</TreatAngleIncludeAsExternal>
-      <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
-      <TreatExternalTemplatesAsInternal>true</TreatExternalTemplatesAsInternal>
-      <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
-      <PreprocessorDefinitions>_DEBUG;CARDENGINE_EXPORTS;_WINDOWS;_USRDLL;_UNICODE;UNICODE;</PreprocessorDefinitions>
-      <SDLCheck>true</SDLCheck>
-      <LibCompiled>true</LibCompiled>
-    </ClCompile>
+    <ClCompile Include="src\EventBus\eventBus.cpp"/>
+    <ClCompile Include="src\StateManager\gameStateManager.cpp" />
+    <ClCompile Include="src\StateManager\IStateManager.cpp" />
     <ClCompile Include="src\TurnSystem\IPlayer.cpp" />
     <ClCompile Include="src\TurnSystem\ITurnSystem.cpp" />
     <ClCompile Include="src\TurnSystem\localPlayer.cpp" />

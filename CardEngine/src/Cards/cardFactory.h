@@ -5,7 +5,7 @@
 
 #include "ICard.h"
 
-namespace Cards
+namespace cards
 {
     class cardFactory
     {

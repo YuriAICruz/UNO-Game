@@ -1,13 +1,17 @@
 ﻿#pragma once
-#include "../../framework.h"
+#include <memory>
 
-namespace Cards
+#include "../../framework.h"
+#include "ActionTypes/actionType.h"
+
+namespace cards
 {
     class ENGINE_API ICard
     {
     protected:
         int number = -1;
         char color = 0;
+        std::unique_ptr<actions::actionType> action;
 
     public:
         virtual ~ICard() = default;
@@ -34,7 +38,7 @@ namespace Cards
 
         virtual bool equal(const ICard& other) const = 0;
 
-        virtual bool sameColor(ICard& other) const
+        virtual bool sameColor(const ICard& other) const
         {
             return color == other.color;
         }
@@ -42,6 +46,18 @@ namespace Cards
         virtual bool sameNumber(const ICard& other) const
         {
             return number == other.number;
+        }
+
+        virtual bool sameType(const ICard& other) const
+        {
+            return actionType()->isEqual(typeid(*other.action));
+        }
+
+        virtual bool hasAction() const = 0;
+
+        virtual actions::actionType* actionType() const
+        {
+            return action.get();
         }
     };
 }
