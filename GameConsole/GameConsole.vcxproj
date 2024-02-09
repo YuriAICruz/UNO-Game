@@ -112,6 +112,9 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <PreBuildEvent>
+      <Command>xcopy "$(SolutionDir)\CardEngineTests\Data" "$(TargetDir)\Data\" /E /Y</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -176,6 +179,9 @@
     <ClInclude Include="screens\settingsMenu.h" />
     <ClInclude Include="screens\transitionData.h" />
     <ClInclude Include="wInclude.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\CardEngineTests\Data\deck_setup.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -17,9 +17,9 @@ private:
     int handSize;
 
 public:
-    gameStateManager(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath, size_t seed);
+    gameStateManager();
     void makePlayerDraw(turnSystem::IPlayer* player, int count);
-    virtual void startGame();
+    virtual void startGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath, size_t seed);
     virtual turnSystem::IPlayer* getCurrentPlayer() const;
     virtual turnSystem::IPlayer* getNextPlayer() const;
     virtual turnSystem::IPlayer* getPlayer(int i) const;

@@ -13,7 +13,9 @@ int main()
     std::unique_ptr<bootstrapper> strapper = std::make_unique<bootstrapper>();
     strapper->bind<eventBus::eventBus>()->to<eventBus::eventBus>()->asSingleton();
     strapper->bind<renderer::renderer>()->to<renderer::renderer>()->asSingleton();
+    strapper->bind<gameStateManager>()->to<gameStateManager>()->asSingleton();
 
+    auto gameManager = strapper->create<gameStateManager>();
     auto rdr = strapper->create<renderer::renderer>();
     auto events = strapper->create<eventBus::eventBus>();
 
@@ -34,14 +36,23 @@ int main()
         strapper->create<renderer::renderer>(),
         strapper->create<eventBus::eventBus>()
     );
-    std::unique_ptr<screens::settingsMenu> settingsMenu = std::make_unique<screens::settingsMenu>(
+    std::shared_ptr<screens::settingsMenu> settingsMenu = std::make_shared<screens::settingsMenu>(
         strapper->create<renderer::renderer>(),
         strapper->create<eventBus::eventBus>()
     );
-    events->fireEvent(NAVIGATION_MAIN_MENU, screens::transitionData());
 
-    // std::make_unique<gameStateManager>(settingsMenu->getPlayers(), settingsMenu->getHandCount(),
-    //                                    settingsMenu->getConfigFilePath(), settingsMenu->getSeed());
+    events->subscribe<screens::transitionData>(
+        NAVIGATION_GAME, [settingsMenu, gameManager](screens::transitionData data)
+        {
+            gameManager->startGame(
+                settingsMenu->getPlayers(),
+                settingsMenu->getHandCount(),
+                settingsMenu->getConfigFilePath(),
+                settingsMenu->getSeed()
+            );
+        });
+
+    events->fireEvent(NAVIGATION_MAIN_MENU, screens::transitionData());
 
     while (true)
     {

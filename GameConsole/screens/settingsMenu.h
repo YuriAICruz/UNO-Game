@@ -107,12 +107,12 @@ namespace screens
             return configFilePath;
         }
 
-        int getHandCount()
+        int getHandCount() const
         {
             return handCount;
         }
 
-        size_t getSeed()
+        size_t getSeed() const
         {
             return seed;
         }
