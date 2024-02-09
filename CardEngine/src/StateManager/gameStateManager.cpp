@@ -8,7 +8,7 @@
 #include "../Decks/jsonDeck.h"
 #include "../TurnSystem/turnSystem.h"
 
-gameStateManager::gameStateManager(std::vector<std::string> players, int handSize, std::string deckConfigFilePath,
+gameStateManager::gameStateManager(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath,
                                    size_t seed) : seed(seed), handSize(handSize)
 {
     mainDeck = std::make_unique<decks::jsonDeck>(deckConfigFilePath);

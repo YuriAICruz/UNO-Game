@@ -56,7 +56,7 @@ namespace elements
     void card::setCenterText(std::string newText)
     {
         centerText = newText;
-        textElement.setText(centerText);
+        centerTextElement.setText(centerText);
         centerTextElement.setPosition(
                 COORD{
                     static_cast<SHORT>(position.X + (size.X / 2) - centerText.length() / 2),

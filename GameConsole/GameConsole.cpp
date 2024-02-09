@@ -41,7 +41,7 @@ int main()
     events->fireEvent(NAVIGATION_MAIN_MENU, screens::transitionData());
 
     // std::make_unique<gameStateManager>(settingsMenu->getPlayers(), settingsMenu->getHandCount(),
-    //                                    settingsMenu->getConfigFilePath(), settingsMenu->getSettings());
+    //                                    settingsMenu->getConfigFilePath(), settingsMenu->getSeed());
 
     while (true)
     {

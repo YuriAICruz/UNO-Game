@@ -107,6 +107,11 @@ namespace renderer
         clearScreen();
     }
 
+    void renderer::blank()
+    {
+        clearScreen();
+    }
+
     elements::element* renderer::getElement(size_t id) const
     {
         int index = 0;

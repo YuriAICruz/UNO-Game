@@ -27,6 +27,7 @@ namespace renderer
         void exit();
         void draw();
         void clear();
+        void blank();
 
 
         template <typename T, typename... Args>

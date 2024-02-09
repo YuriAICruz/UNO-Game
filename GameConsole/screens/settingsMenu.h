@@ -8,7 +8,8 @@ namespace screens
     class settingsMenu : public IScreen
     {
     private:
-        button buttons[1];
+        button buttons[4];
+        std::vector<button> playersButtons;
         int currentButton = 0;
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
@@ -29,6 +30,11 @@ namespace screens
             },
         };
 
+        std::vector<std::string> players;
+        std::string configFilePath = "Data\\deck_setup.json";
+        int handCount = 7;
+        size_t seed = 12341234;
+
     public:
         settingsMenu(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events)
             : IScreen(rdr, events)
@@ -44,7 +50,7 @@ namespace screens
         {
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
             {
-                events->unsubscribe<transitionData>(transitionMap.first, transitionMap.second);   
+                events->unsubscribe<transitionData>(transitionMap.first, transitionMap.second);
             }
         }
 
@@ -67,5 +73,26 @@ namespace screens
         void cancel(input::inputData data) override;
         void selectButton(int index) const;
         void deselectButton(int index) const;
+        void openStringEditBox(std::string title, std::string& data, const std::function<void()>& callback);
+
+        std::vector<std::string>& getPlayers()
+        {
+            return players;
+        }
+
+        std::string& getConfigFilePath()
+        {
+            return configFilePath;
+        }
+
+        int getHandCount()
+        {
+            return handCount;
+        }
+
+        size_t getSeed()
+        {
+            return seed;
+        }
     };
 }
