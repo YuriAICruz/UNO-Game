@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include <sstream>
+
 #include "buttons.h"
 #include "IScreen.h"
 #include "transitionData.h"
@@ -43,6 +45,14 @@ namespace screens
             {
                 size_t id = events->subscribe<transitionData>(transitionMap.first, transitionMap.second.action);
                 transitionsMap[transitionMap.first].uid = id;
+            }
+
+            players.resize(2);
+            for (int i = 0, n = players.size(); i < n; ++i)
+            {
+                std::stringstream ss;
+                ss << "Player 0" << (i + 1);
+                players[i] = ss.str();
             }
         }
 
@@ -98,10 +108,11 @@ namespace screens
         {
             return seed;
         }
+
     private:
         void updateStartingCardsNumber(int index);
         void updatePlyersCount(int index, int size);
-        template<typename T>
+        template <typename T>
         void configureButton(
             int index,
             int buttonWidth,
