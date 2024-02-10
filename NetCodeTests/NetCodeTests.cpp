@@ -1,8 +1,8 @@
 #include <string>
 #include <iostream>
 
-#include "client.h"
-#include "server.h"
+#include "client/client.h"
+#include "server/server.h"
 
 int main(int argc, char* argv[])
 {
