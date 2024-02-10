@@ -1,4 +1,5 @@
 ﻿#include "client.h"
+#include <WS2tcpip.h>
 
 int client::start(std::string addr, int port)
 {

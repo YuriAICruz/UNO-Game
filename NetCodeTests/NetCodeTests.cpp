@@ -9,12 +9,13 @@ int main(int argc, char* argv[])
     std::cout << "running a client [c] or a server [s] ?\n";
     while (true)
     {
+        int result = 0;
         std::string input;
         std::cin >> input;
         if (input == "c")
         {
             auto clientinstance = std::make_unique<client>();
-            int result = clientinstance->start();
+            result = clientinstance->start();
             if (result != 0)
             {
                 return result;
@@ -22,7 +23,20 @@ int main(int argc, char* argv[])
             result = clientinstance->connectToServer();
             if (result != 0)
             {
-                return result;
+                while (true)
+                {
+                    std::cout <<"failed to connect to server, try again [Y] [n]\n";
+                    std::cin >> input;
+                    if(input == "n")
+                    {
+                        return result;
+                    }   
+                    result = clientinstance->connectToServer();
+                    if(result == 0)
+                    {
+                        break;
+                    }
+                }
             }
 
             std::string response;
@@ -46,7 +60,12 @@ int main(int argc, char* argv[])
         if (input == "s")
         {
             auto serverInstance = std::make_unique<server>();
-            return serverInstance->run();
+            result = serverInstance->start();
+            if(result != 0)
+            {
+                return result;
+            }
+            return serverInstance->close();
         }
     }
 

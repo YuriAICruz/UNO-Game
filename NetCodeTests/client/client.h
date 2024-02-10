@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include <iostream>
 #include <WinSock2.h>
-#include <WS2tcpip.h> // Include for inet_pton function
 
 #pragma comment(lib, "ws2_32.lib")
 
