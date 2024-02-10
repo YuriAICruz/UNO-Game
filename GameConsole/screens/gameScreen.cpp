@@ -178,6 +178,7 @@ namespace screens
 
     void gameScreen::hide()
     {
+        cardListButtons.resize(0);
         IScreen::hide();
     }
 
