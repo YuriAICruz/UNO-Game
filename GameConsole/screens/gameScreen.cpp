@@ -540,6 +540,18 @@ namespace screens
         updateTopCard();
         updateCurrentPlayerName();
 
+        if (currentCardButton >= hand.size())
+        {
+            deselectCardButton(currentCardButton);
+
+            currentCardButton = 0;
+
+            if (selectingCards)
+            {
+                selectCardButton(currentCardButton);
+            }
+        }
+
         rdr->setDirty();
     }
 
