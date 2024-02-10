@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "IPlayer.h"
@@ -20,6 +21,7 @@ namespace turnSystem
 
     public:
         turnSystem(int numberOfPlayers);
+        turnSystem(std::vector<std::string> numberOfPlayers);
         IPlayer* getCurrentPlayer() const override;
         IPlayer* getNextPlayer() const;
         IPlayer* getPlayer(int i) const;

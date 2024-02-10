@@ -3,6 +3,8 @@
 #include <vector>
 
 #include "abstractEventBase.h"
+#include "delegate.h"
+#include "../guidGenerator.h"
 
 namespace eventBus
 {
@@ -12,20 +14,48 @@ namespace eventBus
     public:
         using FunctionType = std::function<void(T)>;
 
-        void subscribe(const FunctionType& function)
+        size_t subscribe(const FunctionType& function)
         {
-            subscribers.push_back(function);
+            auto id = guidGenerator::generateGUID();
+            subscribers.push_back(delegate<T>{id, function});
+            return id;
+        }
+
+        void unsubscribe(delegate<T> function)
+        {
+            if (function.uid == 0)
+            {
+                return;
+            }
+            int index = 0;
+            for (int n = subscribers.size(); index < n; ++index)
+            {
+                if (subscribers.at(index).uid == function.uid)
+                {
+                    break;
+                }
+            }
+            if (index >= subscribers.size())
+            {
+                return;
+            }
+            subscribers.erase(subscribers.begin() + index);
+        }
+
+        void clear()
+        {
+            subscribers.clear();
         }
 
         void fire(T data) const
         {
-            for (const FunctionType& subscriber : subscribers)
+            for (const delegate<T>& subscriber : subscribers)
             {
-                subscriber(data);
+                subscriber.action(data);
             }
         }
 
     private:
-        std::vector<FunctionType> subscribers;
+        std::vector<delegate<T>> subscribers;
     };
 }

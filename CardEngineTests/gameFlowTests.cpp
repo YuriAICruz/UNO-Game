@@ -10,8 +10,15 @@
 
 std::unique_ptr<gameStateManager> createGameManager(int players = 2, int handInitialSize = 7)
 {
-    auto manager = std::make_unique<gameStateManager>(players, handInitialSize, "Data\\deck_setup.json", 1234);
-    manager->startGame();
+    std::vector<std::string> playersList = std::vector<std::string>(players);
+    for (int i = 0; i < players; ++i)
+    {
+        std::stringstream ss;
+        ss << "Player 0" << i;
+        playersList[i] = ss.str();
+    }
+    auto manager = std::make_unique<gameStateManager>();
+    manager->startGame(playersList, handInitialSize, "Data\\deck_setup.json", 1234);
     return manager;
 }
 

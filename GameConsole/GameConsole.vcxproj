@@ -112,6 +112,9 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <PreBuildEvent>
+      <Command>xcopy "$(SolutionDir)\CardEngineTests\Data" "$(TargetDir)\Data\" /E /Y</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -131,12 +134,54 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="eventIds.h" />
     <ClCompile Include="GameConsole.cpp" />
+    <ClCompile Include="input\inputHandler.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="renderer\elements\card.cpp" />
+    <ClCompile Include="renderer\elements\frame.cpp" />
+    <ClCompile Include="renderer\elements\element.cpp" />
+    <ClCompile Include="renderer\elements\horizontalLayoutGroup.cpp" />
+    <ClCompile Include="renderer\elements\layoutGroup.cpp" />
+    <ClCompile Include="renderer\elements\square.cpp" />
+    <ClCompile Include="renderer\elements\text.cpp" />
+    <ClCompile Include="renderer\renderer.cpp" />
+    <ClCompile Include="renderer\rendererException.cpp" />
+    <ClCompile Include="screens\buttons.cpp" />
+    <ClCompile Include="screens\IScreen.cpp" />
+    <ClCompile Include="screens\mainMenuScreen.cpp" />
+    <ClCompile Include="screens\settingsMenu.cpp" />
+    <ClCompile Include="screens\transitionData.cpp" />
+    <ClCompile Include="wInclude.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CardEngine\CardEngine.vcxproj">
       <Project>{5271d90a-72bb-4b58-861c-7725e0fb7105}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="input\inputData.h" />
+    <ClInclude Include="input\inputHandler.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="renderer\bufferData.h" />
+    <ClInclude Include="renderer\elements\card.h" />
+    <ClInclude Include="renderer\elements\frame.h" />
+    <ClInclude Include="renderer\elements\element.h" />
+    <ClInclude Include="renderer\elements\horizontalLayoutGroup.h" />
+    <ClInclude Include="renderer\elements\layoutGroup.h" />
+    <ClInclude Include="renderer\elements\square.h" />
+    <ClInclude Include="renderer\elements\text.h" />
+    <ClInclude Include="renderer\renderer.h" />
+    <ClInclude Include="renderer\rendererException.h" />
+    <ClInclude Include="screens\buttons.h" />
+    <ClInclude Include="screens\IScreen.h" />
+    <ClInclude Include="screens\mainMenuScreen.h" />
+    <ClInclude Include="screens\settingsMenu.h" />
+    <ClInclude Include="screens\transitionData.h" />
+    <ClInclude Include="wInclude.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\CardEngineTests\Data\deck_setup.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

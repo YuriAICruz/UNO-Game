@@ -8,13 +8,8 @@
 #include "../Decks/jsonDeck.h"
 #include "../TurnSystem/turnSystem.h"
 
-gameStateManager::gameStateManager(int playersCount, int handSize, std::string deckConfigFilePath,
-                                   size_t seed) : seed(seed), handSize(handSize)
+gameStateManager::gameStateManager()
 {
-    mainDeck = std::make_unique<decks::jsonDeck>(deckConfigFilePath);
-    discardDeck = std::make_unique<decks::deck>();
-
-    turner = std::make_unique<turnSystem::turnSystem>(playersCount);
 }
 
 void gameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
@@ -25,9 +20,19 @@ void gameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
     }
 }
 
-void gameStateManager::startGame()
+void gameStateManager::startGame(
+    std::vector<std::string>& players,
+    int handSize,
+    std::string deckConfigFilePath,
+    size_t seed
+)
 {
+    mainDeck = std::make_unique<decks::jsonDeck>(deckConfigFilePath);
+    discardDeck = std::make_unique<decks::deck>();
+
+    turner = std::make_unique<turnSystem::turnSystem>(players);
     mainDeck->shuffle(seed);
+
     for (int i = 0, n = turner->playersCount(); i < n; ++i)
     {
         auto player = turner->getPlayer(i);
