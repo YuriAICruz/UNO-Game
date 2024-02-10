@@ -173,8 +173,6 @@ namespace screens
                 static_cast<SHORT>(windowSize.Y + 100)
             }, 'b', "Data\\UNO.txt");
 
-
-        showUnoPopup();
         rdr->setDirty();
     }
 
