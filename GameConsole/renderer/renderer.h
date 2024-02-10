@@ -23,6 +23,7 @@ namespace renderer
 
         bool isDirty();
         void setDirty();
+        void forceRedraw();
         COORD getWindowSize() const;
         bool canEnd() const;
         void exit();

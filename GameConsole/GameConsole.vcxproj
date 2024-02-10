@@ -149,6 +149,7 @@
     <ClCompile Include="renderer\renderer.cpp" />
     <ClCompile Include="renderer\rendererException.cpp" />
     <ClCompile Include="screens\buttons.cpp" />
+    <ClCompile Include="screens\gameOverScreen.cpp" />
     <ClCompile Include="screens\gameScreen.cpp" />
     <ClCompile Include="screens\IScreen.cpp" />
     <ClCompile Include="screens\mainMenuScreen.cpp" />
@@ -177,6 +178,7 @@
     <ClInclude Include="renderer\renderer.h" />
     <ClInclude Include="renderer\rendererException.h" />
     <ClInclude Include="screens\buttons.h" />
+    <ClInclude Include="screens\gameOverScreen.h" />
     <ClInclude Include="screens\gameScreen.h" />
     <ClInclude Include="screens\IScreen.h" />
     <ClInclude Include="screens\mainMenuScreen.h" />
@@ -186,6 +188,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Data\deck_setup.json" />
+    <Content Include="Data\Game_Over.txt" />
     <Content Include="Data\Title.txt" />
     <Content Include="Data\UNO.txt" />
   </ItemGroup>

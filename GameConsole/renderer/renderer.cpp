@@ -64,6 +64,11 @@ namespace renderer
         dirty = true;
     }
 
+    void renderer::forceRedraw()
+    {
+        forceNextFrame = true;
+    }
+
     COORD renderer::getWindowSize() const
     {
         return lastWindowSize;

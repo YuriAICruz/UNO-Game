@@ -8,6 +8,7 @@
 #include "renderer/elements/fileRead.h"
 #include "screens/gameScreen.h"
 #include "screens/settingsMenuScreen.h"
+#include "screens/gameOverScreen.h"
 #include "StateManager/gameStateManager.h"
 
 int main()
@@ -47,6 +48,10 @@ int main()
         strapper->create<eventBus::eventBus>(),
         strapper->create<gameStateManager>()
     );
+    std::shared_ptr<screens::gameOverScreen> gameOver = std::make_shared<screens::gameOverScreen>(
+        strapper->create<renderer::renderer>(),
+        strapper->create<eventBus::eventBus>()
+    );
 
     events->subscribe<screens::transitionData>(
         NAVIGATION_MAIN_MENU, [settingsMenu, gameManager](screens::transitionData data)
@@ -80,9 +85,10 @@ int main()
                 if (input == "win")
                 {
                     gameManager->cheatWin();
-                    rdr->blank();
-                    rdr->isDirty();
                 }
+                rdr->blank();
+                rdr->forceRedraw();
+                rdr->setDirty();
             }
         }
         if (rdr->isDirty())
