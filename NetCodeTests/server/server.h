@@ -14,7 +14,6 @@ public:
     {
         std::cout << "starting server . . .\n";
         std::cout << "initializing Winsock . . .\n";
-        // Initialize Winsock
         WSADATA wsaData;
         if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
         {
