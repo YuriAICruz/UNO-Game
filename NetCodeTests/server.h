@@ -12,7 +12,8 @@ public:
 
     int run()
     {
-        std::cout << "Starting Server . . .\n";
+        std::cout << "starting server . . .\n";
+        std::cout << "initializing Winsock . . .\n";
         // Initialize Winsock
         WSADATA wsaData;
         if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
@@ -20,8 +21,9 @@ public:
             std::cerr << "WSAStartup failed\n";
             return 1;
         }
+        std::cout << "Winsock initialized\n";
 
-        // Create socket
+        std::cout << "creating socket . . .\n";
         SOCKET serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         if (serverSocket == INVALID_SOCKET)
         {
@@ -29,9 +31,9 @@ public:
             WSACleanup();
             return 1;
         }
+        std::cout << "socket created\n";
 
-        std::cout << "socket open\n";
-        // Bind socket
+        std::cout << "binding socket . . .\n";
         sockaddr_in serverAddr;
         serverAddr.sin_family = AF_INET;
         serverAddr.sin_addr.s_addr = INADDR_ANY;
@@ -44,9 +46,9 @@ public:
             WSACleanup();
             return 1;
         }
-
         std::cout << "bind success to port: " << serverAddr.sin_port << "\n";
-        // Listen for incoming connections
+
+        std::cout << "setup listening . . .\n";
         if (listen(serverSocket, SOMAXCONN) == SOCKET_ERROR)
         {
             std::cerr << "Listen failed\n";
@@ -57,7 +59,6 @@ public:
 
         std::cout << "Server listening on port " << serverAddr.sin_port << "...\n";
 
-        // Accept connections and handle data
         SOCKET clientSocket;
         sockaddr_in clientAddr;
         int clientAddrSize = sizeof(clientAddr);
@@ -66,7 +67,7 @@ public:
 
         while (true)
         {
-            // Accept a connection
+            std::cout << "waiting for connections . . .\n";
             clientSocket = accept(serverSocket, reinterpret_cast<SOCKADDR*>(&clientAddr), &clientAddrSize);
             if (clientSocket == INVALID_SOCKET)
             {
@@ -79,7 +80,7 @@ public:
             inet_ntop(AF_INET, &(clientAddr.sin_addr), clientIP, INET_ADDRSTRLEN);
             std::cout << "Connection accepted from " << clientIP << ":" << ntohs(clientAddr.sin_port) << std::endl;
 
-            // Receive data
+            std::cout << "waiting for client data . . .\n";
             char recvData[1024];
             int recvSize = recv(clientSocket, recvData, sizeof(recvData), 0);
             if (recvSize > 0)
@@ -87,17 +88,19 @@ public:
                 recvData[recvSize] = '\0'; // Null-terminate received data
                 std::cout << "Received: " << recvData << std::endl;
 
-                // Send a response back
+
+                std::cout << "sending automatic response\n";
                 const char* responseData = "Message received by server!";
                 send(clientSocket, responseData, strlen(responseData), 0);
             }
 
-            // Close the client socket
+            std::cout << "closing client connection [" << clientSocket << "]\n";
             closesocket(clientSocket);
         }
 
-        // Close server socket and cleanup
+        std::cout << "shutdown server . . .\n";
         closesocket(serverSocket);
         WSACleanup();
+        return 0;
     }
 };
