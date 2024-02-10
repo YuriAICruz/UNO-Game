@@ -2,12 +2,12 @@
 #include <iostream>
 #include <WS2tcpip.h>
 #include <thread>
+#include <sstream>
 
 int server::start(int port)
 {
     std::cout << "starting server . . .\n";
     std::cout << "initializing Winsock . . .\n";
-    wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
     {
         std::cerr << "WSAStartup failed\n";
@@ -50,6 +50,10 @@ int server::start(int port)
 
     std::cout << "Server listening on port " << serverAddr.sin_port << "...\n";
 
+    std::stringstream ss;
+    ss << "start cmd /c .\\ngrok.exe http " << port;
+    ngrokPID = std::system(ss.str().c_str());
+
     char clientIP[INET_ADDRSTRLEN];
 
     while (true)
@@ -91,6 +95,10 @@ int server::close() const
     std::cout << "shutdown server . . .\n";
     closesocket(serverSocket);
     WSACleanup();
+    
+    std::cout << "terminating ngrok...\n";
+    std::string killCommand = "taskkill /PID " + std::to_string(ngrokPID) + " /F";
+    system(killCommand.c_str());
     return 0;
 }
 
@@ -112,7 +120,7 @@ void server::clientHandler(SOCKET clientSocket)
         std::cout << "Received from client: " << recvData << std::endl;
 
         std::cout << "sending automatic response\n";
-        const char* responseData = "Message received by server!";        
+        const char* responseData = "Message received by server!";
         send(clientSocket, responseData, strlen(responseData), 0);
         broadcast("This message is for all!!");
         // Echo received data back to client

@@ -15,6 +15,7 @@ private:
     sockaddr_in serverAddr;
     std::map<int, clientInfo> clients;
     int connectionsCount = 0;
+    int ngrokPID;
 
 public:
     server() = default;

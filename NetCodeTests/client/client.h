@@ -15,7 +15,7 @@ private:
 public:
     client() = default;
 
-    int start(std::string addr = "127.0.0.1", int port = 12345);
+    int start(std::string addr = "127.0.0.1", int port = 8080);
     int connectToServer();
     int sendMessage(std::string& input);
     int close() const;
