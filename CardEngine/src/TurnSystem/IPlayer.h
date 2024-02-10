@@ -52,13 +52,13 @@ namespace turnSystem
             inUnoMode = true;
         }
 
+        virtual void resetUnoMode()
+        {
+            inUnoMode = false;
+        }
+
         virtual bool isInUnoMode()
         {
-            if (getHand().size() > 2)
-            {
-                inUnoMode = false;
-            }
-
             return inUnoMode;
         }
     };

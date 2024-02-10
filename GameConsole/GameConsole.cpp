@@ -5,6 +5,7 @@
 #include "renderer/renderer.h"
 #include "screens/mainMenuScreen.h"
 #include "eventIds.h"
+#include "renderer/elements/fileRead.h"
 #include "screens/gameScreen.h"
 #include "screens/settingsMenuScreen.h"
 #include "StateManager/gameStateManager.h"

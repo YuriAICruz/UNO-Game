@@ -139,6 +139,7 @@
     <ClCompile Include="input\inputHandler.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="renderer\elements\card.cpp" />
+    <ClCompile Include="renderer\elements\fileRead.cpp" />
     <ClCompile Include="renderer\elements\frame.cpp" />
     <ClCompile Include="renderer\elements\element.cpp" />
     <ClCompile Include="renderer\elements\horizontalLayoutGroup.cpp" />
@@ -166,6 +167,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="renderer\bufferData.h" />
     <ClInclude Include="renderer\elements\card.h" />
+    <ClInclude Include="renderer\elements\fileRead.h" />
     <ClInclude Include="renderer\elements\frame.h" />
     <ClInclude Include="renderer\elements\element.h" />
     <ClInclude Include="renderer\elements\horizontalLayoutGroup.h" />
@@ -184,6 +186,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Data\deck_setup.json" />
+    <Content Include="Data\Title.txt" />
+    <Content Include="Data\UNO.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

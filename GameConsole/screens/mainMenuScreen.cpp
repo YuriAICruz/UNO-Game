@@ -2,6 +2,7 @@
 
 #include "transitionData.h"
 #include "../renderer/elements/card.h"
+#include "../renderer/elements/fileRead.h"
 
 namespace screens
 {
@@ -12,23 +13,22 @@ namespace screens
         rdr->clear();
         COORD winSize = rdr->getWindowSize();
 
-        std::string title = "UNO - A Card Gaming experience";
-        int buttonWidth = title.length() - 5;
+        int buttonWidth = 40;
         int buttonHeight = 3;
         int offset = 1;
 
         int lastX = winSize.X / 2 - buttonWidth / 2;
         int lastY = winSize.Y / 2 + buttonHeight / 2;
 
-        titleId = rdr->addElement<elements::text>(
+        rdr->addElement<elements::fileRead>(
             COORD{
-                static_cast<SHORT>(winSize.X / 2 - title.length() / 2),
-                static_cast<SHORT>(lastY - 5),
+                static_cast<SHORT>(winSize.X/2-14),
+                static_cast<SHORT>(4),
             },
-            '+',
-            'w',
-            title
+            'b',
+            "Data\\Title.txt"
         );
+
         buttons[0].id = rdr->addElement<elements::card>(
             COORD{
                 static_cast<SHORT>(lastX),

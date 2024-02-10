@@ -23,9 +23,11 @@ namespace screens
         bool selectingOptions = false;
         int currentCardButton = 0;
         int currentOptionButton = 0;
+        button unoYell[2];        
         size_t topCardId;
         int cardSizeX = 8;
         int cardSizeY = 6;
+        bool unoPopup = false;
 
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
@@ -103,6 +105,8 @@ namespace screens
         void moveRight(input::inputData data) override;
         void accept(input::inputData data) override;
         void cancel(input::inputData data) override;
+        void hideUnoPopup();
+        void showUnoPopup();
 
     private:
         void onShow(transitionData data)

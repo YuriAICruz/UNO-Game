@@ -44,6 +44,9 @@ void gameStateManager::beginTurn()
     {
         events->fireEvent(GAME_NO_UNO_PENALTY, gameEventData());
         makePlayerDraw(player, 2);
+    }else if(player->isInUnoMode())
+    {
+        player->resetUnoMode();
     }
 
     events->fireEvent(TURN_BEGIN, turnEventData());

@@ -5,6 +5,7 @@
 #include "../renderer/elements/text.h"
 #include "Cards/ActionTypes/base.h"
 #include "Cards/ActionTypes/draw.h"
+#include "../renderer/elements/fileRead.h"
 
 namespace screens
 {
@@ -49,7 +50,6 @@ namespace screens
             "Current Player",
             ""
         );
-
 
         popupButton.id = rdr->addElement<elements::card>(
             COORD{
@@ -160,6 +160,21 @@ namespace screens
         }
 
         switchToCards();
+
+
+        unoYell[0].id = rdr->addElement<elements::frame>(
+            COORD{
+                static_cast<SHORT>(windowSize.X + 100),
+                static_cast<SHORT>(windowSize.Y + 100)
+            }, COORD{32, 9}, '.', 'p');
+        unoYell[1].id = rdr->addElement<elements::fileRead>(
+            COORD{
+                static_cast<SHORT>(windowSize.X + 100),
+                static_cast<SHORT>(windowSize.Y + 100)
+            }, 'b', "Data\\UNO.txt");
+
+
+        showUnoPopup();
         rdr->setDirty();
     }
 
@@ -173,6 +188,10 @@ namespace screens
         if (blockInputs)
         {
             return;
+        }
+        if (unoPopup)
+        {
+            hideUnoPopup();
         }
         if (isPopupOpen)
         {
@@ -203,6 +222,10 @@ namespace screens
         if (blockInputs)
         {
             return;
+        }
+        if (unoPopup)
+        {
+            hideUnoPopup();
         }
         if (isPopupOpen)
         {
@@ -235,6 +258,10 @@ namespace screens
         {
             return;
         }
+        if (unoPopup)
+        {
+            hideUnoPopup();
+        }
         if (isPopupOpen)
         {
             hidePopup();
@@ -265,6 +292,10 @@ namespace screens
         {
             return;
         }
+        if (unoPopup)
+        {
+            hideUnoPopup();
+        }
         if (selectingCards)
         {
             int handSize = gameManager->getCurrentPlayer()->getHand().size();
@@ -281,6 +312,10 @@ namespace screens
         if (blockInputs)
         {
             return;
+        }
+        if (unoPopup)
+        {
+            hideUnoPopup();
         }
         if (isPopupOpen)
         {
@@ -312,6 +347,10 @@ namespace screens
         {
             return;
         }
+        if (unoPopup)
+        {
+            hideUnoPopup();
+        }
         if (isPopupOpen)
         {
             hidePopup();
@@ -334,11 +373,47 @@ namespace screens
         );
     }
 
+    void gameScreen::hideUnoPopup()
+    {
+        unoPopup = false;
+        auto winSize = rdr->getWindowSize();
+        COORD outBoundPos = COORD{
+            static_cast<SHORT>(winSize.X + 100),
+            static_cast<SHORT>(winSize.Y + 100)
+        };
+        for (auto element : unoYell)
+        {
+            auto b = rdr->getElement(element.id);
+            b->setPosition(outBoundPos);
+        }
+        rdr->setDirty();
+    }
+
+    void gameScreen::showUnoPopup()
+    {
+        unoPopup = true;
+        auto winSize = rdr->getWindowSize();
+
+        auto b = rdr->getElement(unoYell[0].id);
+        b->setPosition(COORD{
+            static_cast<SHORT>(winSize.X / 2 - 15),
+            static_cast<SHORT>(winSize.Y / 2 - 4)
+        });
+        b = rdr->getElement(unoYell[1].id);
+        b->setPosition(COORD{
+            static_cast<SHORT>(winSize.X / 2 + 1 - 15),
+            static_cast<SHORT>(winSize.Y / 2 + 1 - 4)
+        });
+        rdr->setDirty();
+    }
+
     void gameScreen::tryYellUno()
     {
         if (gameManager->canYellUno())
         {
             gameManager->yellUno();
+
+            showUnoPopup();
             return;
         }
         popupButton.action = nullptr;
@@ -386,6 +461,7 @@ namespace screens
             popupButton.actionLeft = nullptr;
             popupButton.actionRight = nullptr;
             openWarningPopup("You have playable cards, are you sure?");
+            return;
         }
         if (gameManager->canDrawCard())
         {
