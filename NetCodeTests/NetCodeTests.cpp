@@ -39,7 +39,6 @@ int main(int argc, char* argv[])
                 }
             }
 
-            std::string response;
             while (true)
             {
                 std::cout << "\n"<<"client running, type a message to send to server. [q] to finish the application"<<"\n";
@@ -49,7 +48,7 @@ int main(int argc, char* argv[])
                     std::cout << "exiting...";
                     return clientinstance->close();
                 }
-                result = clientinstance->sendMessage(input, response);
+                result = clientinstance->sendMessage(input);
                 if (result != 0)
                 {
                     return result;

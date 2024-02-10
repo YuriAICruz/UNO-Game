@@ -1,5 +1,6 @@
 ﻿#include "client.h"
 #include <WS2tcpip.h>
+#include <thread>
 
 int client::start(std::string addr, int port)
 {
@@ -53,41 +54,29 @@ int client::connectToServer()
     }
     std::cout << "connection successful\n";
 
+    std::cout << "creating listen thread\n";
+    std::thread clientThread([this]()
+    {
+        this->listenToServer();
+    });
+    clientThread.detach();
+
     return 0;
 }
 
-int client::sendMessage(std::string& input, std::string& response)
+
+int client::sendMessage(std::string& input)
 {
     std::cout << "sending data . . .\n";
     auto data = input.c_str();
     int sendResult = send(clientSocket, data, strlen(data), 0);
-    if (sendResult == SOCKET_ERROR) {
+    if (sendResult == SOCKET_ERROR)
+    {
         std::cerr << "Send failed\n";
         int result = close();
         return result + 1;
     }
     std::cout << "send successful\n";
-
-    std::cout << "received data! ";
-    char recvData[1024];
-    int recvSize = recv(clientSocket, recvData, strlen(recvData), 0);
-    std::cout << "size: " << recvSize << "\n";
-    if (recvSize == SOCKET_ERROR)
-    {
-        std::cerr << "receive failed\n";
-        int result = close();
-        return result + 1;
-    }
-    if (recvSize == 0)
-    {
-        std::cerr << "Connection closed by peer\n";
-        int result = close();
-        return result + 1;
-    }
-
-    recvData[recvSize] = '\0'; // Null-terminate received data
-    response.assign(recvData, recvSize);
-    std::cout << "Received: " << recvData << std::endl;
     return 0;
 }
 
@@ -97,4 +86,35 @@ int client::close() const
     closesocket(clientSocket);
     WSACleanup();
     return 0;
+}
+
+void client::listenToServer()
+{
+    const int recvDataSize = 1024;
+    char recvData[recvDataSize];
+    while (true)
+    {
+        for (int i = 0; i < recvDataSize; ++i)
+        {
+            recvData[i] = ' ';
+        }
+        int recvSize = recv(clientSocket, recvData, strlen(recvData), 0);
+        std::cout << "data received size: " << recvSize << "\n";
+        if (recvSize == SOCKET_ERROR)
+        {
+            std::cerr << "receive failed\n";
+            int result = close();
+            return;
+        }
+        if (recvSize == 0)
+        {
+            std::cerr << "Connection closed by peer\n";
+            int result = close();
+            return;
+        }
+
+        recvData[recvSize] = '\0'; // Null-terminate received data
+        lastResponse.assign(recvData, recvSize);
+        std::cout << "Received: " << recvData << std::endl;
+    }
 }

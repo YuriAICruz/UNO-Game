@@ -6,14 +6,19 @@
 
 class client
 {
+private:
+    WSADATA wsaData;
+    SOCKET clientSocket;
+    sockaddr_in serverAddr;
+    std::string lastResponse;
+
 public:
     client() = default;
 
     int start(std::string addr = "127.0.0.1", int port = 12345);
     int connectToServer();
-    int sendMessage(std::string& input, std::string& response);
+    int sendMessage(std::string& input);
     int close() const;
-    WSADATA wsaData;
-    SOCKET clientSocket;
-    sockaddr_in serverAddr;
+private:
+    void listenToServer();
 };
