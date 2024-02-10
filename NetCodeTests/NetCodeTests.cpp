@@ -43,18 +43,15 @@ int main(int argc, char* argv[])
         if (input == "c")
         {
             std::string addr;
-            std::cout << "Insert the server ip or address [d for 127.0.0.1]\n";
+            std::cout << "Insert the server ip or address [d for tcp://127.0.0.1:8080]\n";
             std::cin >> addr;
             if (addr == "d")
             {
-                addr = "127.0.0.1";
+                addr = "tcp://127.0.0.1:8080";
             }
 
-            int portValue;
-            inputInt(portValue);
-
             auto clientinstance = std::make_unique<client>();
-            result = clientinstance->start(addr, portValue);
+            result = clientinstance->start(addr);
             if (result != 0)
             {
                 return result;
@@ -70,7 +67,7 @@ int main(int argc, char* argv[])
                     {
                         return result;
                     }
-                    result = clientinstance->start(addr, portValue);
+                    result = clientinstance->start(addr);
                     if (result != 0)
                     {
                         return result;
@@ -93,7 +90,7 @@ int main(int argc, char* argv[])
                     std::cout << "exiting...";
                     return clientinstance->close();
                 }
-                result = clientinstance->sendMessage(input);
+                result = clientinstance->sendMessage(input.c_str());
                 if (result != 0)
                 {
                     return result;

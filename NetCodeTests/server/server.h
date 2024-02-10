@@ -4,12 +4,14 @@
 #include <WinSock2.h>
 #include <map>
 #include <string>
+#include <unordered_set>
 
 #include "clientInfo.h"
 
 class server
 {
 private:
+    const std::unordered_set<std::string> validKeys = {"s_p_56489135", "server_debug"};
     WSADATA wsaData;
     SOCKET serverSocket;
     sockaddr_in serverAddr;
@@ -25,4 +27,5 @@ public:
 
 private:
     void clientHandler(SOCKET clientSocket);
+    bool validateKey(SOCKET clientSocket);
 };

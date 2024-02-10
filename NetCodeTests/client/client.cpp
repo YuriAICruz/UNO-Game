@@ -1,20 +1,23 @@
 ﻿#include "client.h"
+
+#include <string>
 #include <WS2tcpip.h>
 #include <thread>
 
-int client::start(std::string addr, int port)
+int client::initializeWinsock()
 {
-    std::cout << "starting Client . . .\n";
-
     std::cout << "initializing Winsock . . .\n";
-    wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
     {
         std::cerr << "WSAStartup failed\n";
         return 1;
     }
     std::cout << "Winsock Initialized\n";
+    return 0;
+}
 
+int client::createSocket()
+{
     std::cout << "creating socket . . .\n";
     clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (clientSocket == INVALID_SOCKET)
@@ -23,21 +26,62 @@ int client::start(std::string addr, int port)
         WSACleanup();
         return 1;
     }
-    std::cout << "creating created\n";
+    std::cout << "socket created\n";
+    return 0;
+}
+
+int client::start(std::string addressStr)
+{
+    std::cout << "starting Client . . .\n";
+
+    int r = initializeWinsock();
+    if (r > 0) return r;
+    r = createSocket();
+    if (r > 0) return r;
 
     std::cout << "setting server address and port . . .\n";
-    serverAddr;
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(port);
 
-    if (inet_pton(AF_INET, addr.c_str(), &serverAddr.sin_addr) <= 0)
+    size_t pos = addressStr.find("://");
+    if (pos == std::string::npos)
     {
-        std::cerr << "Invalid address/ Address not supported\n";
+        std::cerr << "Invalid address format\n";
         closesocket(clientSocket);
         WSACleanup();
         return 1;
     }
-    std::cout << "server address [" << addr << "] and port [" << port << "] set\n";
+    std::string addressWithoutProtocol = addressStr.substr(pos + 3);
+    pos = addressWithoutProtocol.find(":");
+    if (pos == std::string::npos)
+    {
+        std::cerr << "Invalid address format\n";
+        closesocket(clientSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    std::string host = addressWithoutProtocol.substr(0, pos);
+    std::string portStr = addressWithoutProtocol.substr(pos + 1);
+    int port = std::stoi(portStr);
+
+    // Resolve the server address
+    addr_info = NULL;
+    struct addrinfo hints;
+    ZeroMemory(&hints, sizeof(hints));
+
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+
+    int addrInfoResult = getaddrinfo(host.c_str(), portStr.c_str(), &hints, &addr_info);
+    if (addrInfoResult != 0)
+    {
+        std::cerr << "getaddrinfo failed: " << gai_strerror(addrInfoResult) << std::endl;
+        closesocket(clientSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    std::cout << "server address [" << host.c_str() << "] and port [" << port << "] set\n";
 
     return 0;
 }
@@ -45,9 +89,10 @@ int client::start(std::string addr, int port)
 int client::connectToServer()
 {
     std::cout << "connecting to server . . .\n";
-    if (connect(clientSocket, reinterpret_cast<SOCKADDR*>(&serverAddr), sizeof(serverAddr)) == SOCKET_ERROR)
+    if (connect(clientSocket, addr_info->ai_addr, static_cast<int>(addr_info->ai_addrlen)) == SOCKET_ERROR)
     {
-        std::cerr << "connection failed\n";
+        std::cerr << "Connection failed\n";
+        freeaddrinfo(addr_info);
         closesocket(clientSocket);
         WSACleanup();
         return 1;
@@ -61,15 +106,16 @@ int client::connectToServer()
     });
     clientThread.detach();
 
-    return 0;
+    int result = sendMessage(CLIENT_KEY);
+
+    return result;
 }
 
 
-int client::sendMessage(std::string& input)
+int client::sendMessage(const char* str) const
 {
     std::cout << "sending data . . .\n";
-    auto data = input.c_str();
-    int sendResult = send(clientSocket, data, strlen(data), 0);
+    int sendResult = send(clientSocket, str, strlen(str), 0);
     if (sendResult == SOCKET_ERROR)
     {
         std::cerr << "Send failed\n";
@@ -83,6 +129,7 @@ int client::sendMessage(std::string& input)
 int client::close() const
 {
     std::cout << "closing client . . .\n";
+    freeaddrinfo(addr_info);
     closesocket(clientSocket);
     WSACleanup();
     return 0;

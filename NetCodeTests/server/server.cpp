@@ -51,17 +51,17 @@ int server::start(int port)
     std::cout << "Server listening on port " << serverAddr.sin_port << "...\n";
 
     std::stringstream ss;
-    ss << "start cmd /c .\\ngrok.exe http " << port;
+    ss << "start cmd /c .\\ngrok.exe tcp " << port;
     ngrokPID = std::system(ss.str().c_str());
 
     char clientIP[INET_ADDRSTRLEN];
 
+    std::cout << "waiting for connections . . .\n";
     while (true)
     {
         sockaddr_in clientAddr;
         int clientAddrSize = sizeof(clientAddr);
 
-        std::cout << "waiting for connections . . .\n";
         SOCKET currentClientSocket = accept(serverSocket, reinterpret_cast<SOCKADDR*>(&clientAddr), &clientAddrSize);
         if (currentClientSocket == INVALID_SOCKET)
         {
@@ -95,7 +95,7 @@ int server::close() const
     std::cout << "shutdown server . . .\n";
     closesocket(serverSocket);
     WSACleanup();
-    
+
     std::cout << "terminating ngrok...\n";
     std::string killCommand = "taskkill /PID " + std::to_string(ngrokPID) + " /F";
     system(killCommand.c_str());
@@ -104,7 +104,15 @@ int server::close() const
 
 void server::clientHandler(SOCKET clientSocket)
 {
-    std::cout << "waiting for client data . . .\n";
+    if (!validateKey(clientSocket))
+    {
+        std::cerr << "closing client connection [" << clientSocket << "] invalid Key\n";
+        closesocket(clientSocket);
+        clients.erase(connectionsCount);
+        return;
+    }
+
+    std::cout << "Connection accepted from " << clientSocket << "\n";
 
     clientInfo client = clientInfo();
     client.connection = &clientSocket;
@@ -139,4 +147,33 @@ void server::clientHandler(SOCKET clientSocket)
     std::cout << "closing client connection [" << clientSocket << "]\n";
     closesocket(clientSocket);
     clients.erase(connectionsCount);
+}
+
+bool server::validateKey(SOCKET clientSocket)
+{
+    std::cerr << "validating key . . .\n";
+    char keyBuffer[13];
+    int keySize = recv(clientSocket, keyBuffer, sizeof(keyBuffer), 0);
+    if (keySize <= 0)
+    {
+        std::cerr << "Key receive failed\n";
+        return false;
+    }
+
+    if (keySize != sizeof(keyBuffer)-1)
+    {
+        std::cerr << "Invalid key\n";
+        return false;
+    }
+
+    keyBuffer[keySize] = '\0';
+
+    std::string keyReceived(keyBuffer);
+    if (validKeys.find(keyReceived) == validKeys.end())
+    {
+        std::cerr << "Invalid key\n";
+        return false;
+    }
+
+    return true;
 }
