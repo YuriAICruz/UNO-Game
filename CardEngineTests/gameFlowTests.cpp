@@ -17,8 +17,10 @@ std::unique_ptr<gameStateManager> createGameManager(int players = 2, int handIni
         ss << "Player 0" << i;
         playersList[i] = ss.str();
     }
-    auto manager = std::make_unique<gameStateManager>();
-    manager->startGame(playersList, handInitialSize, "Data\\deck_setup.json", 1234);
+    std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
+    auto manager = std::make_unique<gameStateManager>(events);
+    manager->setupGame(playersList, handInitialSize, "Data\\deck_setup.json", 1234);
+    manager->startGame();
     return manager;
 }
 

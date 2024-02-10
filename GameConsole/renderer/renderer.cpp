@@ -17,6 +17,10 @@ namespace renderer
     renderer::renderer()
     {
         running = true;
+
+        currentBuffer = &windowBuffer;
+        nextBuffer = &windowBufferB;
+
         if (!SetConsoleCtrlHandler(consoleHandlerRoutine, TRUE))
         {
             throw rendererException("Error setting up console handler.");
@@ -60,6 +64,11 @@ namespace renderer
         dirty = true;
     }
 
+    void renderer::forceRedraw()
+    {
+        forceNextFrame = true;
+    }
+
     COORD renderer::getWindowSize() const
     {
         return lastWindowSize;
@@ -77,11 +86,11 @@ namespace renderer
 
     void renderer::draw()
     {
-        clearScreen();
+        resetScreen();
 
         for (int i = 0, n = elements.size(); i < n; ++i)
         {
-            elements.at(i)->draw(&windowBuffer);
+            elements.at(i)->draw(currentBuffer);
         }
 
         char lastColor = 'w';
@@ -89,16 +98,30 @@ namespace renderer
         {
             for (int x = 0; x < lastWindowSize.X; ++x)
             {
-                char c = windowBuffer.at(y).at(x).color;
+                if (!forceNextFrame &&
+                    currentBuffer->at(y).at(x).color == nextBuffer->at(y).at(x).color &&
+                    currentBuffer->at(y).at(x).c == nextBuffer->at(y).at(x).c)
+                {
+                    continue;
+                }
+
+                SetConsoleCursorPosition(hConsole, COORD{
+                                             static_cast<SHORT>(x),
+                                             static_cast<SHORT>(y)
+                                         });
+                char c = currentBuffer->at(y).at(x).color;
                 if (lastColor != c)
                 {
                     lastColor = c;
                     setColor(c);
                 }
-                std::wcout << windowBuffer.at(y).at(x).c;
+                std::wcout << currentBuffer->at(y).at(x).c;
             }
             std::cout << "\n";
         }
+
+        forceNextFrame = false;
+        SwapBuffers();
     }
 
     void renderer::clear()
@@ -157,7 +180,7 @@ namespace renderer
         CONSOLE_SCREEN_BUFFER_INFO info;
         GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
         SHORT x = info.srWindow.Right - info.srWindow.Left + 1;
-        SHORT y = info.srWindow.Bottom - info.srWindow.Top + 1;
+        SHORT y = info.srWindow.Bottom - info.srWindow.Top;
         COORD size = COORD{x, y};
         return size;
     }
@@ -191,6 +214,13 @@ namespace renderer
     void renderer::clearScreen()
     {
         system("cls");
+        forceNextFrame = true;
+        clearBuffer();
+    }
+
+    void renderer::resetScreen()
+    {
+        SetConsoleCursorPosition(hConsole, COORD{0, 0});
 
         clearBuffer();
     }
@@ -201,18 +231,25 @@ namespace renderer
         {
             for (int y = 0; y < lastWindowSize.Y; ++y)
             {
-                windowBuffer.at(y).at(x).c = L' ';
-                windowBuffer.at(y).at(x).color = 'w';
+                currentBuffer->at(y).at(x).c = L' ';
+                currentBuffer->at(y).at(x).color = 'w';
             }
         }
+    }
+
+    void renderer::SwapBuffers()
+    {
+        std::swap(currentBuffer, nextBuffer);
     }
 
     void renderer::updateBuffer()
     {
         windowBuffer = std::vector<std::vector<bufferData>>(lastWindowSize.Y);
+        windowBufferB = std::vector<std::vector<bufferData>>(lastWindowSize.Y);
         for (int y = 0; y < lastWindowSize.Y; ++y)
         {
             windowBuffer.at(y) = std::vector<bufferData>(lastWindowSize.X);
+            windowBufferB.at(y) = std::vector<bufferData>(lastWindowSize.X);
         }
     }
 }

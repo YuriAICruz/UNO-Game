@@ -22,11 +22,11 @@ namespace elements
 
     public:
         element(const COORD& position, COORD size, char drawChar, const char& color) :
+            id(guidGenerator::generateGUID()),
             position(position),
             size(size),
             drawChar(drawChar),
-            color(color),
-            id(guidGenerator::generateGUID())
+            color(color)
         {
         }
 
@@ -51,6 +51,11 @@ namespace elements
         virtual void setSize(COORD s)
         {
             this->size = s;
+        }
+
+        virtual void setColor(char c)
+        {
+            color = c;
         }
     };
 }

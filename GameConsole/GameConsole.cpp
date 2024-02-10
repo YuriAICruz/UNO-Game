@@ -5,7 +5,10 @@
 #include "renderer/renderer.h"
 #include "screens/mainMenuScreen.h"
 #include "eventIds.h"
-#include "screens/settingsMenu.h"
+#include "renderer/elements/fileRead.h"
+#include "screens/gameScreen.h"
+#include "screens/settingsMenuScreen.h"
+#include "screens/gameOverScreen.h"
 #include "StateManager/gameStateManager.h"
 
 int main()
@@ -13,9 +16,9 @@ int main()
     std::unique_ptr<bootstrapper> strapper = std::make_unique<bootstrapper>();
     strapper->bind<eventBus::eventBus>()->to<eventBus::eventBus>()->asSingleton();
     strapper->bind<renderer::renderer>()->to<renderer::renderer>()->asSingleton();
-    strapper->bind<gameStateManager>()->to<gameStateManager>()->asSingleton();
+    strapper->bind<gameStateManager, std::shared_ptr<eventBus::eventBus>>()->to<gameStateManager>()->asSingleton();
 
-    auto gameManager = strapper->create<gameStateManager>();
+    auto gameManager = strapper->create<gameStateManager>(strapper->create<eventBus::eventBus>());
     auto rdr = strapper->create<renderer::renderer>();
     auto events = strapper->create<eventBus::eventBus>();
 
@@ -36,20 +39,34 @@ int main()
         strapper->create<renderer::renderer>(),
         strapper->create<eventBus::eventBus>()
     );
-    std::shared_ptr<screens::settingsMenu> settingsMenu = std::make_shared<screens::settingsMenu>(
+    std::shared_ptr<screens::settingsMenuScreen> settingsMenu = std::make_shared<screens::settingsMenuScreen>(
+        strapper->create<renderer::renderer>(),
+        strapper->create<eventBus::eventBus>()
+    );
+    std::shared_ptr<screens::gameScreen> game = std::make_shared<screens::gameScreen>(
+        strapper->create<renderer::renderer>(),
+        strapper->create<eventBus::eventBus>(),
+        strapper->create<gameStateManager>()
+    );
+    std::shared_ptr<screens::gameOverScreen> gameOver = std::make_shared<screens::gameOverScreen>(
         strapper->create<renderer::renderer>(),
         strapper->create<eventBus::eventBus>()
     );
 
     events->subscribe<screens::transitionData>(
-        NAVIGATION_GAME, [settingsMenu, gameManager](screens::transitionData data)
+        NAVIGATION_MAIN_MENU, [settingsMenu, gameManager](screens::transitionData data)
         {
-            gameManager->startGame(
+            gameManager->setupGame(
                 settingsMenu->getPlayers(),
                 settingsMenu->getHandCount(),
                 settingsMenu->getConfigFilePath(),
                 settingsMenu->getSeed()
             );
+        });
+    events->subscribe<screens::transitionData>(
+        NAVIGATION_GAME, [settingsMenu, gameManager](screens::transitionData data)
+        {
+            gameManager->startGame();
         });
 
     events->fireEvent(NAVIGATION_MAIN_MENU, screens::transitionData());
@@ -57,6 +74,23 @@ int main()
     while (true)
     {
         std::vector<input::inputData> inputs = inputH->readInput();
+        for (input::inputData input : inputs)
+        {
+            if (input.character == '\'')
+            {
+                rdr->blank();
+                std::cout << "Cheat Console:\n";
+                std::string input;
+                std::cin >> input;
+                if (input == "win")
+                {
+                    gameManager->cheatWin();
+                }
+                rdr->blank();
+                rdr->forceRedraw();
+                rdr->setDirty();
+            }
+        }
         if (rdr->isDirty())
         {
             rdr->draw();

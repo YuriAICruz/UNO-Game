@@ -15,19 +15,37 @@ private:
     std::unique_ptr<turnSystem::turnSystem> turner;
     size_t seed;
     int handSize;
+    std::shared_ptr<eventBus::eventBus> events;
+    bool running = false;
+    int currentPlayerCardsDraw = 0;
 
 public:
-    gameStateManager();
+    gameStateManager(std::shared_ptr<eventBus::eventBus> events);
+    bool isGameStarted();
     void makePlayerDraw(turnSystem::IPlayer* player, int count);
-    virtual void startGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath, size_t seed);
+    virtual void setupGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath, size_t seed);
+    virtual void startGame();
     virtual turnSystem::IPlayer* getCurrentPlayer() const;
     virtual turnSystem::IPlayer* getNextPlayer() const;
     virtual turnSystem::IPlayer* getPlayer(int i) const;
     virtual cards::ICard* getTopCard() const;
     virtual bool tryExecutePlayerAction(cards::ICard* card);
+    virtual bool playerHasValidCardOnHand(turnSystem::IPlayer* player);
+    int getStartHandSize();
+    bool canYellUno();
+    bool canSkipTurn();
+    bool canDrawCard();
+    void skipTurn();
+    void cheatWin();
+    void endGame();
+    void endTurn();
+    void yellUno();
 
 private:
-    void finishAction(cards::ICard* card) const;
+    void bindGameEvents();
+    void beginTurn();
+    void finishAction(cards::ICard* card);
     bool isActionCardValid(cards::ICard* card, cards::ICard* topCard) const;
+    bool isBaseCardValid(cards::ICard* card, cards::ICard* topCard) const;
     bool isCardValid(cards::ICard* card, cards::ICard* topCard) const;
 };

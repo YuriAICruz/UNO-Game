@@ -18,7 +18,6 @@ class bootstrapper
             create = [](Args... args)
             {
                 std::shared_ptr<Base> base = std::make_shared<T>(args...);
-                auto c = T(args...);
                 return base;
             };
             return this;

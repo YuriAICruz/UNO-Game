@@ -154,6 +154,7 @@
     <ClInclude Include="src\Cards\ICard.h" />
     <ClInclude Include="src\Cards\reverseCard.h" />
     <ClInclude Include="src\Cards\skipCard.h" />
+    <ClInclude Include="src\coreEventIds.h" />
     <ClInclude Include="src\Decks\deck.h" />
     <ClInclude Include="src\Decks\IDeck.h" />
     <ClInclude Include="src\Decks\jsonDeck.h" />
@@ -163,8 +164,10 @@
     <ClInclude Include="src\EventBus\event.h" />
     <ClInclude Include="src\EventBus\eventBus.h" />
     <ClInclude Include="src\guidGenerator.h" />
+    <ClInclude Include="src\StateManager\gameEventData.h" />
     <ClInclude Include="src\StateManager\gameStateManager.h" />
     <ClInclude Include="src\StateManager\IStateManager.h" />
+    <ClInclude Include="src\StateManager\turnEventData.h" />
     <ClInclude Include="src\TurnSystem\Events\endTurnEventData.h" />
     <ClInclude Include="src\TurnSystem\IPlayer.h" />
     <ClInclude Include="src\TurnSystem\ITurnSystem.h" />

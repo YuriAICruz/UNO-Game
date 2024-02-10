@@ -4,6 +4,7 @@
 #include "element.h"
 #include "frame.h"
 #include "text.h"
+#include "Cards/ICard.h"
 
 namespace elements
 {
@@ -50,6 +51,7 @@ namespace elements
         void deselect();
         void setPosition(COORD pos) override;
         void setSize(COORD s) override;
+        void setColor(char c) override;
         void setTitleText(std::string newText);
         void setCenterText(std::string newText);
 

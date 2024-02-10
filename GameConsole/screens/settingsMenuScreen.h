@@ -7,7 +7,7 @@
 
 namespace screens
 {
-    class settingsMenu : public IScreen
+    class settingsMenuScreen : public IScreen
     {
     private:
         button buttons[4];
@@ -19,31 +19,31 @@ namespace screens
         std::string configFilePath = "Data\\deck_setup.json";
         int handCount = 7;
         size_t seed = 12341234;
-        bool editingPlayers;
+        bool editingPlayers = false;
 
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
                 NAVIGATION_MAIN_MENU,
-                eventBus::delegate<transitionData>{std::bind(&settingsMenu::onHide, this, std::placeholders::_1)}
+                eventBus::delegate<transitionData>{std::bind(&settingsMenuScreen::onHide, this, std::placeholders::_1)}
             },
             {
                 NAVIGATION_SETTINGS,
-                eventBus::delegate<transitionData>{std::bind(&settingsMenu::onShow, this, std::placeholders::_1)}
+                eventBus::delegate<transitionData>{std::bind(&settingsMenuScreen::onShow, this, std::placeholders::_1)}
             },
             {
                 NAVIGATION_GAME,
-                eventBus::delegate<transitionData>{std::bind(&settingsMenu::onHide, this, std::placeholders::_1)}
+                eventBus::delegate<transitionData>{std::bind(&settingsMenuScreen::onHide, this, std::placeholders::_1)}
             },
             {
                 NAVIGATION_GAME_OVER,
-                eventBus::delegate<transitionData>{std::bind(&settingsMenu::onHide, this, std::placeholders::_1)}
+                eventBus::delegate<transitionData>{std::bind(&settingsMenuScreen::onHide, this, std::placeholders::_1)}
             },
         };
 
         void setupPlayerButton();
 
     public:
-        settingsMenu(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events)
+        settingsMenuScreen(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events)
             : IScreen(rdr, events)
         {
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
@@ -53,16 +53,17 @@ namespace screens
             }
 
             players.resize(2);
+            std::stringstream ss;
             for (int i = 0, n = players.size(); i < n; ++i)
             {
-                std::stringstream ss;
                 ss << "Player 0" << (i + 1);
                 players[i] = ss.str();
+                ss.str("");
             }
             playersButtons.resize(12);
         }
 
-        ~settingsMenu() override
+        ~settingsMenuScreen() override
         {
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
             {

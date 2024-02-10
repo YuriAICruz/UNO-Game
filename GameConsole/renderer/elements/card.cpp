@@ -48,6 +48,16 @@ namespace elements
         frameElement.setSize(s);
         textElement.setSize(s);
         centerTextElement.setSize(s);
+
+        setPosition(position);
+    }
+
+    void card::setColor(char c)
+    {
+        element::setColor(c);
+        frameElement.setColor(c);
+        textElement.setColor(c);
+        centerTextElement.setColor(c);
     }
 
     void card::setTitleText(std::string newText)
