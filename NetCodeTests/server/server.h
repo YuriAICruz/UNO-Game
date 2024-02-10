@@ -2,7 +2,7 @@
 #include <iostream>
 #include <WinSock2.h>
 #include <WS2tcpip.h> // Include for inet_pton and inet_ntop functions
-
+#include <thread>
 #pragma comment(lib, "ws2_32.lib")
 
 class server
@@ -66,10 +66,12 @@ public:
 
         while (true)
         {
+            sockaddr_in clientAddr;
+            int clientAddrSize = sizeof(clientAddr);
+            
             std::cout << "waiting for connections . . .\n";
-            clientSocket = accept(serverSocket, reinterpret_cast<SOCKADDR*>(&clientAddr), &clientAddrSize);
-            if (clientSocket == INVALID_SOCKET)
-            {
+            SOCKET clientSocket = accept(serverSocket, reinterpret_cast<SOCKADDR*>(&clientAddr), &clientAddrSize);
+            if (clientSocket == INVALID_SOCKET) {
                 std::cerr << "Accept failed\n";
                 closesocket(serverSocket);
                 WSACleanup();
@@ -79,22 +81,10 @@ public:
             inet_ntop(AF_INET, &(clientAddr.sin_addr), clientIP, INET_ADDRSTRLEN);
             std::cout << "Connection accepted from " << clientIP << ":" << ntohs(clientAddr.sin_port) << std::endl;
 
-            std::cout << "waiting for client data . . .\n";
-            char recvData[1024];
-            int recvSize = recv(clientSocket, recvData, sizeof(recvData), 0);
-            if (recvSize > 0)
-            {
-                recvData[recvSize] = '\0'; // Null-terminate received data
-                std::cout << "Received: " << recvData << std::endl;
-
-
-                std::cout << "sending automatic response\n";
-                const char* responseData = "Message received by server!";
-                send(clientSocket, responseData, strlen(responseData), 0);
-            }
-
-            std::cout << "closing client connection [" << clientSocket << "]\n";
-            closesocket(clientSocket);
+            std::thread clientThread([this, clientSocket]() {
+                this->clientHandler(clientSocket);
+            });
+            clientThread.detach();
         }
 
         std::cout << "shutdown server . . .\n";
@@ -102,4 +92,6 @@ public:
         WSACleanup();
         return 0;
     }
+
+    void clientHandler(SOCKET clientSocket);
 };
