@@ -32,6 +32,30 @@ void inputInt(int& value)
     }
 }
 
+int tryReconnect(std::string input, std::string addr, client* clientinstance)
+{
+    while (true)
+    {
+        std::cout << "failed to connect to server, try again [Y] [n]\n";
+        std::cin >> input;
+        if (input == "n")
+        {
+            return 1;
+        }
+        int result = clientinstance->start(addr);
+        if (result != 0)
+        {
+            return result;
+        }
+        result = clientinstance->connectToServer();
+        if (result == 0)
+        {
+            break;
+        }
+    }
+    return 0;
+}
+
 int main(int argc, char* argv[])
 {
     std::cout << "running a client [c] or a server [s] ?\n";
@@ -56,27 +80,14 @@ int main(int argc, char* argv[])
             {
                 return result;
             }
+            
             result = clientinstance->connectToServer();
             if (result != 0)
             {
-                while (true)
+                result = tryReconnect(input, addr, clientinstance.get());
+                if (result != 0)
                 {
-                    std::cout << "failed to connect to server, try again [Y] [n]\n";
-                    std::cin >> input;
-                    if (input == "n")
-                    {
-                        return result;
-                    }
-                    result = clientinstance->start(addr);
-                    if (result != 0)
-                    {
-                        return result;
-                    }
-                    result = clientinstance->connectToServer();
-                    if (result == 0)
-                    {
-                        break;
-                    }
+                    return result;
                 }
             }
 
@@ -87,7 +98,6 @@ int main(int argc, char* argv[])
                 std::cin >> input;
                 if (input == "q")
                 {
-                    std::cout << "exiting...";
                     return clientinstance->close();
                 }
                 result = clientinstance->sendMessage(input.c_str());
@@ -95,7 +105,6 @@ int main(int argc, char* argv[])
                 {
                     return result;
                 }
-                std::cout << "Receive response: " << input << "\n";
             }
         }
         if (input == "s")
