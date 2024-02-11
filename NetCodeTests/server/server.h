@@ -7,6 +7,7 @@
 #include <unordered_set>
 
 #include "clientInfo.h"
+#include "room.h"
 
 class server
 {
@@ -16,7 +17,9 @@ private:
     SOCKET serverSocket;
     sockaddr_in serverAddr;
     std::map<int, clientInfo> clients;
+    std::map<int, room> rooms;
     int connectionsCount = 0;
+    int roomsCount = 0;
     int ngrokPID;
 
 public:
@@ -28,4 +31,9 @@ public:
 private:
     void clientHandler(SOCKET clientSocket);
     bool validateKey(SOCKET clientSocket);
+    clientInfo* getClient(SOCKET uint);
+    void filterCommands(std::string& message, SOCKET clientSocket);
+    int createRoom();
+    room* getRoom(int id);
+    static std::vector<std::string> splitString(const std::string& s);
 };

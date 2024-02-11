@@ -157,11 +157,14 @@
     <ClCompile Include="client\client.cpp" />
     <ClCompile Include="NetCodeTests.cpp" />
     <ClCompile Include="server\clientInfo.cpp" />
+    <ClCompile Include="server\room.cpp" />
     <ClCompile Include="server\server.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\client.h" />
+    <ClInclude Include="serverCommands.h" />
     <ClInclude Include="server\clientInfo.h" />
+    <ClInclude Include="server\room.h" />
     <ClInclude Include="server\server.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

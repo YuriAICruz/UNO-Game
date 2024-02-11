@@ -11,7 +11,7 @@ void inputInt(int& value)
         std::string port;
         std::cout << "Insert the server port [d for 8080]\n";
         std::cin >> port;
-                
+
         if (port == "d")
         {
             port = "8080";
@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
             {
                 return result;
             }
-            
+
             result = clientinstance->connectToServer();
             if (result != 0)
             {
@@ -93,13 +93,14 @@ int main(int argc, char* argv[])
 
             while (true)
             {
-                std::cout << "\n" << "client running, type a message to send to server. [q] to finish the application"
-                    << "\n";
+                std::cout << "\nclient running, type a message to send to server. [q] to finish the application\n";
                 std::cin >> input;
+
                 if (input == "q")
                 {
                     return clientinstance->close();
                 }
+
                 result = clientinstance->sendMessage(input.c_str());
                 if (result != 0)
                 {

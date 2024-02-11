@@ -3,6 +3,7 @@
 #include <WS2tcpip.h>
 #include <thread>
 #include <sstream>
+#include "../serverCommands.h"
 
 int server::start(int port)
 {
@@ -127,12 +128,10 @@ void server::clientHandler(SOCKET clientSocket)
         recvData[recvSize] = '\0';
         std::cout << "Received from client: " << recvData << std::endl;
 
-        std::cout << "sending automatic response\n";
-        const char* responseData = "Message received by server!";
-        send(clientSocket, responseData, strlen(responseData), 0);
-        broadcast("This message is for all!!");
-        // Echo received data back to client
-        //send(clientSocket, recvData, recvSize, 0);
+        std::string message;
+        message.assign(recvData);
+
+        filterCommands(message, clientSocket);
     }
 
     if (recvSize == 0)
@@ -160,7 +159,7 @@ bool server::validateKey(SOCKET clientSocket)
         return false;
     }
 
-    if (keySize != sizeof(keyBuffer)-1)
+    if (keySize != sizeof(keyBuffer) - 1)
     {
         std::cerr << "Invalid key\n";
         return false;
@@ -176,4 +175,100 @@ bool server::validateKey(SOCKET clientSocket)
     }
 
     return true;
+}
+
+clientInfo* server::getClient(SOCKET clientSocket)
+{
+    for (auto pair : clients)
+    {
+        if (*pair.second.connection == clientSocket)
+        {
+            return &clients[pair.first];
+        }
+    }
+
+    return nullptr;
+}
+
+void server::filterCommands(std::string& message, SOCKET clientSocket)
+{
+    if (message == NC_CREATE_ROOM)
+    {
+        std::cout << "creating room\n";
+        int id = createRoom();
+        const char* responseData = std::to_string(id).c_str();
+        rooms[id].addClient(getClient(clientSocket));
+        send(clientSocket, responseData, strlen(responseData), 0);
+        std::cout << "created room with id" << id << "\n";
+        broadcast("This message is for all!!");
+    }
+    if (message == NC_LIST_ROOMS)
+    {
+        std::stringstream ss;
+        int i = 0;
+        for (auto roomData : rooms)
+        {
+            if (i > 0)
+            {
+                ss << NC_SEPARATOR;
+            }
+
+            ss << roomData.first << "-" << roomData.second.count();
+            i++;
+        }
+        const char* responseData = ss.str().c_str();
+        send(clientSocket, responseData, strlen(responseData), 0);
+        std::cout << "listed all rooms\n";
+    }
+
+    std::vector<std::string> data = splitString(message);
+    if (data.size() == 2)
+    {
+        if (data[0] == NC_ENTER_ROOM)
+        {
+            int id = std::stoi(data[1]);
+            auto client = getClient(clientSocket);
+            rooms[id].addClient(client);
+            const char* responseData = NC_SUCCESS;
+            send(clientSocket, responseData, strlen(responseData), 0);
+            std::cout << "client " << client->connection << " added to room " << id << "\n";
+        }
+        if (data[0] == NC_EXIT_ROOM)
+        {
+            int id = std::stoi(data[1]);
+            auto client = getClient(clientSocket);
+            rooms[id].removeClient(client);
+            const char* responseData = NC_SUCCESS;
+            send(clientSocket, responseData, strlen(responseData), 0);
+            std::cout << "client " << client->connection << " removed from room " << id << "\n";
+        }
+    }
+}
+
+int server::createRoom()
+{
+    auto r = room();
+    rooms.insert(std::make_pair(connectionsCount, r));
+    roomsCount++;
+
+    return connectionsCount--;
+}
+
+room* server::getRoom(int id)
+{
+    return &rooms[id];
+}
+
+std::vector<std::string> server::splitString(const std::string& s)
+{
+    std::vector<std::string> tokens;
+    std::istringstream ss(s);
+    std::string token;
+
+    while (std::getline(ss, token, NC_SEPARATOR))
+    {
+        tokens.push_back(token);
+    }
+
+    return tokens;
 }
