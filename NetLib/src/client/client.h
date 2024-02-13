@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <iostream>
 #include <WinSock2.h>
-
+#include "../../framework.h"
 #pragma comment(lib, "ws2_32.lib")
 
 #ifdef _DEBUG
@@ -10,7 +10,7 @@
 #define CLIENT_KEY "s_p_56489135"
 #endif //_DEBUG
 
-class client
+class NETCODE_API client
 {
 private:
     WSADATA wsaData;

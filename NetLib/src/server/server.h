@@ -6,10 +6,11 @@
 #include <string>
 #include <unordered_set>
 
+#include "../../framework.h"
 #include "clientInfo.h"
 #include "room.h"
 
-class server
+class NETCODE_API server
 {
 private:
     const std::unordered_set<std::string> validKeys = {"s_p_56489135", "server_debug"};
