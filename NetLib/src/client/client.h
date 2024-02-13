@@ -26,7 +26,7 @@ public:
 
     int initializeWinsock();
     int createSocket();
-    int start(std::string addr = "127.0.0.1:8080");
+    int start(std::string addr = "ftp://127.0.0.1:8080");
     int connectToServer();
     int sendMessage(const char* str);
     int close();

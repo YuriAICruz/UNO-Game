@@ -80,13 +80,13 @@ int client::start(std::string addressStr)
     int addrInfoResult = getaddrinfo(host.c_str(), portStr.c_str(), &hints, &addr_info);
     if (addrInfoResult != 0)
     {
-        //logger::printError<const char*, wchar_t*>("getaddrinfo failed: ", gai_strerror(addrInfoResult));
+        logger::printError((logger::getPrinter() << "getaddrinfo failed: " << gai_strerror(addrInfoResult)).str());
         closesocket(clientSocket);
         WSACleanup();
         return 1;
     }
 
-    //logger::print<const char*, std::string, const char*, std::string, const char*>("server address [",  host.c_str(), "] and port [",  std::to_string(port), "] set");
+    logger::print((logger::getPrinter() << "server address ["<< host.c_str()<<"] and port ["<< std::to_string(port)<<"] set").str());
     running = true;
 
     return 0;
@@ -154,7 +154,7 @@ void client::listenToServer()
             recvData[i] = ' ';
         }
         int recvSize = recv(clientSocket, recvData, strlen(recvData), 0);
-        //logger::print("data received size: ", recvSize, "");
+        logger::print((logger::getPrinter() << "data received size: " << recvSize).str());
         if (recvSize == SOCKET_ERROR)
         {
             logger::printError("receive failed");
@@ -170,6 +170,6 @@ void client::listenToServer()
 
         recvData[recvSize] = '\0'; // Null-terminate received data
         lastResponse.assign(recvData, recvSize);
-        //logger::print<const char*, char*>("Received: ", recvData);
+        logger::print((logger::getPrinter() << "Received: " << recvData).str());
     }
 }

@@ -4,29 +4,38 @@
 
 void logger::print(std::string msg)
 {
+
 #ifdef _DEBUG
-    OutputDebugString(toWString(std::move(msg)).c_str());
+    std::stringstream ss;
+    ss << "LOG: " << msg << "\n";
+    OutputDebugString(toWString(ss.str()).c_str());
 #endif // _DEBUG
 }
 
 void logger::print(const char* msg)
 {
 #ifdef _DEBUG
-    OutputDebugString(toWString(std::string(msg)).c_str());
+    std::stringstream ss;
+    ss << "LOG: " << msg << "\n";
+    OutputDebugString(toWString(ss.str()).c_str());
 #endif // _DEBUG
 }
 
 void logger::printError(const std::string& msg)
 {
 #ifdef _DEBUG
-    OutputDebugString(toWString(msg).c_str());
+    std::stringstream ss;
+    ss << "ERROR: " << msg << "\n";
+    OutputDebugString(toWString(ss.str()).c_str());
 #endif // _DEBUG
 }
 
 void logger::printError(const char* msg)
 {
 #ifdef _DEBUG
-    OutputDebugString(toWString(std::string(msg)).c_str());
+    std::stringstream ss;
+    ss << "ERROR: " << msg << "\n";
+    OutputDebugString(toWString(ss.str()).c_str());
 #endif // _DEBUG
 }
 
