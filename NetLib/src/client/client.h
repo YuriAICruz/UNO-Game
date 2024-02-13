@@ -17,25 +17,38 @@ private:
     WSADATA wsaData;
     SOCKET clientSocket;
     sockaddr_in serverAddr;
-    bool running = false;
+    std::atomic<bool> running{false};
+    std::atomic<bool> connected{false};
+    std::atomic<bool> error{false};
+    std::atomic<bool> isListening{false};
     std::string lastResponse;
     struct addrinfo* addr_info;
 
 public:
     client() = default;
 
-    int initializeWinsock();
-    int createSocket();
     int start(std::string addr = "ftp://127.0.0.1:8080");
     int connectToServer();
     int sendMessage(const char* str);
     int close();
 
-    bool isRunning()
+    bool isRunning() const
     {
-        return running;
+        return isListening || running;
+    }
+
+    bool isConnected() const
+    {
+        return running && connected && !error;
+    }
+
+    bool hasError()
+    {
+        return error;
     }
 
 private:
+    int initializeWinsock();
+    int createSocket();
     void listenToServer();
 };

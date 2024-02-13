@@ -1,7 +1,20 @@
 ﻿#include "gtest/gtest.h"
+#include "server/server.h"
 
-TEST(ServerTests, TestName)
+TEST(ServerTests, OpenAndClose)
 {
-    EXPECT_EQ(1, 1);
-    EXPECT_TRUE(true);  
+    auto sv = std::make_unique<server>();
+
+    sv->start();
+    while (!sv->isRunning() && !sv->hasError())
+    {
+        
+    }
+    EXPECT_TRUE(sv->isRunning());
+    sv->close();
+    while (sv->isRunning())
+    {
+        
+    }
+    EXPECT_FALSE(sv->isRunning());
 }

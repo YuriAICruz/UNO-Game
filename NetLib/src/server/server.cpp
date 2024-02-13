@@ -3,83 +3,73 @@
 #include <WS2tcpip.h>
 #include <thread>
 #include <sstream>
+
+#include "../logger.h"
 #include "../serverCommands.h"
 
 int server::start(int port)
 {
-    std::cout << "starting server . . .\n";
-    std::cout << "initializing Winsock . . .\n";
+    error = false;
+    logger::print("SERVER: starting server . . .");
+    logger::print("SERVER: initializing Winsock . . .");
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
     {
-        std::cerr << "WSAStartup failed\n";
+        logger::printError("WSAStartup failed");
+        error = true;
         return 1;
     }
-    std::cout << "Winsock initialized\n";
+    logger::print("SERVER: Winsock initialized");
 
-    std::cout << "creating socket . . .\n";
+    logger::print("SERVER: creating socket . . .");
     serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (serverSocket == INVALID_SOCKET)
     {
-        std::cerr << "Socket creation failed\n";
+        logger::printError("SERVER: Socket creation failed");
         WSACleanup();
+        error = true;
         return 1;
     }
-    std::cout << "socket created\n";
+    logger::print("SERVER: socket created");
 
-    std::cout << "binding socket . . .\n";
+    logger::print("SERVER: binding socket . . .");
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = INADDR_ANY;
     serverAddr.sin_port = htons(port);
 
     if (bind(serverSocket, reinterpret_cast<SOCKADDR*>(&serverAddr), sizeof(serverAddr)) == SOCKET_ERROR)
     {
-        std::cerr << "Bind failed\n";
+        logger::printError("SERVER: Bind failed");
         closesocket(serverSocket);
         WSACleanup();
+        error = true;
         return 1;
     }
-    std::cout << "bind success to port: " << port << "\n";
+    logger::print((logger::getPrinter() << "SERVER: bind success to port: " << port << "").str());
 
-    std::cout << "setup listening . . .\n";
+    logger::print("setup listening . . .");
     if (listen(serverSocket, SOMAXCONN) == SOCKET_ERROR)
     {
-        std::cerr << "Listen failed\n";
+        logger::printError("SERVER: Listen failed");
         closesocket(serverSocket);
         WSACleanup();
+        error = true;
         return 1;
     }
 
-    std::cout << "Server listening on port " << serverAddr.sin_port << "...\n";
+    logger::print((logger::getPrinter() << "SERVER: Server listening on port " << port << "...").str());
 
     std::stringstream ss;
     ss << "start cmd /c .\\ngrok.exe tcp " << port;
     ngrokPID = std::system(ss.str().c_str());
 
-    char clientIP[INET_ADDRSTRLEN];
+    initializing = true;
+    running = true;
 
-    std::cout << "waiting for connections . . .\n";
-    while (true)
+    std::thread serverListeningThread([this]()
     {
-        sockaddr_in clientAddr;
-        int clientAddrSize = sizeof(clientAddr);
-
-        SOCKET currentClientSocket = accept(serverSocket, reinterpret_cast<SOCKADDR*>(&clientAddr), &clientAddrSize);
-        if (currentClientSocket == INVALID_SOCKET)
-        {
-            std::cerr << "Accept failed\n";
-            int result = close();
-            return result + 1;
-        }
-
-        inet_ntop(AF_INET, &(clientAddr.sin_addr), clientIP, INET_ADDRSTRLEN);
-        std::cout << "Connection accepted from " << clientIP << ":" << ntohs(clientAddr.sin_port) << std::endl;
-
-        std::thread clientThread([this, currentClientSocket]()
-        {
-            this->clientHandler(currentClientSocket);
-        });
-        clientThread.detach();
-    }
+        this->listening();
+    });
+    serverListeningThread.detach();
 }
 
 void server::broadcast(std::string msg)
@@ -91,29 +81,99 @@ void server::broadcast(std::string msg)
     }
 }
 
-int server::close() const
+int server::close()
 {
-    std::cout << "shutdown server . . .\n";
+    if (!running)
+    {
+        logger::print("SERVER: server already closed.");
+        return 1;
+    }
+
+    logger::print("SERVER: shutdown server . . .");
     closesocket(serverSocket);
     WSACleanup();
 
-    std::cout << "terminating ngrok...\n";
-    std::string killCommand = "taskkill /PID " + std::to_string(ngrokPID) + " /F";
-    system(killCommand.c_str());
+    if (ngrokPID > 0)
+    {
+        logger::print("SERVER: terminating ngrok...");
+        std::string killCommand = "taskkill /PID " + std::to_string(ngrokPID) + " /F";
+        system(killCommand.c_str());
+    }
+
+    initializing = false;
+    running = false;
     return 0;
+}
+
+void server::listening()
+{
+    if (!running)
+    {
+        logger::printError("SERVER: server is not running. aborting listening thread");
+        return;
+    }
+
+    isListening = true;
+    
+    char clientIP[INET_ADDRSTRLEN];
+
+    logger::print("SERVER: waiting for connections . . .");
+    initializing = false;
+    while (running)
+    {
+        sockaddr_in clientAddr;
+        int clientAddrSize = sizeof(clientAddr);
+
+        SOCKET currentClientSocket = accept(serverSocket, reinterpret_cast<SOCKADDR*>(&clientAddr), &clientAddrSize);
+        if (currentClientSocket == INVALID_SOCKET)
+        {
+            logger::printError("SERVER: Accept failed");
+            error = true;
+            close();
+            break;
+        }
+
+        inet_ntop(AF_INET, &(clientAddr.sin_addr), clientIP, INET_ADDRSTRLEN);
+        logger::print(
+            (logger::getPrinter() << "SERVER: Connection accepted from " << clientIP << ":" << ntohs(
+                clientAddr.sin_port)).
+            str());
+
+        if (!running)
+        {
+            logger::printError("SERVER: server not running anymore, aborting listening thread");
+            break;
+        }
+
+        std::thread clientThread([this, currentClientSocket]()
+        {
+            this->clientHandler(currentClientSocket);
+        });
+        clientThread.detach();
+    }
+
+    logger::print("SERVER: no longer waiting for connections.");
+    isListening = false;
 }
 
 void server::clientHandler(SOCKET clientSocket)
 {
     if (!validateKey(clientSocket))
     {
-        std::cerr << "closing client connection [" << clientSocket << "] invalid Key\n";
+        logger::printError(
+            (logger::getPrinter() << "SERVER: closing client connection [" << clientSocket << "] invalid Key").str());
         closesocket(clientSocket);
         clients.erase(connectionsCount);
         return;
     }
 
-    std::cout << "Connection accepted from " << clientSocket << "\n";
+    if (!running)
+    {
+        logger::printError("SERVER: server not running anymore, aborting client listening");
+        return;
+    }
+
+    logger::print((logger::getPrinter() << "SERVER: Connection accepted from " << clientSocket << "").str());
 
     clientInfo client = clientInfo();
     client.connection = &clientSocket;
@@ -123,10 +183,10 @@ void server::clientHandler(SOCKET clientSocket)
     char recvData[1024];
     int recvSize;
 
-    while ((recvSize = recv(clientSocket, recvData, sizeof(recvData), 0)) > 0)
+    while (running && (recvSize = recv(clientSocket, recvData, sizeof(recvData), 0)) > 0)
     {
         recvData[recvSize] = '\0';
-        std::cout << "Received from client: " << recvData << std::endl;
+        logger::print((logger::getPrinter() << "SERVER: Received from client: " << recvData).str());
 
         std::string message;
         message.assign(recvData);
@@ -134,34 +194,46 @@ void server::clientHandler(SOCKET clientSocket)
         filterCommands(message, clientSocket);
     }
 
+    if (!running)
+    {
+        logger::printError("SERVER: server not running anymore, closing client thread");
+        return;
+    }
+
     if (recvSize == 0)
     {
-        std::cout << "Client disconnected.\n";
+        logger::print("SERVER: Client disconnected.");
     }
     else
     {
-        std::cerr << "Receive failed\n";
+        logger::printError("SERVER: Receive failed");
     }
 
-    std::cout << "closing client connection [" << clientSocket << "]\n";
+    logger::print((logger::getPrinter() << "SERVER: closing client connection [" << clientSocket << "]").str());
     closesocket(clientSocket);
     clients.erase(connectionsCount);
 }
 
 bool server::validateKey(SOCKET clientSocket)
 {
-    std::cerr << "validating key . . .\n";
+    if (!running)
+    {
+        logger::printError("SERVER: server not running anymore, aborting validation");
+        return 1;
+    }
+
+    logger::print("SERVER: validating key . . .");
     char keyBuffer[13];
     int keySize = recv(clientSocket, keyBuffer, sizeof(keyBuffer), 0);
     if (keySize <= 0)
     {
-        std::cerr << "Key receive failed\n";
+        logger::printError("SERVER: Key receive failed");
         return false;
     }
 
     if (keySize != sizeof(keyBuffer) - 1)
     {
-        std::cerr << "Invalid key\n";
+        logger::printError("SERVER: Invalid key");
         return false;
     }
 
@@ -170,10 +242,12 @@ bool server::validateKey(SOCKET clientSocket)
     std::string keyReceived(keyBuffer);
     if (validKeys.find(keyReceived) == validKeys.end())
     {
-        std::cerr << "Invalid key\n";
+        logger::printError("SERVER: Invalid key");
+        send(clientSocket, NC_INVALID_KEY, strlen(NC_INVALID_KEY), 0);
         return false;
     }
 
+    send(clientSocket, NC_VALID_KEY, strlen(NC_VALID_KEY), 0);
     return true;
 }
 
@@ -194,12 +268,12 @@ void server::filterCommands(std::string& message, SOCKET clientSocket)
 {
     if (message == NC_CREATE_ROOM)
     {
-        std::cout << "creating room\n";
+        logger::print("SERVER: creating room");
         int id = createRoom();
         const char* responseData = std::to_string(id).c_str();
         rooms[id].addClient(getClient(clientSocket));
         send(clientSocket, responseData, strlen(responseData), 0);
-        std::cout << "created room with id" << id << "\n";
+        logger::print((logger::getPrinter() << "SERVER: created room with id" << id << "").str());
         broadcast("This message is for all!!");
     }
     if (message == NC_LIST_ROOMS)
@@ -218,7 +292,7 @@ void server::filterCommands(std::string& message, SOCKET clientSocket)
         }
         const char* responseData = ss.str().c_str();
         send(clientSocket, responseData, strlen(responseData), 0);
-        std::cout << "listed all rooms\n";
+        logger::print("SERVER: listed all rooms");
     }
 
     std::vector<std::string> data = splitString(message);
@@ -231,7 +305,9 @@ void server::filterCommands(std::string& message, SOCKET clientSocket)
             rooms[id].addClient(client);
             const char* responseData = NC_SUCCESS;
             send(clientSocket, responseData, strlen(responseData), 0);
-            std::cout << "client " << client->connection << " added to room " << id << "\n";
+            logger::print(
+                (logger::getPrinter() << "SERVER: client " << client->connection << " added to room " << id << "").
+                str());
         }
         if (data[0] == NC_EXIT_ROOM)
         {
@@ -240,7 +316,9 @@ void server::filterCommands(std::string& message, SOCKET clientSocket)
             rooms[id].removeClient(client);
             const char* responseData = NC_SUCCESS;
             send(clientSocket, responseData, strlen(responseData), 0);
-            std::cout << "client " << client->connection << " removed from room " << id << "\n";
+            logger::print(
+                (logger::getPrinter() << "SERVER: client " << client->connection << " removed from room " << id << "").
+                str());
         }
     }
 }

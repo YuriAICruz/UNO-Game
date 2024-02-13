@@ -6,6 +6,8 @@
 #define NC_ENTER_ROOM  "enterr"
 #define NC_EXIT_ROOM   "exitr"
 #define NC_SEPARATOR   ';'
+#define NC_VALID_KEY   "valid_key"
+#define NC_INVALID_KEY   "invalid_key"
 
 #define NC_SUCCESS     "success"
 #define NC_ERROR       "error"
