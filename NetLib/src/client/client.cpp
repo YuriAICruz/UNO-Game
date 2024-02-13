@@ -3,48 +3,53 @@
 #include <string>
 #include <WS2tcpip.h>
 #include <thread>
+#include "../logger.h"
 
 int client::initializeWinsock()
 {
-    std::cout << "initializing Winsock . . .\n";
+    logger::print("initializing Winsock . . .");
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
     {
-        std::cerr << "WSAStartup failed\n";
+        logger::printError("WSAStartup failed");
         return 1;
     }
-    std::cout << "Winsock Initialized\n";
+    logger::print("Winsock Initialized");
     return 0;
 }
 
 int client::createSocket()
 {
-    std::cout << "creating socket . . .\n";
+    logger::print("creating socket . . .");
     clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (clientSocket == INVALID_SOCKET)
     {
-        std::cerr << "socket creation failed\n";
+        logger::printError("socket creation failed");
         WSACleanup();
         return 1;
     }
-    std::cout << "socket created\n";
+    logger::print("socket created");
     return 0;
 }
 
 int client::start(std::string addressStr)
 {
-    std::cout << "starting Client . . .\n";
+    if (running)
+    {
+        throw std::exception("Client already running");
+    }
+    logger::print("starting Client . . .");
 
     int r = initializeWinsock();
     if (r > 0) return r;
     r = createSocket();
     if (r > 0) return r;
 
-    std::cout << "setting server address and port . . .\n";
+    logger::print("setting server address and port . . .");
 
     size_t pos = addressStr.find("://");
     if (pos == std::string::npos)
     {
-        std::cerr << "Invalid address format\n";
+        logger::printError("Invalid address format");
         closesocket(clientSocket);
         WSACleanup();
         return 1;
@@ -53,7 +58,7 @@ int client::start(std::string addressStr)
     pos = addressWithoutProtocol.find(":");
     if (pos == std::string::npos)
     {
-        std::cerr << "Invalid address format\n";
+        logger::printError("Invalid address format");
         closesocket(clientSocket);
         WSACleanup();
         return 1;
@@ -75,31 +80,32 @@ int client::start(std::string addressStr)
     int addrInfoResult = getaddrinfo(host.c_str(), portStr.c_str(), &hints, &addr_info);
     if (addrInfoResult != 0)
     {
-        std::cerr << "getaddrinfo failed: " << gai_strerror(addrInfoResult) << std::endl;
+        //logger::printError<const char*, wchar_t*>("getaddrinfo failed: ", gai_strerror(addrInfoResult));
         closesocket(clientSocket);
         WSACleanup();
         return 1;
     }
 
-    std::cout << "server address [" << host.c_str() << "] and port [" << port << "] set\n";
+    //logger::print<const char*, std::string, const char*, std::string, const char*>("server address [",  host.c_str(), "] and port [",  std::to_string(port), "] set");
+    running = true;
 
     return 0;
 }
 
 int client::connectToServer()
 {
-    std::cout << "connecting to server . . .\n";
+    logger::print("connecting to server . . .");
     if (connect(clientSocket, addr_info->ai_addr, static_cast<int>(addr_info->ai_addrlen)) == SOCKET_ERROR)
     {
-        std::cerr << "Connection failed\n";
+        logger::printError("Connection failed");
         freeaddrinfo(addr_info);
         closesocket(clientSocket);
         WSACleanup();
         return 1;
     }
-    std::cout << "connection successful\n";
+    logger::print("connection successful");
 
-    std::cout << "creating listen thread\n";
+    logger::print("creating listen thread");
     std::thread clientThread([this]()
     {
         this->listenToServer();
@@ -112,26 +118,28 @@ int client::connectToServer()
 }
 
 
-int client::sendMessage(const char* str) const
+int client::sendMessage(const char* str)
 {
-    std::cout << "sending data . . .\n";
+    logger::print("sending data . . .");
     int sendResult = send(clientSocket, str, strlen(str), 0);
     if (sendResult == SOCKET_ERROR)
     {
-        std::cerr << "Send failed\n";
+        logger::printError("Send failed");
         int result = close();
         return result + 1;
     }
-    std::cout << "send successful\n";
+    logger::print("send successful");
     return 0;
 }
 
-int client::close() const
+int client::close()
 {
-    std::cout << "closing client . . .\n";
+    logger::print("closing client . . .");
     freeaddrinfo(addr_info);
     closesocket(clientSocket);
     WSACleanup();
+
+    running = false;
     return 0;
 }
 
@@ -146,22 +154,22 @@ void client::listenToServer()
             recvData[i] = ' ';
         }
         int recvSize = recv(clientSocket, recvData, strlen(recvData), 0);
-        std::cout << "data received size: " << recvSize << "\n";
+        //logger::print("data received size: ", recvSize, "");
         if (recvSize == SOCKET_ERROR)
         {
-            std::cerr << "receive failed\n";
+            logger::printError("receive failed");
             int result = close();
             return;
         }
         if (recvSize == 0)
         {
-            std::cerr << "Connection closed by peer\n";
+            logger::printError("Connection closed by peer");
             int result = close();
             return;
         }
 
         recvData[recvSize] = '\0'; // Null-terminate received data
         lastResponse.assign(recvData, recvSize);
-        std::cout << "Received: " << recvData << std::endl;
+        //logger::print<const char*, char*>("Received: ", recvData);
     }
 }

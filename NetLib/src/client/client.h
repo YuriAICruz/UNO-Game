@@ -2,6 +2,7 @@
 #include <iostream>
 #include <WinSock2.h>
 #include "../../framework.h"
+
 #pragma comment(lib, "ws2_32.lib")
 
 #ifdef _DEBUG
@@ -16,6 +17,7 @@ private:
     WSADATA wsaData;
     SOCKET clientSocket;
     sockaddr_in serverAddr;
+    bool running = false;
     std::string lastResponse;
     struct addrinfo* addr_info;
 
@@ -26,8 +28,13 @@ public:
     int createSocket();
     int start(std::string addr = "127.0.0.1:8080");
     int connectToServer();
-    int sendMessage(const char* str) const;
-    int close() const;
+    int sendMessage(const char* str);
+    int close();
+
+    bool isRunning()
+    {
+        return running;
+    }
 
 private:
     void listenToServer();
