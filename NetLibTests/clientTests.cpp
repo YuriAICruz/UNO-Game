@@ -17,32 +17,29 @@ std::tuple<std::shared_ptr<client>, std::shared_ptr<server>> startAndConnectClie
     sv->start();
     while (!sv->isRunning() && !sv->hasError())
     {
-        
     }
     EXPECT_TRUE(sv->isRunning());
 
     cl->connectToServer();
     while (!cl->isConnected() && !cl->hasError())
     {
-        
     }
     EXPECT_TRUE(cl->isConnected());
     return std::tuple<std::shared_ptr<client>, std::shared_ptr<server>>(cl, sv);
 }
+
 void closeClient(client* cl, server* sv)
 {
     logger::print("TEST: closeClient");
     cl->close();
     while (cl->isConnected() || cl->isRunning())
     {
-        
     }
     EXPECT_FALSE(cl->isConnected());
     EXPECT_FALSE(cl->isRunning());
     sv->close();
     while (sv->isRunning())
     {
-        
     }
     EXPECT_FALSE(sv->isRunning());
 }
