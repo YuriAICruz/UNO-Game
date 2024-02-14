@@ -108,6 +108,11 @@ int server::close()
     return 0;
 }
 
+room* server::getRoom(int id)
+{
+    return roomManager.getRoom(id);
+}
+
 void server::listening()
 {
     if (!running)
@@ -330,5 +335,15 @@ void server::exitRoom(const std::string& message, SOCKET clientSocket)
     auto client = getClient(clientSocket);
     roomManager.exitRoom(client.get());
     const char* responseData = NC_EXIT_ROOM;
+    send(clientSocket, responseData, strlen(responseData), 0);
+}
+
+void server::updateClientName(const std::string& message, SOCKET clientSocket)
+{
+    std::vector<std::string> data = stringUtils::splitString(message);
+    logger::print("SERVER: updating client name");
+    auto client = getClient(clientSocket);
+    client->name = data[1];
+    const char* responseData = NC_SET_NAME;
     send(clientSocket, responseData, strlen(responseData), 0);
 }

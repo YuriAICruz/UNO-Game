@@ -6,6 +6,8 @@
 #define NC_ENTER_ROOM  "enterr"
 #define NC_EXIT_ROOM   "exitr"
 
+#define NC_SET_NAME   "setName"
+
 #define NC_SEPARATOR   ';'
 #define NC_OBJECT_SEPARATOR   "|"
 #define NC_VALID_KEY   "valid_key"

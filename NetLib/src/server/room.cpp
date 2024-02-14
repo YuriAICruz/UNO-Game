@@ -35,6 +35,10 @@ void room::removeClient(clientInfo* client)
     connectedClients.erase(connectedClients.begin() + i);
 }
 
+clientInfo* room::getClientByIndex(int index) const
+{
+    return connectedClients.at(index).get();
+}
 clientInfo* room::getClient(int clientId) const
 {
     for (auto client : connectedClients)

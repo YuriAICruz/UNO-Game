@@ -132,9 +132,23 @@ int client::connectToServer()
     return result;
 }
 
+void client::setName(const std::string& name)
+{
+    std::stringstream ss;
+    ss << NC_SET_NAME << NC_SEPARATOR << name;
+    std::string str = ss.str();
+    sendMessage(str.c_str());
+}
+
 
 int client::sendMessage(const char* str)
 {
+    if (!running)
+    {
+        logger::printError("CLIENT: Not Connected");
+        error = true;
+        return 1;
+    }
     logger::print("CLIENT: sending data . . .");
     int sendResult = send(clientSocket, str, strlen(str), 0);
     if (sendResult == SOCKET_ERROR)

@@ -20,7 +20,7 @@ std::shared_ptr<server> startServer()
     return sv;
 }
 
-std::shared_ptr<client> startClient()
+std::shared_ptr<client> startClient(std::string name)
 {
     logger::print("TEST: startAndConnectClient");
     auto cl = std::make_shared<client>();
@@ -34,20 +34,22 @@ std::shared_ptr<client> startClient()
     }
     EXPECT_TRUE(cl->isConnected());
 
+    cl->setName(name);
+
     return cl;
 }
 
-std::unique_ptr<gameStateManager> createGameManager(int players = 2, int handInitialSize = 7)
+std::unique_ptr<gameStateManager> createGameManager(room* r, int handInitialSize = 7)
 {
+    int players = r->count();
     std::vector<std::string> playersList = std::vector<std::string>(players);
+
     for (int i = 0; i < players; ++i)
     {
-        std::stringstream ss;
-        ss << "Player 0" << i;
-        playersList[i] = ss.str();
+        playersList[i] = r->getClientByIndex(i)->name;
     }
     std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
-    auto manager = std::make_unique<gameStateManager>(events);
+    auto manager = std::make_unique<netGameStateManager>(events);
     manager->setupGame(playersList, handInitialSize, "Data\\deck_setup.json", 1234);
     manager->startGame();
     return manager;
@@ -57,8 +59,8 @@ TEST(NetGameFlowTests, Begin)
 {
     auto sv = startServer();
 
-    auto clA = startClient();
-    auto clB = startClient();
+    auto clA = startClient("Player A");
+    auto clB = startClient("Player B");
 
     clA->createRoom("GameRoom");
     while (!clA->hasRoom() && !clA->hasError())
@@ -69,4 +71,6 @@ TEST(NetGameFlowTests, Begin)
     while (!clB->hasRoom() && !clB->hasError())
     {
     }
+
+    createGameManager(sv->getRoom(clA->getRoomId()), 7);
 }

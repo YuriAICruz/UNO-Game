@@ -36,28 +36,43 @@ private:
     std::atomic<bool> error{false};
 
     std::map<std::string, std::function<void (std::string&, SOCKET)>> commands = {
-        {NC_CREATE_ROOM, [this](std::string& message, SOCKET clientConnection)
         {
-            this->createRoom(message, clientConnection);
-        }},
-        {NC_LIST_ROOMS, [this](std::string& message, SOCKET clientConnection)
+            NC_CREATE_ROOM, [this](std::string& message, SOCKET clientConnection)
+            {
+                this->createRoom(message, clientConnection);
+            }
+        },
         {
-            this->listRoom(message, clientConnection);
-        }},
-        {NC_ENTER_ROOM, [this](std::string& message, SOCKET clientConnection)
+            NC_LIST_ROOMS, [this](std::string& message, SOCKET clientConnection)
+            {
+                this->listRoom(message, clientConnection);
+            }
+        },
         {
-            this->enterRoom(message, clientConnection);
-        }},
-        {NC_EXIT_ROOM, [this](std::string& message, SOCKET clientConnection)
+            NC_ENTER_ROOM, [this](std::string& message, SOCKET clientConnection)
+            {
+                this->enterRoom(message, clientConnection);
+            }
+        },
         {
-            this->exitRoom(message, clientConnection);
-        }},
+            NC_EXIT_ROOM, [this](std::string& message, SOCKET clientConnection)
+            {
+                this->exitRoom(message, clientConnection);
+            }
+        },
+        {
+            NC_SET_NAME, [this](std::string& message, SOCKET clientConnection)
+            {
+                this->updateClientName(message, clientConnection);
+            }
+        },
     };
 
 public:
     server() = default;
     int start(int port = 8080);
     int close();
+    room* getRoom(int id);
     void broadcast(std::string msg);
 
     bool isRunning()
@@ -81,4 +96,6 @@ private:
     void listRoom(const std::string& message, SOCKET clientSocket);
     void enterRoom(const std::string& message, SOCKET clientSocket);
     void exitRoom(const std::string& message, SOCKET clientSocket);
+
+    void updateClientName(const std::string& message, SOCKET clientSocket);
 };

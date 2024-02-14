@@ -34,6 +34,7 @@ public:
     int count();
     void addClient(const std::shared_ptr<clientInfo>& client);
     void removeClient(clientInfo* client);
+    clientInfo* getClientByIndex(int index) const;
     clientInfo* getClient(int clientId) const;
     bool hasClient(clientInfo* client) const;
 
