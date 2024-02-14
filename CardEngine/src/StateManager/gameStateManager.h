@@ -21,7 +21,7 @@ private:
 
 public:
     gameStateManager(std::shared_ptr<eventBus::eventBus> events);
-    bool isGameStarted();
+    bool isGameRunning();
     void makePlayerDraw(turnSystem::IPlayer* player, int count);
     virtual void setupGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath, size_t seed);
     virtual void startGame();

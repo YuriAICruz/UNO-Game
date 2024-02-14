@@ -16,7 +16,7 @@ gameStateManager::gameStateManager(std::shared_ptr<eventBus::eventBus> events): 
     bindGameEvents();
 }
 
-bool gameStateManager::isGameStarted()
+bool gameStateManager::isGameRunning()
 {
     return running;
 }
@@ -198,6 +198,7 @@ void gameStateManager::cheatWin()
 
 void gameStateManager::endGame()
 {
+    running = false;
     events->fireEvent(GAME_END, gameEventData(getCurrentPlayer()));
 }
 

@@ -154,9 +154,9 @@ namespace screens
         int baseCardPoolSize = gameManager->getStartHandSize();
         expandCardsPool(baseCardPoolSize);
 
-        if (gameManager->isGameStarted())
+        if (gameManager->isGameRunning())
         {
-            showCurrentPlayerCards();
+            showCurrentPlayerCards(true);
         }
 
         switchToCards();
@@ -315,6 +315,11 @@ namespace screens
         if (unoPopup)
         {
             hideUnoPopup();
+            return;
+        }
+        if (cardsAreHidden)
+        {
+            showCurrentPlayerCards(false);
         }
         if (isPopupOpen)
         {
@@ -440,7 +445,7 @@ namespace screens
         if (gameManager->canSkipTurn())
         {
             gameManager->skipTurn();
-            showCurrentPlayerCards();
+            showCurrentPlayerCards(true);
             return;
         }
         popupButton.action = nullptr;
@@ -476,7 +481,7 @@ namespace screens
     void gameScreen::drawOneCard()
     {
         gameManager->makePlayerDraw(gameManager->getCurrentPlayer(), 1);
-        showCurrentPlayerCards();
+        showCurrentPlayerCards(false);
     }
 
     void gameScreen::expandCardsPool(int handSize)
@@ -516,8 +521,9 @@ namespace screens
         cardElement->setCenterText("");
     }
 
-    void gameScreen::showCurrentPlayerCards()
+    void gameScreen::showCurrentPlayerCards(bool hidden)
     {
+        cardsAreHidden = hidden;
         auto pool = dynamic_cast<elements::horizontalLayoutGroup*>(rdr->getElement(handCardsPoolId));
         std::list<cards::ICard*> hand = gameManager->getCurrentPlayer()->getHand();
         int handSize = hand.size();
@@ -529,7 +535,7 @@ namespace screens
         for (auto card : hand)
         {
             auto cardElement = dynamic_cast<elements::card*>(pool->getElement(cardListButtons[i].id));
-            setCardData(cardElement, card);
+            setCardData(cardElement, card, hidden);
             i++;
         }
         for (int n = cardListButtons.size(); i < n; ++i)
@@ -551,15 +557,26 @@ namespace screens
             }
         }
 
+        if (hidden)
+        {
+            popupButton.action = nullptr;
+            popupButton.actionLeft = nullptr;
+            popupButton.actionRight = nullptr;
+            openWarningPopup("Cards are hidden waiting for the next player, Enter to start");
+        }
+
         rdr->setDirty();
     }
 
-    void gameScreen::setCardData(elements::card* cardElement, cards::ICard* card)
+    void gameScreen::setCardData(elements::card* cardElement, cards::ICard* card, bool hidden)
     {
         cardElement->setTitleText(card->typeName());
 
-        if (card->actionType()->isEqual(typeid(cards::actions::base)) ||
-            card->actionType()->isEqual(typeid(cards::actions::draw)))
+        if (!hidden &&
+            (
+                card->actionType()->isEqual(typeid(cards::actions::base)) ||
+                card->actionType()->isEqual(typeid(cards::actions::draw)))
+        )
         {
             cardElement->setCenterText(std::to_string(card->Number()));
         }
@@ -568,7 +585,16 @@ namespace screens
             cardElement->setCenterText("");
         }
 
-        cardElement->setColor(card->Color());
+        if (hidden)
+        {
+            cardElement->setColor('w');
+            cardElement->setTitleText("");
+        }
+        else
+        {
+            cardElement->setColor(card->Color());
+        }
+
         cardElement->setSize(
             COORD{
                 static_cast<SHORT>(cardSizeX),
@@ -581,7 +607,7 @@ namespace screens
     {
         elements::card* topCardElement = dynamic_cast<elements::card*>(rdr->getElement(topCardId));
         cards::ICard* topCard = gameManager->getTopCard();
-        setCardData(topCardElement, topCard);
+        setCardData(topCardElement, topCard, false);
 
         rdr->isDirty();
     }
@@ -621,15 +647,20 @@ namespace screens
 
     void gameScreen::selectCard(int index)
     {
-        auto player = gameManager->getCurrentPlayer();
+        turnSystem::IPlayer* player = gameManager->getCurrentPlayer();
         auto card = player->pickCard(index);
         if (gameManager->tryExecutePlayerAction(card))
         {
-            showCurrentPlayerCards();
+            if(gameManager->isGameRunning())
+            {
+                showCurrentPlayerCards(
+                    *player != *gameManager->getCurrentPlayer()
+                );
+            }
             return;
         }
         player->receiveCard(card);
-        showCurrentPlayerCards();
+        showCurrentPlayerCards(false);
     }
 
     void gameScreen::switchToCards()
