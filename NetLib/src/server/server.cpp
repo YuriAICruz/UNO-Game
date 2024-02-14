@@ -191,7 +191,8 @@ void server::clientHandler(SOCKET clientSocket)
         std::string message;
         message.assign(recvData);
 
-        filterCommands(message, clientSocket);
+        std::vector<std::string> data = stringUtils::splitString(message);
+        commands[data[0]](message, clientSocket);
     }
 
     if (!running)
@@ -264,60 +265,57 @@ std::shared_ptr<clientInfo> server::getClient(SOCKET clientSocket)
     return nullptr;
 }
 
-void server::filterCommands(std::string& message, SOCKET clientSocket)
+void server::createRoom(const std::string& message, SOCKET clientSocket)
 {
-    if (message == NC_EXIT_ROOM)
-    {
-        logger::print("SERVER: client exiting room");
-        auto client = getClient(clientSocket);
-        roomManager.exitRoom(client.get());
-        const char* responseData = NC_EXIT_ROOM;
-        send(clientSocket, responseData, strlen(responseData), 0);
-    }
-    if (message == NC_LIST_ROOMS)
-    {
-        logger::print("SERVER: listing rooms");
-        std::string str = roomManager.listRooms();
-        const char* responseData = str.c_str();
-        send(clientSocket, responseData, strlen(responseData), 0);
-    }
-
     std::vector<std::string> data = stringUtils::splitString(message);
-    if (data.size() == 2)
-    {
-        if (data[0] == NC_ENTER_ROOM)
-        {
-            logger::print((logger::printer() << "SERVER: client entering room [" << data[1] << "]").str());
-            int id = stoi(data[1]);
-            roomManager.enterRoom(id, getClient(clientSocket));
+    logger::print((logger::printer() << "SERVER: creating room [" << data[1] << "]").str());
 
-            std::stringstream ss;
-            ss << NC_ENTER_ROOM << NC_SEPARATOR;
-            ss << roomManager.getRoomSerialized(id);
-            std::string str = ss.str();
-            const char* responseData = str.c_str();
+    std::string roomName = data[1];
+    int id = roomsCount;
+    roomsCount++;
+    roomManager.createRoom(id, roomName);
+    roomManager.enterRoom(id, getClient(clientSocket));
 
-            send(clientSocket, responseData, strlen(responseData), 0);
-            logger::print((logger::getPrinter() << "SERVER: added client to room with id" << id << "").str());
-        }
-        if (data[0] == NC_CREATE_ROOM)
-        {
-            logger::print((logger::printer() << "SERVER: creating room [" << data[1] << "]").str());
+    std::stringstream ss;
+    ss << NC_CREATE_ROOM << NC_SEPARATOR;
+    ss << roomManager.getRoomSerialized(id);
+    std::string str = ss.str();
+    const char* responseData = str.c_str();
 
-            std::string roomName = data[1];
-            int id = roomsCount;
-            roomsCount++;
-            roomManager.createRoom(id, roomName);
-            roomManager.enterRoom(id, getClient(clientSocket));
+    send(clientSocket, responseData, strlen(responseData), 0);
+    logger::print((logger::getPrinter() << "SERVER: created room with id" << id << "").str());
+}
 
-            std::stringstream ss;
-            ss << NC_CREATE_ROOM << NC_SEPARATOR;
-            ss << roomManager.getRoomSerialized(id);
-            std::string str = ss.str();
-            const char* responseData = str.c_str();
+void server::listRoom(const std::string& message, SOCKET clientSocket)
+{
+    logger::print("SERVER: listing rooms");
+    std::string str = roomManager.listRooms();
+    const char* responseData = str.c_str();
+    send(clientSocket, responseData, strlen(responseData), 0);
+}
 
-            send(clientSocket, responseData, strlen(responseData), 0);
-            logger::print((logger::getPrinter() << "SERVER: created room with id" << id << "").str());
-        }
-    }
+void server::enterRoom(const std::string& message, SOCKET clientSocket)
+{
+    std::vector<std::string> data = stringUtils::splitString(message);
+    logger::print((logger::printer() << "SERVER: client entering room [" << data[1] << "]").str());
+    int id = stoi(data[1]);
+    roomManager.enterRoom(id, getClient(clientSocket));
+
+    std::stringstream ss;
+    ss << NC_ENTER_ROOM << NC_SEPARATOR;
+    ss << roomManager.getRoomSerialized(id);
+    std::string str = ss.str();
+    const char* responseData = str.c_str();
+
+    send(clientSocket, responseData, strlen(responseData), 0);
+    logger::print((logger::getPrinter() << "SERVER: added client to room with id" << id << "").str());
+}
+
+void server::exitRoom(const std::string& message, SOCKET clientSocket)
+{
+    logger::print("SERVER: client exiting room");
+    auto client = getClient(clientSocket);
+    roomManager.exitRoom(client.get());
+    const char* responseData = NC_EXIT_ROOM;
+    send(clientSocket, responseData, strlen(responseData), 0);
 }

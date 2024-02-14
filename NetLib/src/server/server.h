@@ -12,6 +12,7 @@
 #include "clientInfo.h"
 #include "room.h"
 #include "roomManager.h"
+#include "../serverCommands.h"
 
 class NETCODE_API server
 {
@@ -34,6 +35,25 @@ private:
     std::atomic<bool> isListening{false};
     std::atomic<bool> error{false};
 
+    std::map<std::string, std::function<void (std::string&, SOCKET)>> commands = {
+        {NC_CREATE_ROOM, [this](std::string& message, SOCKET clientConnection)
+        {
+            createRoom(message, clientConnection);
+        }},
+        {NC_LIST_ROOMS, [this](std::string& message, SOCKET clientConnection)
+        {
+            listRoom(message, clientConnection);
+        }},
+        {NC_ENTER_ROOM, [this](std::string& message, SOCKET clientConnection)
+        {
+            enterRoom(message, clientConnection);
+        }},
+        {NC_EXIT_ROOM, [this](std::string& message, SOCKET clientConnection)
+        {
+            exitRoom(message, clientConnection);
+        }},
+    };
+
 public:
     server() = default;
     int start(int port = 8080);
@@ -54,5 +74,9 @@ private:
     void clientHandler(SOCKET clientSocket);
     bool validateKey(SOCKET clientSocket);
     std::shared_ptr<clientInfo> getClient(SOCKET uint);
-    void filterCommands(std::string& message, SOCKET clientSocket);
+    
+    void createRoom(const std::string& message, SOCKET clientSocket);
+    void listRoom(const std::string& message, SOCKET clientSocket);
+    void enterRoom(const std::string& message, SOCKET clientSocket);
+    void exitRoom(const std::string& message, SOCKET clientSocket);
 };
