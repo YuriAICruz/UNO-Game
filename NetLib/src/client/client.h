@@ -1,7 +1,10 @@
 ﻿#pragma once
 #include <functional>
 #include <iostream>
+#include <map>
 #include <WinSock2.h>
+
+#include "../serverCommands.h"
 #include "../../framework.h"
 #include "../server/room.h"
 
@@ -28,6 +31,45 @@ private:
     struct addrinfo* addr_info;
     std::function<void(std::vector<room>)> roomsCallback;
     std::vector<room> lastRoomsList;
+
+    std::map<std::string, std::function<void (std::string&)>> commands = {
+        {
+            NC_CREATE_ROOM, [this](std::string& message)
+            {
+                this->createRoomCallback(message);
+            }
+        },
+        {
+            NC_LIST_ROOMS, [this](std::string& message)
+            {
+                this->listRoomsCallback(message);
+            }
+        },
+        {
+            NC_ENTER_ROOM, [this](std::string& message)
+            {
+                this->enterRoomCallback(message);
+            }
+        },
+        {
+            NC_EXIT_ROOM, [this](std::string& message)
+            {
+                this->exitRoomCallback(message);
+            }
+        },
+        {
+            NC_VALID_KEY, [this](std::string& message)
+            {
+                this->validKeyCallback(message);
+            }
+        },
+        {
+            NC_INVALID_KEY, [this](std::string& message)
+            {
+                this->invalidKeyCallback(message);
+            }
+        },
+    };
 
 public:
     client() = default;
@@ -65,4 +107,12 @@ private:
     int initializeWinsock();
     int createSocket();
     void listenToServer();
+    bool containsCommand(std::string string);
+
+    void invalidKeyCallback(const std::string& message);
+    void validKeyCallback(const std::string& message);
+    void createRoomCallback(const std::string& message);
+    void listRoomsCallback(const std::string& message);
+    void enterRoomCallback(const std::string& message);
+    void exitRoomCallback(const std::string& message);
 };

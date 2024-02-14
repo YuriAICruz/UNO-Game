@@ -241,67 +241,89 @@ void client::listenToServer()
         lastResponse.assign(recvData, recvSize);
 
         logger::print((logger::getPrinter() << "CLIENT: Received: " << recvData).str());
-
         auto data = stringUtils::splitString(lastResponse);
-        if (lastResponse == NC_VALID_KEY)
+        if (containsCommand(data[0]))
         {
-            connected = true;
-        }
-        else if (lastResponse == NC_INVALID_KEY)
-        {
-            connected = false;
-            close();
-        }
-        else if (lastResponse == NC_EXIT_ROOM)
-        {
-            currentRoom = room();
-        }
-        else if (data[0] == NC_LIST_ROOMS)
-        {
-            int size = std::stoi(data[1]);
-            lastRoomsList.resize(size);
-            int pos = 2;
-            for (int i = 0; i < size; ++i)
-            {
-                std::stringstream ss;
-                bool first = true;
-                for (int n = data.size(); pos < n; ++pos)
-                {
-                    if (!first)
-                    {
-                        ss << NC_SEPARATOR;
-                    }
-                    if (data[pos] == NC_OBJECT_SEPARATOR)
-                    {
-                        pos++;
-                        break;
-                    }
-                    ss << data[pos];
-                    first = false;
-                }
-                lastRoomsList[i] = room::constructRoom(ss.str());
-            }
-
-            if (roomsCallback != nullptr)
-            {
-                roomsCallback(lastRoomsList);
-                roomsCallback = nullptr;
-            }
-        }
-        else if (data[0] == NC_CREATE_ROOM || data[0] == NC_ENTER_ROOM)
-        {
-            std::stringstream ss;
-            for (int i = 1, n = data.size(); i < n; ++i)
-            {
-                ss << data[i];
-                if (i < n - 1)
-                {
-                    ss << NC_SEPARATOR;
-                }
-            }
-            currentRoom = room::constructRoom(ss.str());
+            commands[data[0]](lastResponse);
         }
     }
 
     isListening = false;
+}
+
+bool client::containsCommand(std::string command)
+{
+    auto it = commands.find(command);
+
+    return it != commands.end();
+}
+
+void client::invalidKeyCallback(const std::string& message)
+{
+    connected = false;
+    close();
+}
+
+void client::validKeyCallback(const std::string& message)
+{
+    connected = true;
+}
+
+void client::createRoomCallback(const std::string& message)
+{
+    auto data = stringUtils::splitString(message);
+    std::stringstream ss;
+    for (int i = 1, n = data.size(); i < n; ++i)
+    {
+        ss << data[i];
+        if (i < n - 1)
+        {
+            ss << NC_SEPARATOR;
+        }
+    }
+    currentRoom = room::constructRoom(ss.str());
+}
+
+void client::listRoomsCallback(const std::string& message)
+{
+    auto data = stringUtils::splitString(message);
+    int size = std::stoi(data[1]);
+    lastRoomsList.resize(size);
+    int pos = 2;
+    for (int i = 0; i < size; ++i)
+    {
+        std::stringstream ss;
+        bool first = true;
+        for (int n = data.size(); pos < n; ++pos)
+        {
+            if (!first)
+            {
+                ss << NC_SEPARATOR;
+            }
+            if (data[pos] == NC_OBJECT_SEPARATOR)
+            {
+                pos++;
+                break;
+            }
+            ss << data[pos];
+            first = false;
+        }
+        lastRoomsList[i] = room::constructRoom(ss.str());
+    }
+
+    if (roomsCallback != nullptr)
+    {
+        roomsCallback(lastRoomsList);
+        roomsCallback = nullptr;
+    }
+}
+
+void client::enterRoomCallback(const std::string& message)
+{
+    createRoomCallback(message);
+}
+
+void client::exitRoomCallback(const std::string& message)
+{
+    currentRoom = room();
 }

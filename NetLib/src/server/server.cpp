@@ -215,12 +215,12 @@ void server::clientHandler(SOCKET clientSocket)
     clients.erase(connectionsCount);
 }
 
-bool server::validateKey(SOCKET clientSocket)
+bool server::validateKey(SOCKET clientSocket) const
 {
     if (!running)
     {
         logger::printError("SERVER: server not running anymore, aborting validation");
-        return 1;
+        return false;
     }
 
     logger::print("SERVER: validating key . . .");

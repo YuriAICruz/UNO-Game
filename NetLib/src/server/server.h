@@ -38,19 +38,19 @@ private:
     std::map<std::string, std::function<void (std::string&, SOCKET)>> commands = {
         {NC_CREATE_ROOM, [this](std::string& message, SOCKET clientConnection)
         {
-            createRoom(message, clientConnection);
+            this->createRoom(message, clientConnection);
         }},
         {NC_LIST_ROOMS, [this](std::string& message, SOCKET clientConnection)
         {
-            listRoom(message, clientConnection);
+            this->listRoom(message, clientConnection);
         }},
         {NC_ENTER_ROOM, [this](std::string& message, SOCKET clientConnection)
         {
-            enterRoom(message, clientConnection);
+            this->enterRoom(message, clientConnection);
         }},
         {NC_EXIT_ROOM, [this](std::string& message, SOCKET clientConnection)
         {
-            exitRoom(message, clientConnection);
+            this->exitRoom(message, clientConnection);
         }},
     };
 
@@ -64,6 +64,7 @@ public:
     {
         return isListening || !initializing && running;
     }
+
     bool hasError()
     {
         return error;
@@ -72,9 +73,9 @@ public:
 private:
     void listening();
     void clientHandler(SOCKET clientSocket);
-    bool validateKey(SOCKET clientSocket);
+    bool validateKey(SOCKET clientSocket) const;
     std::shared_ptr<clientInfo> getClient(SOCKET uint);
-    
+
     void createRoom(const std::string& message, SOCKET clientSocket);
     void listRoom(const std::string& message, SOCKET clientSocket);
     void enterRoom(const std::string& message, SOCKET clientSocket);
