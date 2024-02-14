@@ -164,6 +164,7 @@
     <ClInclude Include="src\EventBus\event.h" />
     <ClInclude Include="src\EventBus\eventBus.h" />
     <ClInclude Include="src\guidGenerator.h" />
+    <ClInclude Include="src\netCommands.h" />
     <ClInclude Include="src\StateManager\gameEventData.h" />
     <ClInclude Include="src\StateManager\gameStateManager.h" />
     <ClInclude Include="src\StateManager\IStateManager.h" />

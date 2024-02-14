@@ -204,6 +204,11 @@ void server::clientHandler(SOCKET clientSocket)
         {
             commands[data[0]](message, clientSocket);
         }
+
+        if (containsCustomCommand(data[0]))
+        {
+            customCommands[data[0]](message, clientSocket);
+        }
     }
 
     if (!running)
@@ -231,6 +236,13 @@ bool server::containsCommand(const std::string& command)
     auto it = commands.find(command);
 
     return it != commands.end();
+}
+
+bool server::containsCustomCommand(const std::string& command)
+{
+    auto it = customCommands.find(command);
+
+    return it != customCommands.end();
 }
 
 bool server::validateKey(SOCKET clientSocket) const

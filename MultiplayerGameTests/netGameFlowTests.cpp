@@ -2,6 +2,7 @@
 #include <memory>
 
 #include "logger.h"
+#include "netCommands.h"
 #include "client/client.h"
 #include "server/server.h"
 #include "StateManager/gameStateManager.h"
@@ -16,6 +17,15 @@ std::shared_ptr<server> startServer()
     {
     }
     EXPECT_TRUE(sv->isRunning());
+
+    std::map<std::string, std::function<void (std::string&, SOCKET)>> commands = {
+        {
+            CORE_NC_PLAYCARD, [](std::string& msg, SOCKET cs)
+            {
+            }
+        }
+    };
+    sv->addCustomCommands(commands);
 
     return sv;
 }
@@ -72,5 +82,11 @@ TEST(NetGameFlowTests, Begin)
     {
     }
 
-    createGameManager(sv->getRoom(clA->getRoomId()), 7);
+    int handSize = 7;
+    auto manager = createGameManager(sv->getRoom(clA->getRoomId()), handSize);
+
+    for (int i = 0, players = sv->getRoom(clA->getRoomId())->count(); i < players; ++i)
+    {
+        EXPECT_EQ(handSize, manager->getPlayer(i)->getHand().size());
+    }
 }

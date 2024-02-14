@@ -35,6 +35,7 @@ private:
     std::atomic<bool> isListening{false};
     std::atomic<bool> error{false};
 
+    std::map<std::string, std::function<void (std::string&, SOCKET)>> customCommands;
     std::map<std::string, std::function<void (std::string&, SOCKET)>> commands = {
         {
             NC_CREATE_ROOM, [this](std::string& message, SOCKET clientConnection)
@@ -85,10 +86,16 @@ public:
         return error;
     }
 
+    void addCustomCommands(const std::map<std::string, std::function<void(std::string&, SOCKET)>>& cmds)
+    {
+        customCommands = cmds;
+    }
+
 private:
     void listening();
     void clientHandler(SOCKET clientSocket);
     bool containsCommand(const std::string& command);
+    bool containsCustomCommand(const std::string& command);
     bool validateKey(SOCKET clientSocket) const;
     std::shared_ptr<clientInfo> getClient(SOCKET uint);
 
