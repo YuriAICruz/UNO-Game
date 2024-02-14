@@ -48,6 +48,19 @@ clientInfo* room::getClient(int clientId) const
     return nullptr;
 }
 
+bool room::hasClient(clientInfo* client) const
+{
+    for (auto connectedClient : connectedClients)
+    {
+        if(connectedClient->id == client->id)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 std::string room::getRoomSerialized(int id)
 {
     std::stringstream ss;

@@ -55,4 +55,5 @@ private:
     void filterCommands(std::string& message, SOCKET clientSocket);
     int createRoom(std::string roomName);
     room* getRoom(int id);
+    room* getRoom(clientInfo* client);
 };

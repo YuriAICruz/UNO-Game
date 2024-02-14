@@ -173,6 +173,11 @@ void client::createRoom(const std::string& roomName)
     sendMessage(ss.str().c_str());
 }
 
+void client::exitRoom()
+{
+    sendMessage(NC_EXIT_ROOM);
+}
+
 bool client::hasRoom()
 {
     return currentRoom.count() > 0;
@@ -229,6 +234,10 @@ void client::listenToServer()
             connected = false;
             close();
         }
+        else if (lastResponse == NC_EXIT_ROOM)
+        {
+            currentRoom = room();
+        }
         else if (data[0] == NC_CREATE_ROOM)
         {
             std::stringstream ss;
@@ -241,9 +250,6 @@ void client::listenToServer()
                 }
             }
             currentRoom = room::constructRoom(ss.str());
-            connected = false;
-            close();
-            break;
         }
     }
 

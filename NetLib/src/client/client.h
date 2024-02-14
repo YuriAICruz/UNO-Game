@@ -35,6 +35,7 @@ public:
     int close();
 
     void createRoom(const std::string& roomName);
+    void exitRoom();
     bool hasRoom();
     std::string& getRoomName();
 

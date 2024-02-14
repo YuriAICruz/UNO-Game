@@ -285,6 +285,14 @@ void server::filterCommands(std::string& message, SOCKET clientSocket)
         logger::print("SERVER: listed all rooms");
         return;
     }
+    if (message == NC_EXIT_ROOM)
+    {
+        auto client = getClient(clientSocket);
+        auto room = getRoom(client.get());
+        room->removeClient(client.get());
+        const char* responseData = NC_EXIT_ROOM;
+        send(clientSocket, responseData, strlen(responseData), 0);
+    }
 
     std::vector<std::string> data = stringUtils::splitString(message);
     if (data.size() == 2)
@@ -315,16 +323,16 @@ void server::filterCommands(std::string& message, SOCKET clientSocket)
         {
             logger::print((logger::printer() << "SERVER: creating room [" << data[1] << "]").str());
             int id = createRoom(data[1]);
-            std::stringstream ss;
-
-            ss << NC_CREATE_ROOM;
-            ss << rooms[id].getRoomSerialized(id);
-            const char* responseData = ss.str().c_str();
-
             rooms[id].addClient(getClient(clientSocket));
+
+            std::stringstream ss;
+            ss << NC_CREATE_ROOM << NC_SEPARATOR;
+            ss << rooms[id].getRoomSerialized(id);
+            std::string str = ss.str();
+            const char* responseData = str.c_str();
+
             send(clientSocket, responseData, strlen(responseData), 0);
             logger::print((logger::getPrinter() << "SERVER: created room with id" << id << "").str());
-            broadcast("This message is for all!!");
         }
     }
 }
@@ -341,4 +349,24 @@ int server::createRoom(std::string roomName)
 room* server::getRoom(int id)
 {
     return &rooms[id];
+}
+
+room* server::getRoom(clientInfo* client)
+{
+    int index = -1;
+    for (auto pair : rooms)
+    {
+        if(pair.second.hasClient(client))
+        {
+            index = pair.first;
+            break;
+        }
+    }
+
+    if(index<0)
+    {
+        return nullptr;
+    }
+
+    return &rooms[index];
 }

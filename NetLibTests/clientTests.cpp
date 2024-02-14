@@ -92,6 +92,10 @@ TEST(ClientTests, RequestRoomCreaion)
     std::string roomName = "MyRoom";
     cl->createRoom(roomName);
 
+    while (!cl->hasRoom() && !cl->hasError())
+    {
+    }
+
     EXPECT_TRUE(cl->hasRoom());
     EXPECT_EQ(roomName, cl->getRoomName());
 
@@ -99,6 +103,29 @@ TEST(ClientTests, RequestRoomCreaion)
 }
 
 TEST(ClientTests, ExitRoom)
+{
+    auto t = startAndConnectClient();
+    auto cl = std::get<0>(t);
+    auto sv = std::get<1>(t);
+    
+    std::string roomName = "MyRoom";
+    cl->createRoom(roomName);
+
+    while (!cl->hasRoom() && !cl->hasError())
+    {
+    }
+    
+    EXPECT_TRUE(cl->hasRoom());
+    cl->exitRoom();
+    while (cl->hasRoom() && !cl->hasError())
+    {
+    }
+    EXPECT_FALSE(cl->hasRoom());
+    
+    closeClient(cl.get(), sv.get());
+}
+
+TEST(ClientTests, ListRooms)
 {
     auto t = startAndConnectClient();
     auto cl = std::get<0>(t);
