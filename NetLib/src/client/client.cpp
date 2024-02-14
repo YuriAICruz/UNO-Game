@@ -251,7 +251,7 @@ void client::listenToServer()
     isListening = false;
 }
 
-bool client::containsCommand(std::string command)
+bool client::containsCommand(const std::string& command)
 {
     auto it = commands.find(command);
 

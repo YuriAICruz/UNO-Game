@@ -73,6 +73,7 @@ public:
 private:
     void listening();
     void clientHandler(SOCKET clientSocket);
+    bool containsCommand(const std::string& command);
     bool validateKey(SOCKET clientSocket) const;
     std::shared_ptr<clientInfo> getClient(SOCKET uint);
 

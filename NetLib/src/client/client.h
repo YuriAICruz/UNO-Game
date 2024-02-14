@@ -107,7 +107,7 @@ private:
     int initializeWinsock();
     int createSocket();
     void listenToServer();
-    bool containsCommand(std::string string);
+    bool containsCommand(const std::string& string);
 
     void invalidKeyCallback(const std::string& message);
     void validKeyCallback(const std::string& message);

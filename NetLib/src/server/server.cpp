@@ -192,7 +192,10 @@ void server::clientHandler(SOCKET clientSocket)
         message.assign(recvData);
 
         std::vector<std::string> data = stringUtils::splitString(message);
-        commands[data[0]](message, clientSocket);
+        if (containsCommand(data[0]))
+        {
+            commands[data[0]](message, clientSocket);
+        }
     }
 
     if (!running)
@@ -213,6 +216,13 @@ void server::clientHandler(SOCKET clientSocket)
     logger::print((logger::getPrinter() << "SERVER: closing client connection [" << clientSocket << "]").str());
     closesocket(clientSocket);
     clients.erase(connectionsCount);
+}
+
+bool server::containsCommand(const std::string& command)
+{
+    auto it = commands.find(command);
+
+    return it != commands.end();
 }
 
 bool server::validateKey(SOCKET clientSocket) const
