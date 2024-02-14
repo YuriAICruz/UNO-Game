@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include <memory>
+
 #include "client/client.h"
 #include "server/server.h"
 #include "StateManager/gameStateManager.h"
