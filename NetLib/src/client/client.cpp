@@ -211,11 +211,11 @@ room* client::getRoom()
     std::promise<room*> promise;
     roomCallback = &promise;
     std::future<room*> future = promise.get_future();
-    
+
     std::stringstream ss;
     ss << NC_GET_ROOM << NC_SEPARATOR << currentRoom.getId();
     sendMessage(ss.str().c_str());
-    
+
     future.wait();
     return future.get();
 }
@@ -226,7 +226,7 @@ int client::getSeed()
     seedCallback = &promise;
     std::future<int> future = promise.get_future();
 
-    sendMessage(NC_GET_SEED);    
+    sendMessage(NC_GET_SEED);
 
     future.wait();
     return future.get();
@@ -308,7 +308,9 @@ void client::invalidKeyCallback(const std::string& message)
 
 void client::validKeyCallback(const std::string& message)
 {
+    auto data = stringUtils::splitString(message);
     connected = true;
+    id = std::stoul(data[1]);
 }
 
 void client::updateRoom(const std::string& message)

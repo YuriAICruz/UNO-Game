@@ -97,27 +97,30 @@ std::shared_ptr<gameStateManager> createGameManager(room* r, int handInitialSize
     return manager;
 }
 
-std::shared_ptr<gameStateManager> createHostGameManager(std::shared_ptr<client> client, std::shared_ptr<server> server,
-                                                        int handInitialSize, int seed)
+std::shared_ptr<netGameStateManager> createHostGameManager(std::shared_ptr<client> client,
+                                                           std::shared_ptr<server> server,
+                                                           int handInitialSize, int seed)
 {
     auto room = server->getRoom(client->getRoomId());
     int players = room->count();
     std::vector<std::string> playersList = std::vector<std::string>(players);
+    std::vector<size_t> playersIds = std::vector<size_t>(players);
 
     server->setSeed(seed);
 
     for (int i = 0; i < players; ++i)
     {
         playersList[i] = room->getClientByIndex(i)->name;
+        playersIds[i] = room->getClientByIndex(i)->id;
     }
     std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
     auto manager = std::make_shared<netGameStateManager>(events, client, server);
-    manager->setupGame(playersList, handInitialSize, "Data\\deck_setup.json", server->getSeed());
+    manager->setupGame(playersList, playersIds, handInitialSize, "Data\\deck_setup.json", server->getSeed());
     manager->startGame();
     return manager;
 }
 
-std::shared_ptr<gameStateManager> createClientGameManager(std::shared_ptr<client> client, int handInitialSize)
+std::shared_ptr<netGameStateManager> createClientGameManager(std::shared_ptr<client> client, int handInitialSize)
 {
     auto r = client->getRoom();
     int seed = client->getSeed();
@@ -259,4 +262,28 @@ TEST(NetGameFlowTests, PlayCardFromManager)
     auto clientManager = createClientGameManager(clB, handSize);
 
     EXPECT_EQ(*hostManager->getCurrentPlayer(), *clientManager->getCurrentPlayer());
+
+    EXPECT_TRUE(hostManager->isCurrentPlayer());
+    EXPECT_FALSE(clientManager->isCurrentPlayer());
+
+    EXPECT_EQ(*hostManager->getTopCard(), *clientManager->getTopCard());
+
+    auto currentPlayer = hostManager->getCurrentPlayer();
+    auto clientCurrentPlayer = clientManager->getCurrentPlayer();
+    auto topCard = hostManager->getTopCard();
+    auto hand = currentPlayer->getHand();
+    int index = 0;
+    for (auto card : hand)
+    {
+        if (card->sameColor(*topCard) || card->sameNumber(*topCard))
+        {
+            break;
+        }
+        index++;
+    }
+    EXPECT_TRUE(hostManager->tryExecutePlayerAction(currentPlayer->pickCard(index)));
+    EXPECT_NE(*currentPlayer, *hostManager->getCurrentPlayer());
+    EXPECT_NE(*currentPlayer, *clientManager->getCurrentPlayer());
+    EXPECT_LT(currentPlayer->getHand().size(), handSize);
+    EXPECT_LT(clientCurrentPlayer->getHand().size(), handSize);
 }

@@ -29,6 +29,7 @@ private:
     std::atomic<bool> isListening{false};
     room currentRoom;
     int seed = 1234;
+    size_t id = 0;
     std::string lastResponse;
     struct addrinfo* addr_info;
     std::function<void(std::vector<room>)> roomsCallback;
@@ -105,6 +106,11 @@ public:
     void getRooms(std::function<void (std::vector<room>)> callback);
     std::string& getRoomName();
     int getRoomId();
+
+    size_t getId()
+    {
+        return id;
+    }
 
 
     bool isRunning() const

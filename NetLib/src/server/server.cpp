@@ -166,14 +166,19 @@ void server::listening()
 
 void server::clientHandler(SOCKET clientSocket)
 {
+    connectionsCount++;
+    std::shared_ptr<clientInfo> client = std::make_shared<clientInfo>(connectionsCount);
+    client->connection = &clientSocket;
+
     if (!validateKey(clientSocket))
     {
         logger::printError(
             (logger::getPrinter() << "SERVER: closing client connection [" << clientSocket << "] invalid Key").str());
         closesocket(clientSocket);
-        clients.erase(connectionsCount);
         return;
     }
+
+    clients.insert(std::make_pair(connectionsCount, client));
 
     if (!running)
     {
@@ -183,10 +188,6 @@ void server::clientHandler(SOCKET clientSocket)
 
     logger::print((logger::getPrinter() << "SERVER: Connection accepted from " << clientSocket << "").str());
 
-    std::shared_ptr<clientInfo> client = std::make_shared<clientInfo>(connectionsCount);
-    client->connection = &clientSocket;
-    clients.insert(std::make_pair(connectionsCount, client));
-    connectionsCount++;
 
     char recvData[1024];
     int recvSize;
@@ -228,7 +229,12 @@ void server::clientHandler(SOCKET clientSocket)
 
     logger::print((logger::getPrinter() << "SERVER: closing client connection [" << clientSocket << "]").str());
     closesocket(clientSocket);
-    clients.erase(connectionsCount);
+
+    auto it = clients.find(connectionsCount);
+    if (it != clients.end())
+    {
+        clients.erase(it);
+    }
 }
 
 bool server::containsCommand(const std::string& command)
@@ -278,7 +284,11 @@ bool server::validateKey(SOCKET clientSocket) const
         return false;
     }
 
-    send(clientSocket, NC_VALID_KEY, strlen(NC_VALID_KEY), 0);
+    std::stringstream ss;
+    ss << NC_VALID_KEY << NC_SEPARATOR << connectionsCount;
+    std::string str = ss.str();
+    const char* response = str.c_str();
+    send(clientSocket, response, strlen(response), 0);
     return true;
 }
 

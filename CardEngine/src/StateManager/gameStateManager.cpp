@@ -75,6 +75,20 @@ void gameStateManager::setupGame(std::vector<std::string>& players, int handSize
     events->fireEvent(GAME_SETUP, gameEventData());
 }
 
+void gameStateManager::setupGame(std::vector<std::string>& players, std::vector<size_t>& playersIds, int handSize,
+    std::string deckConfigFilePath, size_t seed)
+{
+    running = false;
+    this->handSize = handSize;
+    mainDeck = std::make_unique<decks::jsonDeck>(deckConfigFilePath);
+    discardDeck = std::make_unique<decks::deck>();
+
+    turner = std::make_unique<turnSystem::turnSystem>(players, playersIds);
+    mainDeck->shuffle(seed);
+
+    events->fireEvent(GAME_SETUP, gameEventData());
+}
+
 void gameStateManager::startGame()
 {
     for (int i = 0, n = turner->playersCount(); i < n; ++i)

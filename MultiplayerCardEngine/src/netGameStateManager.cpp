@@ -6,6 +6,12 @@ netGameStateManager::netGameStateManager(std::shared_ptr<eventBus::eventBus> eve
 }
 
 netGameStateManager::netGameStateManager(std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<client> cl,
-    std::shared_ptr<server> sv) : gameStateManager(events), netClient(cl), netServer(sv), isHost(true)
+                                         std::shared_ptr<server> sv) : gameStateManager(events), netClient(cl),
+                                                                       netServer(sv), isHost(true)
 {
+}
+
+bool netGameStateManager::isCurrentPlayer()
+{
+    return getCurrentPlayer()->Id() == netClient->getId();
 }

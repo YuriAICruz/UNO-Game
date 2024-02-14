@@ -25,8 +25,8 @@ private:
     WSADATA wsaData;
     SOCKET serverSocket;
     sockaddr_in serverAddr;
-    std::map<int, std::shared_ptr<clientInfo>> clients;
-    int connectionsCount = 0;
+    std::map<size_t, std::shared_ptr<clientInfo>> clients;
+    size_t connectionsCount = 0;
     int roomsCount = 0;
     int ngrokPID;
     int seed = 1234;

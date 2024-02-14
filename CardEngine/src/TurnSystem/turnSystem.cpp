@@ -41,6 +41,20 @@ namespace turnSystem
         }
     }
 
+    turnSystem::turnSystem(std::vector<std::string> playersNames, std::vector<size_t> playersId)
+    {
+        events = std::make_shared<eventBus::eventBus>();
+        events->bindEvent<Events::endTurnEventData&>(0);
+        events->subscribe<Events::endTurnEventData&>(0, std::bind(&turnSystem::turnEnded, this, std::placeholders::_1));
+
+        playersSize = playersId.size();
+
+        for (int i = 0; i < playersSize; ++i)
+        {
+            players.emplace_back(std::make_shared<localPlayer>(playersNames[i], events, playersId[i]));
+        }
+    }
+
     IPlayer* turnSystem::getCurrentPlayer() const
     {
         return players[currentTurn].get();

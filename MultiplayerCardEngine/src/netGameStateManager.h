@@ -15,4 +15,5 @@ private:
 public:
     netGameStateManager(std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<client> cl);
     netGameStateManager(std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<client> cl, std::shared_ptr<server> sv);
+    bool isCurrentPlayer();
 };
