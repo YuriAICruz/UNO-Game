@@ -6,10 +6,11 @@
 #include "../Decks/IDeck.h"
 #include "../TurnSystem/IPlayer.h"
 #include "../TurnSystem/turnSystem.h"
+#include "../../framework.h"
 
-class gameStateManager : IStateManager
+class ENGINE_API gameStateManager : public IStateManager
 {
-private:
+protected:
     std::unique_ptr<decks::IDeck> mainDeck;
     std::unique_ptr<decks::IDeck> discardDeck;
     std::unique_ptr<turnSystem::turnSystem> turner;
@@ -21,6 +22,10 @@ private:
 
 public:
     gameStateManager(std::shared_ptr<eventBus::eventBus> events);
+    ~gameStateManager() override
+    {
+    }
+
     bool isGameRunning();
     void makePlayerDraw(turnSystem::IPlayer* player, int count);
     virtual void setupGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath, size_t seed);
@@ -41,7 +46,7 @@ public:
     void endTurn();
     void yellUno();
 
-private:
+protected:
     void bindGameEvents();
     void beginTurn();
     void finishAction(cards::ICard* card);

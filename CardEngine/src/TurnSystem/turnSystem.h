@@ -6,14 +6,15 @@
 #include "IPlayer.h"
 #include "ITurnSystem.h"
 #include "../EventBus/eventBus.h"
+#include "../../framework.h"
 #include "Events/endTurnEventData.h"
 
 namespace turnSystem
 {
-    class turnSystem : public ITurnSystem
+    class ENGINE_API turnSystem : public ITurnSystem
     {
     private:
-        std::vector<std::unique_ptr<IPlayer>> players;
+        std::vector<std::shared_ptr<IPlayer>> players;
         int currentTurn = 0;
         int playersSize;
         std::shared_ptr<eventBus::eventBus> events;

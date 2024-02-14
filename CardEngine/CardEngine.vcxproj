@@ -40,7 +40,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
@@ -167,6 +167,7 @@
     <ClInclude Include="src\StateManager\gameEventData.h" />
     <ClInclude Include="src\StateManager\gameStateManager.h" />
     <ClInclude Include="src\StateManager\IStateManager.h" />
+    <ClInclude Include="src\StateManager\netGameStateManager.h" />
     <ClInclude Include="src\StateManager\turnEventData.h" />
     <ClInclude Include="src\TurnSystem\Events\endTurnEventData.h" />
     <ClInclude Include="src\TurnSystem\IPlayer.h" />
@@ -198,6 +199,7 @@
     <ClCompile Include="src\guidGenerator.cpp" />
     <ClCompile Include="src\StateManager\gameStateManager.cpp" />
     <ClCompile Include="src\StateManager\IStateManager.cpp" />
+    <ClCompile Include="src\StateManager\netGameStateManager.cpp" />
     <ClCompile Include="src\TurnSystem\IPlayer.cpp" />
     <ClCompile Include="src\TurnSystem\ITurnSystem.cpp" />
     <ClCompile Include="src\TurnSystem\localPlayer.cpp" />

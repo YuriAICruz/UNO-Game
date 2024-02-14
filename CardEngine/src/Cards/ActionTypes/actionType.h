@@ -1,10 +1,11 @@
 ﻿#pragma once
+#include "../../framework.h"
 
 namespace cards
 {
     namespace actions
     {
-        class actionType
+        class ENGINE_API actionType
         {
         public:
             virtual ~actionType() = default;

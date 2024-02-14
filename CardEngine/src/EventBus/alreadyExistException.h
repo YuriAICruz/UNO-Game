@@ -1,7 +1,8 @@
 ﻿#pragma once
 #include <exception>
+#include "../../framework.h"
 
-class alreadyExistException : public std::exception
+class ENGINE_API alreadyExistException : public std::exception
 {
 public:
     alreadyExistException() = default;

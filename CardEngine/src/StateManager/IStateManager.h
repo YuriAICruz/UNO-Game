@@ -1,6 +1,7 @@
 ﻿#pragma once
+#include "../../framework.h"
 
-class IStateManager
+class ENGINE_API IStateManager
 {
 public:
     virtual ~IStateManager() = default;

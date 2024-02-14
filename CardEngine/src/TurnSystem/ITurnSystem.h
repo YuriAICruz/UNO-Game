@@ -3,7 +3,7 @@
 
 namespace turnSystem
 {
-    class ITurnSystem
+    class ENGINE_API ITurnSystem
     {
     public:
         virtual ~ITurnSystem() = default;

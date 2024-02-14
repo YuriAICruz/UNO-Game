@@ -3,10 +3,11 @@
 #include <memory>
 
 #include "../Cards/ICard.h"
+#include "../../framework.h"
 
 namespace decks
 {
-    class IDeck
+    class ENGINE_API IDeck
     {
     protected:
         std::list<cards::ICard*> cards;

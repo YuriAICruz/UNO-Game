@@ -3,12 +3,13 @@
 #include <memory>
 #include <string>
 
+#include "../../framework.h"
 #include "../EventBus/eventBus.h"
 #include "IPlayer.h"
 
 namespace turnSystem
 {
-    class localPlayer : public IPlayer
+    class ENGINE_API localPlayer : public IPlayer
     {
     private:
         std::list<cards::ICard*> hand;

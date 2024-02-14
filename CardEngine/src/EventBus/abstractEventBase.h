@@ -1,8 +1,9 @@
 ﻿#pragma once
+#include "../../framework.h"
 
 namespace eventBus
 {
-    struct abstractEventBase
+    struct ENGINE_API abstractEventBase
     {
         virtual ~abstractEventBase() = default;
     };

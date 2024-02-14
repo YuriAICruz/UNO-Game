@@ -1,9 +1,10 @@
 ﻿#pragma once
 #include "IDeck.h"
+#include "../../framework.h"
 
 namespace decks
 {
-    class deck : public IDeck
+    class ENGINE_API deck : public IDeck
     {
     public:
         deck();

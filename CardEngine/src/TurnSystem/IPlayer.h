@@ -2,11 +2,12 @@
 #include <list>
 #include <string>
 
+#include "../../framework.h"
 #include "../Cards/ICard.h"
 
 namespace turnSystem
 {
-    class IPlayer
+    class ENGINE_API IPlayer
     {
     protected:
         size_t id;

@@ -23,7 +23,7 @@ namespace turnSystem
             std::stringstream ss;
             ss << "Player 0" << i;
             std::string str = ss.str();
-            players.emplace_back(std::make_unique<localPlayer>(str, events, i));
+            players.emplace_back(std::make_shared<localPlayer>(str, events, i));
         }
     }
 
@@ -37,7 +37,7 @@ namespace turnSystem
 
         for (int i = 0; i < playersSize; ++i)
         {
-            players.emplace_back(std::make_unique<localPlayer>(numberOfPlayers[i], events, i));
+            players.emplace_back(std::make_shared<localPlayer>(numberOfPlayers[i], events, i));
         }
     }
 
