@@ -4,7 +4,7 @@
 
 TEST(RoomTests, AddAndRemove)
 {
-    auto r = room("MyRoom");
+    auto r = room(0,"MyRoom");
 
     auto client = std::make_shared<clientInfo>(0);
     r.addClient(client);
@@ -31,7 +31,7 @@ TEST(RoomTests, Serialization)
 {
     std::string roomName = "MyRoom";
     int clientId = 12;
-    auto r = room(roomName);
+    auto r = room(0,roomName);
     auto client = std::make_shared<clientInfo>(clientId);
     std::string clientName = "MyClient";
     client->setName(clientName);

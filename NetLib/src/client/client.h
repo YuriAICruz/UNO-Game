@@ -39,9 +39,11 @@ public:
 
     void createRoom(const std::string& roomName);
     void exitRoom();
+    void enterRoom(int id);
     bool hasRoom();
     void getRooms(std::function<void (std::vector<room>)> callback);
     std::string& getRoomName();
+    int getRoomId();
 
 
     bool isRunning() const

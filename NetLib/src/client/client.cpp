@@ -178,6 +178,13 @@ void client::exitRoom()
     sendMessage(NC_EXIT_ROOM);
 }
 
+void client::enterRoom(int id)
+{
+    std::stringstream ss;
+    ss << NC_ENTER_ROOM << NC_SEPARATOR << id;
+    sendMessage(ss.str().c_str());
+}
+
 bool client::hasRoom()
 {
     return currentRoom.count() > 0;
@@ -192,6 +199,11 @@ void client::getRooms(std::function<void(std::vector<room>)> callback)
 std::string& client::getRoomName()
 {
     return currentRoom.getName();
+}
+
+int client::getRoomId()
+{
+    return currentRoom.getId();
 }
 
 void client::listenToServer()
@@ -276,7 +288,7 @@ void client::listenToServer()
                 roomsCallback = nullptr;
             }
         }
-        else if (data[0] == NC_CREATE_ROOM)
+        else if (data[0] == NC_CREATE_ROOM || data[0] == NC_ENTER_ROOM)
         {
             std::stringstream ss;
             for (int i = 1, n = data.size(); i < n; ++i)

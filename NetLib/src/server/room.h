@@ -10,16 +10,17 @@ class NETCODE_API room
 {
 private:
     std::string name;
+    int id;
     std::vector<std::shared_ptr<clientInfo>> connectedClients;
 
 public:
     room() = default;
 
-    room(const std::string& name) : name(name)
+    room(int id, const std::string& name) : id(id), name(name)
     {
     }
 
-    room(int id, const std::string& name, const std::vector<clientInfo>& clients) : name(name)
+    room(int id, const std::string& name, const std::vector<clientInfo>& clients) : id(id), name(name)
     {
         connectedClients.resize(clients.size());
         int i = 0;
@@ -43,5 +44,10 @@ public:
     std::string& getName()
     {
         return name;
+    }
+
+    int getId()
+    {
+        return id;
     }
 };

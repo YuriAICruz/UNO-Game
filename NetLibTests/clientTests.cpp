@@ -176,5 +176,31 @@ TEST(ClientTests, EnterRoom)
     auto t = startAndConnectClient();
     auto cl = std::get<0>(t);
     auto sv = std::get<1>(t);
+
+    std::string roomName = "MyRoom";
+    cl->createRoom(roomName);
+    int roomId = -1;
+
+    while (!cl->hasRoom() && !cl->hasError())
+    {
+    }
+
+    EXPECT_TRUE(cl->hasRoom());
+    roomId = cl->getRoomId();
+    cl->exitRoom();
+    while (cl->hasRoom() && !cl->hasError())
+    {
+    }
+    EXPECT_FALSE(cl->hasRoom());
+
+    cl->enterRoom(roomId);
+
+    while (!cl->hasRoom() && !cl->hasError())
+    {
+    }
+
+    EXPECT_TRUE(cl->hasRoom());
+    EXPECT_EQ(roomId, cl->getRoomId());
+
     closeClient(cl.get(), sv.get());
 }
