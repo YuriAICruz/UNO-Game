@@ -5,6 +5,8 @@
 #include "server/server.h"
 #include "logger.h"
 
+bool running;
+
 std::tuple<std::shared_ptr<client>, std::shared_ptr<server>> startAndConnectClient()
 {
     logger::print("TEST: startAndConnectClient");
@@ -107,21 +109,21 @@ TEST(ClientTests, ExitRoom)
     auto t = startAndConnectClient();
     auto cl = std::get<0>(t);
     auto sv = std::get<1>(t);
-    
+
     std::string roomName = "MyRoom";
     cl->createRoom(roomName);
 
     while (!cl->hasRoom() && !cl->hasError())
     {
     }
-    
+
     EXPECT_TRUE(cl->hasRoom());
     cl->exitRoom();
     while (cl->hasRoom() && !cl->hasError())
     {
     }
     EXPECT_FALSE(cl->hasRoom());
-    
+
     closeClient(cl.get(), sv.get());
 }
 
@@ -130,6 +132,42 @@ TEST(ClientTests, ListRooms)
     auto t = startAndConnectClient();
     auto cl = std::get<0>(t);
     auto sv = std::get<1>(t);
+
+    std::stringstream ss;
+    int roomsCount = 3;
+    for (int i = 0; i < roomsCount; ++i)
+    {
+        ss << "Room " << i;
+        std::string roomName = ss.str();
+        cl->createRoom(roomName);
+
+        while (!cl->hasRoom() && !cl->hasError())
+        {
+        }
+
+        EXPECT_TRUE(cl->hasRoom());
+        cl->exitRoom();
+        while (cl->hasRoom() && !cl->hasError())
+        {
+        }
+        EXPECT_FALSE(cl->hasRoom());
+    }
+
+    running = true;
+    cl->getRooms([this,roomsCount](std::vector<room> rooms)
+    {
+        for (room r : rooms)
+        {
+            std::cout << "Room Name: " << r.getName() << "\n";
+        }
+        running = false;
+        EXPECT_EQ(roomsCount, rooms.size());
+    });
+
+    while (running)
+    {
+    }
+
     closeClient(cl.get(), sv.get());
 }
 

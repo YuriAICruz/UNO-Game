@@ -25,7 +25,6 @@ private:
     std::map<int, std::shared_ptr<clientInfo>> clients;
     std::map<int, room> rooms;
     int connectionsCount = 0;
-    int roomsCount = 0;
     int ngrokPID;
     std::atomic<bool> running{false};
     std::atomic<bool> initializing{false};

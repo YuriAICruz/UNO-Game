@@ -183,6 +183,12 @@ bool client::hasRoom()
     return currentRoom.count() > 0;
 }
 
+void client::getRooms(std::function<void(std::vector<room>)> callback)
+{
+    roomsCallback = callback;
+    sendMessage(NC_LIST_ROOMS);
+}
+
 std::string& client::getRoomName()
 {
     return currentRoom.getName();
@@ -237,6 +243,38 @@ void client::listenToServer()
         else if (lastResponse == NC_EXIT_ROOM)
         {
             currentRoom = room();
+        }
+        else if (data[0] == NC_LIST_ROOMS)
+        {
+            int size = std::stoi(data[1]);
+            lastRoomsList.resize(size);
+            int pos = 2;
+            for (int i = 0; i < size; ++i)
+            {
+                std::stringstream ss;
+                bool first = true;
+                for (int n = data.size(); pos < n; ++pos)
+                {
+                    if (!first)
+                    {
+                        ss << NC_SEPARATOR;
+                    }
+                    if (data[pos] == NC_OBJECT_SEPARATOR)
+                    {
+                        pos++;
+                        break;
+                    }
+                    ss << data[pos];
+                    first = false;
+                }
+                lastRoomsList[i] = room::constructRoom(ss.str());
+            }
+
+            if (roomsCallback != nullptr)
+            {
+                roomsCallback(lastRoomsList);
+                roomsCallback = nullptr;
+            }
         }
         else if (data[0] == NC_CREATE_ROOM)
         {

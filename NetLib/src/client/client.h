@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <functional>
 #include <iostream>
 #include <WinSock2.h>
 #include "../../framework.h"
@@ -25,6 +26,8 @@ private:
     room currentRoom;
     std::string lastResponse;
     struct addrinfo* addr_info;
+    std::function<void(std::vector<room>)> roomsCallback;
+    std::vector<room> lastRoomsList;
 
 public:
     client() = default;
@@ -37,6 +40,7 @@ public:
     void createRoom(const std::string& roomName);
     void exitRoom();
     bool hasRoom();
+    void getRooms(std::function<void (std::vector<room>)> callback);
     std::string& getRoomName();
 
 

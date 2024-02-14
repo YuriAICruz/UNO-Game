@@ -38,6 +38,7 @@ public:
 
     std::string getRoomSerialized(int id);
     static room constructRoom(std::string data);
+    static int headerSerializationElementsCount();
 
     std::string& getName()
     {
