@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <functional>
+#include <future>
 #include <iostream>
 #include <map>
 #include <WinSock2.h>
@@ -27,11 +28,13 @@ private:
     std::atomic<bool> error{false};
     std::atomic<bool> isListening{false};
     room currentRoom;
+    int seed = 1234;
     std::string lastResponse;
     struct addrinfo* addr_info;
     std::function<void(std::vector<room>)> roomsCallback;
     std::vector<room> lastRoomsList;
-    std::function<void(room*)> roomCallback;
+    std::promise<room*>* roomCallback;
+    std::promise<int>* seedCallback;
 
     std::map<std::string, std::function<void (std::string&)>> commands = {
         {
@@ -56,6 +59,12 @@ private:
             NC_ENTER_ROOM, [this](std::string& message)
             {
                 this->enterRoomCallback(message);
+            }
+        },
+        {
+            NC_GET_SEED, [this](std::string& message)
+            {
+                this->getSeedCallback(message);
             }
         },
         {
@@ -91,7 +100,8 @@ public:
     void exitRoom();
     void enterRoom(int id);
     bool hasRoom();
-    void updateRoom(std::function<void(room*)> callback);
+    room* getRoom();
+    int getSeed();
     void getRooms(std::function<void (std::vector<room>)> callback);
     std::string& getRoomName();
     int getRoomId();
@@ -124,6 +134,7 @@ private:
     void createRoomCallback(const std::string& message);
     void listRoomsCallback(const std::string& message);
     void getRoomCallback(const std::string& message);
+    void getSeedCallback(const std::string& message);
     void enterRoomCallback(const std::string& message);
     void exitRoomCallback(const std::string& message);
 };

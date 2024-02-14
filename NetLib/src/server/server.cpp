@@ -373,3 +373,17 @@ void server::updateClientName(const std::string& message, SOCKET clientSocket)
     const char* responseData = NC_SET_NAME;
     send(clientSocket, responseData, strlen(responseData), 0);
 }
+
+void server::getSeed(const std::string& message, SOCKET clientSocket)
+{
+    logger::print("SERVER: getting seed");
+    std::stringstream ss;
+    ss << NC_GET_SEED << NC_SEPARATOR << seed;
+    std::string str = ss.str();
+    const char* responseData = str.c_str();
+    send(clientSocket, responseData, strlen(responseData), 0);
+}
+
+void server::setSeed(const std::string& message, SOCKET clientSocket)
+{
+}

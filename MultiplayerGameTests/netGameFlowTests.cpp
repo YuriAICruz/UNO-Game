@@ -98,11 +98,13 @@ std::shared_ptr<gameStateManager> createGameManager(room* r, int handInitialSize
 }
 
 std::shared_ptr<gameStateManager> createHostGameManager(std::shared_ptr<client> client, std::shared_ptr<server> server,
-                                                        int handInitialSize = 7)
+                                                        int handInitialSize, int seed)
 {
     auto room = server->getRoom(client->getRoomId());
     int players = room->count();
     std::vector<std::string> playersList = std::vector<std::string>(players);
+
+    server->setSeed(seed);
 
     for (int i = 0; i < players; ++i)
     {
@@ -110,32 +112,27 @@ std::shared_ptr<gameStateManager> createHostGameManager(std::shared_ptr<client> 
     }
     std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
     auto manager = std::make_shared<netGameStateManager>(events, client, server);
-    manager->setupGame(playersList, handInitialSize, "Data\\deck_setup.json", 12345);
+    manager->setupGame(playersList, handInitialSize, "Data\\deck_setup.json", server->getSeed());
     manager->startGame();
     return manager;
 }
 
-std::shared_ptr<gameStateManager> createClientGameManager(std::shared_ptr<client> client,int handInitialSize)
+std::shared_ptr<gameStateManager> createClientGameManager(std::shared_ptr<client> client, int handInitialSize)
 {
-    std::promise<std::shared_ptr<gameStateManager>> promise;
-    auto future = promise.get_future();
-    client->updateRoom([client, handInitialSize, &promise](room* r)
-    {
-        int players = r->count();
-        std::vector<std::string> playersList = std::vector<std::string>(players);
+    auto r = client->getRoom();
+    int seed = client->getSeed();
+    int players = r->count();
+    std::vector<std::string> playersList = std::vector<std::string>(players);
 
-        for (int i = 0; i < players; ++i)
-        {
-            playersList[i] = r->getClientByIndex(i)->name;
-        }
-        std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
-        auto manager = std::make_shared<netGameStateManager>(events, client);
-        manager->setupGame(playersList, handInitialSize, "Data\\deck_setup.json", 12345);
-        manager->startGame();
-        promise.set_value(manager);
-    });
-    future.wait();
-    return future.get();
+    for (int i = 0; i < players; ++i)
+    {
+        playersList[i] = r->getClientByIndex(i)->name;
+    }
+    std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
+    auto manager = std::make_shared<netGameStateManager>(events, client);
+    manager->setupGame(playersList, handInitialSize, "Data\\deck_setup.json", seed);
+    manager->startGame();
+    return manager;
 }
 
 TEST(NetGameFlowTests, Begin)
@@ -258,6 +255,8 @@ TEST(NetGameFlowTests, PlayCardFromManager)
     joinRoom(clA->getRoomId(), clB);
 
     int handSize = 7;
-    auto hostManager = createHostGameManager(clA, sv, handSize);
+    auto hostManager = createHostGameManager(clA, sv, handSize, 12345);
     auto clientManager = createClientGameManager(clB, handSize);
+
+    EXPECT_EQ(*hostManager->getCurrentPlayer(), *clientManager->getCurrentPlayer());
 }

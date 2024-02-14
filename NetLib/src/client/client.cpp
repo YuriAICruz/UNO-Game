@@ -1,5 +1,6 @@
 ﻿#include "client.h"
 
+#include <future>
 #include <string>
 #include <WS2tcpip.h>
 #include <thread>
@@ -205,12 +206,30 @@ bool client::hasRoom()
     return currentRoom.count() > 0;
 }
 
-void client::updateRoom(std::function<void(room*)> callback)
+room* client::getRoom()
 {
-    roomCallback = callback;
+    std::promise<room*> promise;
+    roomCallback = &promise;
+    std::future<room*> future = promise.get_future();
+    
     std::stringstream ss;
-    ss << NC_GET_ROOM << NC_SEPARATOR << currentRoom.getId(); 
+    ss << NC_GET_ROOM << NC_SEPARATOR << currentRoom.getId();
     sendMessage(ss.str().c_str());
+    
+    future.wait();
+    return future.get();
+}
+
+int client::getSeed()
+{
+    std::promise<int> promise;
+    seedCallback = &promise;
+    std::future<int> future = promise.get_future();
+
+    sendMessage(NC_GET_SEED);    
+
+    future.wait();
+    return future.get();
 }
 
 void client::getRooms(std::function<void(std::vector<room>)> callback)
@@ -305,11 +324,11 @@ void client::updateRoom(const std::string& message)
         }
     }
     currentRoom = room::constructRoom(ss.str());
-    if(roomCallback != nullptr)
+    if (roomCallback != nullptr)
     {
-        roomCallback(&currentRoom);
+        roomCallback->set_value(&currentRoom);
         roomCallback = nullptr;
-    }    
+    }
 }
 
 void client::createRoomCallback(const std::string& message)
@@ -354,6 +373,13 @@ void client::listRoomsCallback(const std::string& message)
 void client::getRoomCallback(const std::string& message)
 {
     updateRoom(message);
+}
+
+void client::getSeedCallback(const std::string& message)
+{
+    auto data = stringUtils::splitString(message);
+    seed = std::stoi(data[1]);
+    seedCallback->set_value(seed);
 }
 
 void client::enterRoomCallback(const std::string& message)

@@ -29,6 +29,7 @@ private:
     int connectionsCount = 0;
     int roomsCount = 0;
     int ngrokPID;
+    int seed = 1234;
     roomManager roomManager;
     std::atomic<bool> running{false};
     std::atomic<bool> initializing{false};
@@ -68,6 +69,18 @@ private:
             }
         },
         {
+            NC_SET_SEED, [this](std::string& message, SOCKET clientConnection)
+            {
+                this->setSeed(message, clientConnection);
+            }
+        },
+        {
+            NC_GET_SEED, [this](std::string& message, SOCKET clientConnection)
+            {
+                this->getSeed(message, clientConnection);
+            }
+        },
+        {
             NC_SET_NAME, [this](std::string& message, SOCKET clientConnection)
             {
                 this->updateClientName(message, clientConnection);
@@ -81,6 +94,16 @@ public:
     int close();
     room* getRoom(int id);
     void broadcast(std::string msg);
+
+    int getSeed() const
+    {
+        return seed;
+    }
+
+    void setSeed(int seed)
+    {
+        this->seed = seed;
+    }
 
     bool isRunning()
     {
@@ -112,4 +135,6 @@ private:
     void exitRoom(const std::string& message, SOCKET clientSocket);
 
     void updateClientName(const std::string& message, SOCKET clientSocket);
+    void getSeed(const std::string& message, SOCKET clientSocket);
+    void setSeed(const std::string& message, SOCKET clientSocket);
 };

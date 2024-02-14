@@ -8,6 +8,8 @@
 #define NC_EXIT_ROOM    "exitr"
 
 #define NC_SET_NAME     "setName"
+#define NC_SET_SEED     "sseed"
+#define NC_GET_SEED     "gseed"
 
 #define NC_SEPARATOR        ';'
 #define NC_OBJECT_SEPARATOR "|"
