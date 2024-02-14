@@ -31,6 +31,7 @@ private:
     struct addrinfo* addr_info;
     std::function<void(std::vector<room>)> roomsCallback;
     std::vector<room> lastRoomsList;
+    std::function<void(room*)> roomCallback;
 
     std::map<std::string, std::function<void (std::string&)>> commands = {
         {
@@ -43,6 +44,12 @@ private:
             NC_LIST_ROOMS, [this](std::string& message)
             {
                 this->listRoomsCallback(message);
+            }
+        },
+        {
+            NC_GET_ROOM, [this](std::string& message)
+            {
+                this->getRoomCallback(message);
             }
         },
         {
@@ -84,6 +91,7 @@ public:
     void exitRoom();
     void enterRoom(int id);
     bool hasRoom();
+    void updateRoom(std::function<void(room*)> callback);
     void getRooms(std::function<void (std::vector<room>)> callback);
     std::string& getRoomName();
     int getRoomId();
@@ -112,8 +120,10 @@ private:
 
     void invalidKeyCallback(const std::string& message);
     void validKeyCallback(const std::string& message);
+    void updateRoom(const std::string& message);
     void createRoomCallback(const std::string& message);
     void listRoomsCallback(const std::string& message);
+    void getRoomCallback(const std::string& message);
     void enterRoomCallback(const std::string& message);
     void exitRoomCallback(const std::string& message);
 };

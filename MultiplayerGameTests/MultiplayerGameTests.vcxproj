@@ -46,6 +46,10 @@
       <Project>{5271d90a-72bb-4b58-861c-7725e0fb7105}</Project>
       <Name>CardEngine</Name>
     </ProjectReference>
+    <ProjectReference Include="..\MultiplayerCardEngine\MultiplayerCardEngine.vcxproj">
+      <Project>{b0f171ff-8a38-47b2-bc48-63052c938a4a}</Project>
+      <Name>MultiplayerCardEngine</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NetLib\NetLib.vcxproj">
       <Project>{251cd7bc-f08a-4018-8387-aaa9fcd42675}</Project>
       <Name>NetLib</Name>
@@ -68,7 +72,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)include;%(AdditionalIncludeDirectories);"$(SolutionDir)\NetLib\src";"$(SolutionDir)\CardEngine\src"</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)include;%(AdditionalIncludeDirectories);"$(SolutionDir)\NetLib\src";"$(SolutionDir)\CardEngine\src";"$(SolutionDir)\MultiplayerCardEngine\src"</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -84,7 +88,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)include;%(AdditionalIncludeDirectories);"$(SolutionDir)\NetLib\src";"$(SolutionDir)\CardEngine\src"</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)include;%(AdditionalIncludeDirectories);"$(SolutionDir)\NetLib\src";"$(SolutionDir)\CardEngine\src";"$(SolutionDir)\MultiplayerCardEngine\src"</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -99,7 +103,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)include;%(AdditionalIncludeDirectories);"$(SolutionDir)\NetLib\src";"$(SolutionDir)\CardEngine\src"</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)include;%(AdditionalIncludeDirectories);"$(SolutionDir)\NetLib\src";"$(SolutionDir)\CardEngine\src";"$(SolutionDir)\MultiplayerCardEngine\src"</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -116,7 +120,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)include;%(AdditionalIncludeDirectories);"$(SolutionDir)\NetLib\src";"$(SolutionDir)\CardEngine\src"</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)include;%(AdditionalIncludeDirectories);"$(SolutionDir)\NetLib\src";"$(SolutionDir)\CardEngine\src";"$(SolutionDir)\MultiplayerCardEngine\src"</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

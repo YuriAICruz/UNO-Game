@@ -62,6 +62,12 @@ private:
             }
         },
         {
+            NC_GET_ROOM, [this](std::string& message, SOCKET clientConnection)
+            {
+                this->getRoom(message, clientConnection);
+            }
+        },
+        {
             NC_SET_NAME, [this](std::string& message, SOCKET clientConnection)
             {
                 this->updateClientName(message, clientConnection);
@@ -101,6 +107,7 @@ private:
 
     void createRoom(const std::string& message, SOCKET clientSocket);
     void listRoom(const std::string& message, SOCKET clientSocket);
+    void getRoom(const std::string& message, SOCKET clientSocket);
     void enterRoom(const std::string& message, SOCKET clientSocket);
     void exitRoom(const std::string& message, SOCKET clientSocket);
 

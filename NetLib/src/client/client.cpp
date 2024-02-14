@@ -205,6 +205,14 @@ bool client::hasRoom()
     return currentRoom.count() > 0;
 }
 
+void client::updateRoom(std::function<void(room*)> callback)
+{
+    roomCallback = callback;
+    std::stringstream ss;
+    ss << NC_GET_ROOM << NC_SEPARATOR << currentRoom.getId(); 
+    sendMessage(ss.str().c_str());
+}
+
 void client::getRooms(std::function<void(std::vector<room>)> callback)
 {
     roomsCallback = callback;
@@ -284,7 +292,7 @@ void client::validKeyCallback(const std::string& message)
     connected = true;
 }
 
-void client::createRoomCallback(const std::string& message)
+void client::updateRoom(const std::string& message)
 {
     auto data = stringUtils::splitString(message);
     std::stringstream ss;
@@ -297,6 +305,16 @@ void client::createRoomCallback(const std::string& message)
         }
     }
     currentRoom = room::constructRoom(ss.str());
+    if(roomCallback != nullptr)
+    {
+        roomCallback(&currentRoom);
+        roomCallback = nullptr;
+    }    
+}
+
+void client::createRoomCallback(const std::string& message)
+{
+    updateRoom(message);
 }
 
 void client::listRoomsCallback(const std::string& message)
@@ -333,9 +351,14 @@ void client::listRoomsCallback(const std::string& message)
     }
 }
 
+void client::getRoomCallback(const std::string& message)
+{
+    updateRoom(message);
+}
+
 void client::enterRoomCallback(const std::string& message)
 {
-    createRoomCallback(message);
+    updateRoom(message);
 }
 
 void client::exitRoomCallback(const std::string& message)

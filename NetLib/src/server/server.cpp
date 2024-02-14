@@ -324,6 +324,20 @@ void server::listRoom(const std::string& message, SOCKET clientSocket)
     send(clientSocket, responseData, strlen(responseData), 0);
 }
 
+void server::getRoom(const std::string& message, SOCKET clientSocket)
+{
+    std::vector<std::string> data = stringUtils::splitString(message);
+    logger::print((logger::printer() << "SERVER: getting room [" << data[1] << "] information").str());
+    int id = stoi(data[1]);
+    std::stringstream ss;
+    ss << NC_GET_ROOM << NC_SEPARATOR;
+    ss << roomManager.getRoomSerialized(id);
+    std::string str = ss.str();
+    const char* responseData = str.c_str();
+    send(clientSocket, responseData, strlen(responseData), 0);
+    logger::print((logger::getPrinter() << "SERVER: sent to client room updated data [" << id << "]").str());
+}
+
 void server::enterRoom(const std::string& message, SOCKET clientSocket)
 {
     std::vector<std::string> data = stringUtils::splitString(message);
