@@ -30,6 +30,10 @@ namespace screens
                 NAVIGATION_GAME_OVER,
                 eventBus::delegate<transitionData>{std::bind(&gameOverScreen::onShow, this, std::placeholders::_1)}
             },
+            {
+                NAVIGATION_NETWORK_CONNECT,
+                eventBus::delegate<transitionData>{std::bind(&gameOverScreen::onHide, this, std::placeholders::_1)}
+            },
         };
         std::map<int, eventBus::delegate<gameEventData>> gameEventsMap = {
             {

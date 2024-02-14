@@ -11,7 +11,7 @@ namespace screens
     private:
         size_t titleId;
         int currentButton = 0;
-        button buttons[3];
+        button buttons[4];
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
                 NAVIGATION_MAIN_MENU,
@@ -27,6 +27,10 @@ namespace screens
             },
             {
                 NAVIGATION_GAME_OVER,
+                eventBus::delegate<transitionData>{std::bind(&mainMenuScreen::onHide, this, std::placeholders::_1)}
+            },
+            {
+                NAVIGATION_NETWORK_CONNECT,
                 eventBus::delegate<transitionData>{std::bind(&mainMenuScreen::onHide, this, std::placeholders::_1)}
             },
         };
