@@ -133,10 +133,10 @@ TEST(ClientTests, ListRooms)
     auto cl = std::get<0>(t);
     auto sv = std::get<1>(t);
 
-    std::stringstream ss;
     int roomsCount = 3;
     for (int i = 0; i < roomsCount; ++i)
     {
+        std::stringstream ss;
         ss << "Room " << i;
         std::string roomName = ss.str();
         cl->createRoom(roomName);
@@ -204,3 +204,4 @@ TEST(ClientTests, EnterRoom)
 
     closeClient(cl.get(), sv.get());
 }
+

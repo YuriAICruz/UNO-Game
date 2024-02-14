@@ -60,7 +60,8 @@ int server::start(int port)
 
     std::stringstream ss;
     ss << "start cmd /c .\\ngrok.exe tcp " << port;
-    ngrokPID = std::system(ss.str().c_str());
+    std::string cmd = ss.str();
+    ngrokPID = std::system(cmd.c_str());
 
     initializing = true;
     running = true;
@@ -70,6 +71,8 @@ int server::start(int port)
         this->listening();
     });
     serverListeningThread.detach();
+
+    return 0;
 }
 
 void server::broadcast(std::string msg)
