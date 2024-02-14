@@ -2,6 +2,7 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #include <atomic>
+#include <functional>
 #include <WinSock2.h>
 #include <map>
 #include <string>
@@ -10,6 +11,7 @@
 #include "../../framework.h"
 #include "clientInfo.h"
 #include "room.h"
+#include "roomManager.h"
 
 class NETCODE_API server
 {
@@ -23,9 +25,10 @@ private:
     SOCKET serverSocket;
     sockaddr_in serverAddr;
     std::map<int, std::shared_ptr<clientInfo>> clients;
-    std::map<int, room> rooms;
     int connectionsCount = 0;
+    int roomsCount = 0;
     int ngrokPID;
+    roomManager roomManager;
     std::atomic<bool> running{false};
     std::atomic<bool> initializing{false};
     std::atomic<bool> isListening{false};
@@ -52,7 +55,4 @@ private:
     bool validateKey(SOCKET clientSocket);
     std::shared_ptr<clientInfo> getClient(SOCKET uint);
     void filterCommands(std::string& message, SOCKET clientSocket);
-    int createRoom(std::string roomName);
-    room* getRoom(int id);
-    room* getRoom(clientInfo* client);
 };

@@ -159,6 +159,7 @@
     <ClCompile Include="src\logger.cpp" />
     <ClCompile Include="src\server\clientInfo.cpp" />
     <ClCompile Include="src\server\room.cpp" />
+    <ClCompile Include="src\server\roomManager.cpp" />
     <ClCompile Include="src\server\server.cpp" />
     <ClCompile Include="src\stringUtils.cpp" />
   </ItemGroup>
@@ -169,6 +170,7 @@
     <ClInclude Include="src\serverCommands.h" />
     <ClInclude Include="src\server\clientInfo.h" />
     <ClInclude Include="src\server\room.h" />
+    <ClInclude Include="src\server\roomManager.h" />
     <ClInclude Include="src\server\server.h" />
     <ClInclude Include="src\stringUtils.h" />
   </ItemGroup>

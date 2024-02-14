@@ -270,29 +270,14 @@ void server::filterCommands(std::string& message, SOCKET clientSocket)
     {
         logger::print("SERVER: client exiting room");
         auto client = getClient(clientSocket);
-        auto room = getRoom(client.get());
-        room->removeClient(client.get());
+        roomManager.exitRoom(client.get());
         const char* responseData = NC_EXIT_ROOM;
         send(clientSocket, responseData, strlen(responseData), 0);
     }
     if (message == NC_LIST_ROOMS)
     {
         logger::print("SERVER: listing rooms");
-        std::stringstream ss;
-        ss << NC_LIST_ROOMS << NC_SEPARATOR << rooms.size() << NC_SEPARATOR;
-
-        int i = 0;
-        for (auto pair : rooms)
-        {
-            if (i > 0)
-            {
-                ss << NC_OBJECT_SEPARATOR << NC_SEPARATOR;
-            }
-            ss << pair.second.getRoomSerialized(pair.first);
-            i++;
-        }
-
-        std::string str = ss.str();
+        std::string str = roomManager.listRooms();
         const char* responseData = str.c_str();
         send(clientSocket, responseData, strlen(responseData), 0);
     }
@@ -302,24 +287,13 @@ void server::filterCommands(std::string& message, SOCKET clientSocket)
     {
         if (data[0] == NC_ENTER_ROOM)
         {
-            int id = std::stoi(data[1]);
-            auto client = getClient(clientSocket);
-            rooms[id].addClient(client);
-            const char* responseData = NC_SUCCESS;
-            send(clientSocket, responseData, strlen(responseData), 0);
-            logger::print(
-                (logger::getPrinter() << "SERVER: client " << client->connection << " added to room " << id << "").
-                str());
-        }
-        if (data[0] == NC_ENTER_ROOM)
-        {
             logger::print((logger::printer() << "SERVER: client entering room [" << data[1] << "]").str());
             int id = stoi(data[1]);
-            rooms[id].addClient(getClient(clientSocket));
+            roomManager.enterRoom(id, getClient(clientSocket));
 
             std::stringstream ss;
             ss << NC_ENTER_ROOM << NC_SEPARATOR;
-            ss << rooms[id].getRoomSerialized(id);
+            ss << roomManager.getRoomSerialized(id);
             std::string str = ss.str();
             const char* responseData = str.c_str();
 
@@ -329,12 +303,16 @@ void server::filterCommands(std::string& message, SOCKET clientSocket)
         if (data[0] == NC_CREATE_ROOM)
         {
             logger::print((logger::printer() << "SERVER: creating room [" << data[1] << "]").str());
-            int id = createRoom(data[1]);
-            rooms[id].addClient(getClient(clientSocket));
+
+            std::string roomName = data[1];
+            int id = roomsCount;
+            roomsCount++;
+            roomManager.createRoom(id, roomName);
+            roomManager.enterRoom(id, getClient(clientSocket));
 
             std::stringstream ss;
             ss << NC_CREATE_ROOM << NC_SEPARATOR;
-            ss << rooms[id].getRoomSerialized(id);
+            ss << roomManager.getRoomSerialized(id);
             std::string str = ss.str();
             const char* responseData = str.c_str();
 
@@ -342,37 +320,4 @@ void server::filterCommands(std::string& message, SOCKET clientSocket)
             logger::print((logger::getPrinter() << "SERVER: created room with id" << id << "").str());
         }
     }
-}
-
-int server::createRoom(std::string roomName)
-{
-    auto r = room(connectionsCount, roomName);
-    rooms.insert(std::make_pair(connectionsCount, r));
-
-    return connectionsCount++;
-}
-
-room* server::getRoom(int id)
-{
-    return &rooms[id];
-}
-
-room* server::getRoom(clientInfo* client)
-{
-    int index = -1;
-    for (auto pair : rooms)
-    {
-        if (pair.second.hasClient(client))
-        {
-            index = pair.first;
-            break;
-        }
-    }
-
-    if (index < 0)
-    {
-        return nullptr;
-    }
-
-    return &rooms[index];
 }
