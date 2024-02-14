@@ -37,6 +37,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClCompile Include="clientTests.cpp" />
+    <ClCompile Include="roomTests.cpp" />
     <ClCompile Include="serverTests.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -1,11 +1,11 @@
 ﻿#include "server.h"
-#include <iostream>
 #include <WS2tcpip.h>
 #include <thread>
 #include <sstream>
 
 #include "../logger.h"
 #include "../serverCommands.h"
+#include "../stringUtils.h"
 
 int server::start(int port)
 {
@@ -74,10 +74,10 @@ int server::start(int port)
 
 void server::broadcast(std::string msg)
 {
-    for (auto client : clients)
+    for (auto pair : clients)
     {
         auto responseData = msg.c_str();
-        send(*client.second.connection, responseData, strlen(responseData), 0);
+        send(*pair.second->connection, responseData, strlen(responseData), 0);
     }
 }
 
@@ -114,7 +114,7 @@ void server::listening()
     }
 
     isListening = true;
-    
+
     char clientIP[INET_ADDRSTRLEN];
 
     logger::print("SERVER: waiting for connections . . .");
@@ -175,8 +175,8 @@ void server::clientHandler(SOCKET clientSocket)
 
     logger::print((logger::getPrinter() << "SERVER: Connection accepted from " << clientSocket << "").str());
 
-    clientInfo client = clientInfo();
-    client.connection = &clientSocket;
+    std::shared_ptr<clientInfo> client = std::make_shared<clientInfo>(connectionsCount);
+    client->connection = &clientSocket;
     clients.insert(std::make_pair(connectionsCount, client));
     connectionsCount++;
 
@@ -251,13 +251,13 @@ bool server::validateKey(SOCKET clientSocket)
     return true;
 }
 
-clientInfo* server::getClient(SOCKET clientSocket)
+std::shared_ptr<clientInfo> server::getClient(SOCKET clientSocket)
 {
     for (auto pair : clients)
     {
-        if (*pair.second.connection == clientSocket)
+        if (*pair.second->connection == clientSocket)
         {
-            return &clients[pair.first];
+            return clients[pair.first];
         }
     }
 
@@ -266,16 +266,6 @@ clientInfo* server::getClient(SOCKET clientSocket)
 
 void server::filterCommands(std::string& message, SOCKET clientSocket)
 {
-    if (message == NC_CREATE_ROOM)
-    {
-        logger::print("SERVER: creating room");
-        int id = createRoom();
-        const char* responseData = std::to_string(id).c_str();
-        rooms[id].addClient(getClient(clientSocket));
-        send(clientSocket, responseData, strlen(responseData), 0);
-        logger::print((logger::getPrinter() << "SERVER: created room with id" << id << "").str());
-        broadcast("This message is for all!!");
-    }
     if (message == NC_LIST_ROOMS)
     {
         std::stringstream ss;
@@ -293,9 +283,10 @@ void server::filterCommands(std::string& message, SOCKET clientSocket)
         const char* responseData = ss.str().c_str();
         send(clientSocket, responseData, strlen(responseData), 0);
         logger::print("SERVER: listed all rooms");
+        return;
     }
 
-    std::vector<std::string> data = splitString(message);
+    std::vector<std::string> data = stringUtils::splitString(message);
     if (data.size() == 2)
     {
         if (data[0] == NC_ENTER_ROOM)
@@ -313,19 +304,34 @@ void server::filterCommands(std::string& message, SOCKET clientSocket)
         {
             int id = std::stoi(data[1]);
             auto client = getClient(clientSocket);
-            rooms[id].removeClient(client);
+            rooms[id].removeClient(client.get());
             const char* responseData = NC_SUCCESS;
             send(clientSocket, responseData, strlen(responseData), 0);
             logger::print(
                 (logger::getPrinter() << "SERVER: client " << client->connection << " removed from room " << id << "").
                 str());
         }
+        if (data[0] == NC_CREATE_ROOM)
+        {
+            logger::print((logger::printer() << "SERVER: creating room [" << data[1] << "]").str());
+            int id = createRoom(data[1]);
+            std::stringstream ss;
+
+            ss << NC_CREATE_ROOM;
+            ss << rooms[id].getRoomSerialized(id);
+            const char* responseData = ss.str().c_str();
+
+            rooms[id].addClient(getClient(clientSocket));
+            send(clientSocket, responseData, strlen(responseData), 0);
+            logger::print((logger::getPrinter() << "SERVER: created room with id" << id << "").str());
+            broadcast("This message is for all!!");
+        }
     }
 }
 
-int server::createRoom()
+int server::createRoom(std::string roomName)
 {
-    auto r = room();
+    auto r = room(roomName);
     rooms.insert(std::make_pair(connectionsCount, r));
     roomsCount++;
 
@@ -335,18 +341,4 @@ int server::createRoom()
 room* server::getRoom(int id)
 {
     return &rooms[id];
-}
-
-std::vector<std::string> server::splitString(const std::string& s)
-{
-    std::vector<std::string> tokens;
-    std::istringstream ss(s);
-    std::string token;
-
-    while (std::getline(ss, token, NC_SEPARATOR))
-    {
-        tokens.push_back(token);
-    }
-
-    return tokens;
 }

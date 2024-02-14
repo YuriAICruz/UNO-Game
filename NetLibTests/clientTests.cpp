@@ -1,8 +1,8 @@
-﻿#include "client/client.h"
+﻿#include <tuple>
+
+#include "client/client.h"
 #include "gtest/gtest.h"
 #include "server/server.h"
-#include <tuple>
-
 #include "logger.h"
 
 std::tuple<std::shared_ptr<client>, std::shared_ptr<server>> startAndConnectClient()
@@ -50,6 +50,14 @@ TEST(ClientTests, Create)
     cl->start();
 
     EXPECT_TRUE(cl->isRunning());
+
+    cl->close();
+    while (cl->isConnected() || cl->isRunning())
+    {
+    }
+
+    EXPECT_FALSE(cl->isConnected());
+    EXPECT_FALSE(cl->isRunning());
 }
 
 TEST(ClientTests, Close)
@@ -60,6 +68,10 @@ TEST(ClientTests, Close)
     EXPECT_TRUE(cl->isRunning());
 
     cl->close();
+    while (cl->isConnected() || cl->isRunning())
+    {
+    }
+    EXPECT_FALSE(cl->isConnected());
     EXPECT_FALSE(cl->isRunning());
 }
 
@@ -76,6 +88,13 @@ TEST(ClientTests, RequestRoomCreaion)
     auto t = startAndConnectClient();
     auto cl = std::get<0>(t);
     auto sv = std::get<1>(t);
+
+    std::string roomName = "MyRoom";
+    cl->createRoom(roomName);
+
+    EXPECT_TRUE(cl->hasRoom());
+    EXPECT_EQ(roomName, cl->getRoomName());
+
     closeClient(cl.get(), sv.get());
 }
 

@@ -22,7 +22,7 @@ private:
     WSADATA wsaData;
     SOCKET serverSocket;
     sockaddr_in serverAddr;
-    std::map<int, clientInfo> clients;
+    std::map<int, std::shared_ptr<clientInfo>> clients;
     std::map<int, room> rooms;
     int connectionsCount = 0;
     int roomsCount = 0;
@@ -51,9 +51,8 @@ private:
     void listening();
     void clientHandler(SOCKET clientSocket);
     bool validateKey(SOCKET clientSocket);
-    clientInfo* getClient(SOCKET uint);
+    std::shared_ptr<clientInfo> getClient(SOCKET uint);
     void filterCommands(std::string& message, SOCKET clientSocket);
-    int createRoom();
+    int createRoom(std::string roomName);
     room* getRoom(int id);
-    static std::vector<std::string> splitString(const std::string& s);
 };

@@ -5,6 +5,7 @@
 #include <thread>
 #include "../logger.h"
 #include "../serverCommands.h"
+#include "../stringUtils.h"
 
 int client::initializeWinsock()
 {
@@ -165,6 +166,23 @@ int client::close()
     return 0;
 }
 
+void client::createRoom(const std::string& roomName)
+{
+    std::stringstream ss;
+    ss << NC_CREATE_ROOM << NC_SEPARATOR << roomName;
+    sendMessage(ss.str().c_str());
+}
+
+bool client::hasRoom()
+{
+    return currentRoom.count() > 0;
+}
+
+std::string& client::getRoomName()
+{
+    return currentRoom.getName();
+}
+
 void client::listenToServer()
 {
     isListening = true;
@@ -201,6 +219,7 @@ void client::listenToServer()
 
         logger::print((logger::getPrinter() << "CLIENT: Received: " << recvData).str());
 
+        auto data = stringUtils::splitString(lastResponse);
         if (lastResponse == NC_VALID_KEY)
         {
             connected = true;
@@ -209,6 +228,22 @@ void client::listenToServer()
         {
             connected = false;
             close();
+        }
+        else if (data[0] == NC_CREATE_ROOM)
+        {
+            std::stringstream ss;
+            for (int i = 1, n = data.size(); i < n; ++i)
+            {
+                ss << data[i];
+                if (i < n - 1)
+                {
+                    ss << NC_SEPARATOR;
+                }
+            }
+            currentRoom = room::constructRoom(ss.str());
+            connected = false;
+            close();
+            break;
         }
     }
 

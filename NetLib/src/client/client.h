@@ -2,6 +2,7 @@
 #include <iostream>
 #include <WinSock2.h>
 #include "../../framework.h"
+#include "../server/room.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -21,6 +22,7 @@ private:
     std::atomic<bool> connected{false};
     std::atomic<bool> error{false};
     std::atomic<bool> isListening{false};
+    room currentRoom;
     std::string lastResponse;
     struct addrinfo* addr_info;
 
@@ -31,6 +33,11 @@ public:
     int connectToServer();
     int sendMessage(const char* str);
     int close();
+
+    void createRoom(const std::string& roomName);
+    bool hasRoom();
+    std::string& getRoomName();
+
 
     bool isRunning() const
     {

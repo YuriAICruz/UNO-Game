@@ -1,11 +1,17 @@
 ﻿#include "room.h"
 
+#include <sstream>
+#include <string>
+
+#include "../serverCommands.h"
+#include "../stringUtils.h"
+
 int room::count()
 {
     return connectedClients.size();
 }
 
-void room::addClient(clientInfo* client)
+void room::addClient(const std::shared_ptr<clientInfo>& client)
 {
     connectedClients.push_back(client);
 }
@@ -15,7 +21,7 @@ void room::removeClient(clientInfo* client)
     int i = 0;
     for (int n = connectedClients.size(); i < n; ++i)
     {
-        if (connectedClients.at(i) == client)
+        if (connectedClients.at(i).get() == client)
         {
             break;
         }
@@ -27,4 +33,52 @@ void room::removeClient(clientInfo* client)
     }
 
     connectedClients.erase(connectedClients.begin() + i);
+}
+
+clientInfo* room::getClient(int clientId) const
+{
+    for (auto client : connectedClients)
+    {
+        if (client->getId() == clientId)
+        {
+            return client.get();
+        }
+    }
+
+    return nullptr;
+}
+
+std::string room::getRoomSerialized(int id)
+{
+    std::stringstream ss;
+    ss << id << NC_SEPARATOR << getName() << NC_SEPARATOR;
+    int i = 0;
+    for (auto client : connectedClients)
+    {
+        if (i > 0)
+        {
+            ss << NC_SEPARATOR;
+        }
+        ss << client->getId();
+        ss << NC_SEPARATOR;
+        ss << client->getName();
+        i++;
+    }
+    return ss.str();
+}
+
+room room::constructRoom(std::string data)
+{
+    auto splitData = stringUtils::splitString(data);
+    int id = std::stoi(splitData[0]);
+    std::string name = splitData[1];
+    std::vector<clientInfo> clients;
+    for (int i = 2, n = splitData.size(); i < n; i+=2)
+    {
+        int clientId = std::stoi(splitData[i]);
+        std::string clientName = splitData[i+1];
+        clients.emplace_back(clientInfo{clientId, clientName});
+    }    
+
+    return room(id, name, clients);
 }
