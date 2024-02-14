@@ -3,10 +3,13 @@
 
 #include "logger.h"
 #include "netCommands.h"
+#include "stringUtils.h"
 #include "client/client.h"
 #include "server/server.h"
 #include "StateManager/gameStateManager.h"
 #include "StateManager/netGameStateManager.h"
+
+bool waiting;
 
 std::shared_ptr<server> startServer()
 {
@@ -18,16 +21,28 @@ std::shared_ptr<server> startServer()
     }
     EXPECT_TRUE(sv->isRunning());
 
-    std::map<std::string, std::function<void (std::string&, SOCKET)>> commands = {
-        {
-            CORE_NC_PLAYCARD, [](std::string& msg, SOCKET cs)
-            {
-            }
-        }
-    };
-    sv->addCustomCommands(commands);
-
     return sv;
+}
+
+void closeServer(server* sv)
+{
+    logger::print("TEST: closing Server");
+    sv->close();
+    while (sv->isRunning())
+    {
+    }
+    EXPECT_FALSE(sv->isRunning());
+}
+
+void closeClient(client* cl)
+{
+    logger::print("TEST: closeClient");
+    cl->close();
+    while (cl->isConnected() || cl->isRunning())
+    {
+    }
+    EXPECT_FALSE(cl->isConnected());
+    EXPECT_FALSE(cl->isRunning());
 }
 
 std::shared_ptr<client> startClient(std::string name)
@@ -49,7 +64,23 @@ std::shared_ptr<client> startClient(std::string name)
     return cl;
 }
 
-std::unique_ptr<gameStateManager> createGameManager(room* r, int handInitialSize = 7)
+void createRoom(std::string roomName, std::shared_ptr<client> client)
+{
+    client->createRoom(roomName);
+    while (!client->hasRoom() && !client->hasError())
+    {
+    }
+}
+
+void joinRoom(int roomId, std::shared_ptr<client> clB)
+{
+    clB->enterRoom(roomId);
+    while (!clB->hasRoom() && !clB->hasError())
+    {
+    }
+}
+
+std::shared_ptr<gameStateManager> createGameManager(room* r, int handInitialSize = 7)
 {
     int players = r->count();
     std::vector<std::string> playersList = std::vector<std::string>(players);
@@ -59,8 +90,8 @@ std::unique_ptr<gameStateManager> createGameManager(room* r, int handInitialSize
         playersList[i] = r->getClientByIndex(i)->name;
     }
     std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
-    auto manager = std::make_unique<netGameStateManager>(events);
-    manager->setupGame(playersList, handInitialSize, "Data\\deck_setup.json", 1234);
+    auto manager = std::make_shared<netGameStateManager>(events);
+    manager->setupGame(playersList, handInitialSize, "Data\\deck_setup.json", 12345);
     manager->startGame();
     return manager;
 }
@@ -69,18 +100,11 @@ TEST(NetGameFlowTests, Begin)
 {
     auto sv = startServer();
 
-    auto clA = startClient("Player A");
-    auto clB = startClient("Player B");
+    std::shared_ptr<client> clA = startClient("Player A");
+    std::shared_ptr<client> clB = startClient("Player B");
 
-    clA->createRoom("GameRoom");
-    while (!clA->hasRoom() && !clA->hasError())
-    {
-    }
-
-    clB->enterRoom(clA->getRoomId());
-    while (!clB->hasRoom() && !clB->hasError())
-    {
-    }
+    createRoom("GameRoom", clA);
+    joinRoom(clA->getRoomId(), clB);
 
     int handSize = 7;
     auto manager = createGameManager(sv->getRoom(clA->getRoomId()), handSize);
@@ -89,4 +113,94 @@ TEST(NetGameFlowTests, Begin)
     {
         EXPECT_EQ(handSize, manager->getPlayer(i)->getHand().size());
     }
+
+    closeClient(clA.get());
+    closeClient(clB.get());
+    closeServer(sv.get());
+}
+
+TEST(NetGameFlowTests, PlayRightCard)
+{
+    auto sv = startServer();
+
+    auto clA = startClient("Player A");
+    auto clB = startClient("Player B");
+
+    createRoom("GameRoom", clA);
+    joinRoom(clA->getRoomId(), clB);
+
+    int handSize = 7;
+    auto manager = createGameManager(sv->getRoom(clA->getRoomId()), handSize);
+
+    std::map<std::string, std::function<void (std::string&, SOCKET)>> commands = {
+        {
+            CORE_NC_PLAYCARD, [manager](std::string& msg, SOCKET cs)
+            {
+                std::vector<std::string> data = stringUtils::splitString(msg);
+                int index = std::stoi(data[1]);
+                turnSystem::IPlayer* currentPlayer = manager->getCurrentPlayer();
+                manager->tryExecutePlayerAction(currentPlayer->pickCard(index));
+                waiting = false;
+            }
+        }
+    };
+    sv->addCustomCommands(commands);
+
+    turnSystem::IPlayer* firstPlayer = manager->getCurrentPlayer();
+    turnSystem::IPlayer* currentPlayer = manager->getCurrentPlayer();
+    cards::ICard* topCard = manager->getTopCard();
+    std::list<cards::ICard*> playerCards = currentPlayer->getHand();
+
+    int index = 0;
+    for (auto card : playerCards)
+    {
+        if (card->sameColor(*topCard) || card->sameNumber(*topCard))
+        {
+            break;
+        }
+        index++;
+    }
+
+    std::stringstream ss;
+    ss << CORE_NC_PLAYCARD << NC_SEPARATOR << index;
+    std::string str = ss.str();
+    waiting = true;
+    clA->sendMessage(str.c_str());
+    while (waiting)
+    {
+    }
+
+    EXPECT_NE(currentPlayer, manager->getCurrentPlayer());
+    EXPECT_LT(currentPlayer->getHand().size(), handSize);
+    
+    currentPlayer = manager->getCurrentPlayer();
+    topCard = manager->getTopCard();
+    playerCards = currentPlayer->getHand();
+
+    index = 0;
+    for (auto card : playerCards)
+    {
+        if (card->sameColor(*topCard) || card->sameNumber(*topCard))
+        {
+            break;
+        }
+        index++;
+    }
+
+    ss.str("");
+    ss << CORE_NC_PLAYCARD << NC_SEPARATOR << index;
+    str = ss.str();
+    waiting = true;
+    clA->sendMessage(str.c_str());
+    while (waiting)
+    {
+    }
+
+    EXPECT_NE(currentPlayer, manager->getCurrentPlayer());
+    EXPECT_EQ(firstPlayer, manager->getCurrentPlayer());
+    EXPECT_LT(currentPlayer->getHand().size(), handSize);
+
+    closeClient(clA.get());
+    closeClient(clB.get());
+    closeServer(sv.get());
 }

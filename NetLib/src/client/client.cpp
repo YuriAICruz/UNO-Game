@@ -171,12 +171,13 @@ int client::close()
     }
 
     logger::print("CLIENT: closing client . . .");
-    freeaddrinfo(addr_info);
-    closesocket(clientSocket);
-    WSACleanup();
 
     running = false;
     connected = false;
+
+    freeaddrinfo(addr_info);
+    closesocket(clientSocket);
+    WSACleanup();
     return 0;
 }
 
