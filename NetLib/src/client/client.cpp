@@ -381,7 +381,11 @@ void client::getSeedCallback(const std::string& message)
 {
     auto data = stringUtils::splitString(message);
     seed = std::stoi(data[1]);
-    seedCallback->set_value(seed);
+    if(seedCallback!=nullptr)
+    {
+        seedCallback->set_value(seed);
+        seedCallback = nullptr;
+    }
 }
 
 void client::enterRoomCallback(const std::string& message)

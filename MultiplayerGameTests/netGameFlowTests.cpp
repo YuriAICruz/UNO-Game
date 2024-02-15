@@ -126,14 +126,16 @@ std::shared_ptr<netGameStateManager> createClientGameManager(std::shared_ptr<cli
     int seed = client->getSeed();
     int players = r->count();
     std::vector<std::string> playersList = std::vector<std::string>(players);
+    std::vector<size_t> playersIds = std::vector<size_t>(players);
 
     for (int i = 0; i < players; ++i)
     {
         playersList[i] = r->getClientByIndex(i)->name;
+        playersIds[i] = r->getClientByIndex(i)->id;
     }
     std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
     auto manager = std::make_shared<netGameStateManager>(events, client);
-    manager->setupGame(playersList, handInitialSize, "Data\\deck_setup.json", seed);
+    manager->setupGame(playersList, playersIds, handInitialSize, "Data\\deck_setup.json", seed);
     manager->startGame();
     return manager;
 }
@@ -261,7 +263,7 @@ TEST(NetGameFlowTests, PlayCardFromManager)
     auto hostManager = createHostGameManager(clA, sv, handSize, 12345);
     auto clientManager = createClientGameManager(clB, handSize);
 
-    EXPECT_EQ(*hostManager->getCurrentPlayer(), *clientManager->getCurrentPlayer());
+    EXPECT_EQ(hostManager->getCurrentPlayer()->Id(), clientManager->getCurrentPlayer()->Id());
 
     EXPECT_TRUE(hostManager->isCurrentPlayer());
     EXPECT_FALSE(clientManager->isCurrentPlayer());
@@ -281,7 +283,8 @@ TEST(NetGameFlowTests, PlayCardFromManager)
         }
         index++;
     }
-    EXPECT_TRUE(hostManager->tryExecutePlayerAction(currentPlayer->pickCard(index)));
+
+    EXPECT_TRUE(hostManager->tryExecutePlayerAction(index));
     EXPECT_NE(*currentPlayer, *hostManager->getCurrentPlayer());
     EXPECT_NE(*currentPlayer, *clientManager->getCurrentPlayer());
     EXPECT_LT(currentPlayer->getHand().size(), handSize);
