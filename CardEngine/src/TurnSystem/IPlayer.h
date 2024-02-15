@@ -10,12 +10,12 @@ namespace turnSystem
     class ENGINE_API IPlayer
     {
     protected:
-        size_t id;
+        uint16_t id;
         std::string name;
         bool inUnoMode = false;
 
     public:
-        IPlayer(size_t id, std::string name) : id(id), name(name)
+        IPlayer(uint16_t id, std::string name) : id(id), name(name)
         {
         }
 
@@ -33,7 +33,7 @@ namespace turnSystem
             return !equal(player);
         }
 
-        size_t Id() const
+        uint16_t Id() const
         {
             return id;
         }

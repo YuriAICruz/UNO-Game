@@ -15,10 +15,10 @@ namespace turnSystem
     {
     private:
         std::vector<std::shared_ptr<IPlayer>> players;
-        int currentTurn = 0;
-        int playersSize;
+        uint16_t currentTurn = 0;
+        uint8_t playersSize;
         std::shared_ptr<eventBus::eventBus> events;
-        int direction = 1;
+        int8_t direction = 1;
 
     public:
         turnSystem(int numberOfPlayers);
@@ -27,10 +27,16 @@ namespace turnSystem
         IPlayer* getCurrentPlayer() const override;
         IPlayer* getNextPlayer() const;
         IPlayer* getPlayer(int i) const;
+        void shuffle() override;
+        void shuffle(size_t seed) override;
         void turnEnded(Events::endTurnEventData& data);
         void endTurn() override;
         int playersCount() const override;
         void reverse() override;
+        void organizePlayers(std::vector<uint16_t> playersIds);
+        std::tuple<const char*, size_t> getState() override;
+        void setState(const char* data) override;
+
     private:
         int nextTurnIndex() const;
     };
