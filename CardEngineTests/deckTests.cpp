@@ -1,8 +1,6 @@
 ﻿#include "pch.h"
 
 #include <tuple>
-#include <tuple>
-#include <tuple>
 
 #include "Cards/baseCard.h"
 #include "Cards/drawCard.h"
@@ -140,22 +138,24 @@ TEST(Deck, MoveDeck)
 
 TEST(Deck, Serialize)
 {
-    const std::unique_ptr<decks::IDeck> deck = createDeck("Data\\test_deck_setup.json");
+    std::unique_ptr<decks::IDeck> deck = createDeck("Data\\test_deck_setup.json");
     deck->shuffle(1234);
 
     std::tuple<const char*, size_t> data = deck->getState();
 
-    const char* ptr = std::get<0>(data);
-    size_t numCards = std::get<1>(data);
+    std::cout << "\nDeck Data [Begin]\n";
+    deck->print(std::get<0>(data), std::get<1>(data));
+    std::cout << "\nDeck Data [End]\n";
+
+    delete std::get<0>(data);
+    
+    deck = createDeck("Data\\deck_setup.json");
+    deck->shuffle(1234);
+
+    data = deck->getState();
 
     std::cout << "\nDeck Data [Begin]\n";
-    for (uint8_t i = 0; i < numCards; ++i)
-    {
-        uint8_t id;
-        std::memcpy(&id, ptr, sizeof(uint8_t));
-        std::cout << std::to_string(id);
-        ptr += sizeof(uint8_t);
-    }
+    deck->print(std::get<0>(data), std::get<1>(data));
     std::cout << "\nDeck Data [End]\n";
 
     delete std::get<0>(data);

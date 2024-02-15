@@ -36,8 +36,12 @@ namespace turnSystem
         void organizePlayers(std::vector<uint16_t> playersIds);
         std::tuple<const char*, size_t> getState() override;
         void setState(const char* data) override;
+        void print(const char* buffer, size_t size) override;
+
 
     private:
         int nextTurnIndex() const;
+
+    public:
     };
 }

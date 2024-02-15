@@ -2,6 +2,7 @@
 
 #include <tuple>
 #include <tuple>
+#include <tuple>
 
 #include "TurnSystem/turnSystem.h"
 
@@ -72,25 +73,7 @@ TEST(TurnSystem, Serialize)
     auto data = turner->getState();
 
     std::cout << "\nTurnSystem Data [End]\n";
-    const char* ptr = std::get<0>(data);
-    uint16_t currentTurn;
-    std::memcpy(&currentTurn, ptr, sizeof(uint16_t));
-    ptr += sizeof(uint16_t);
-    uint8_t direction;
-    std::memcpy(&direction, ptr, sizeof(uint8_t));
-    ptr += sizeof(uint8_t);
-    uint8_t playersSize;
-    std::memcpy(&playersSize, ptr, sizeof(uint8_t));
-    ptr += sizeof(uint8_t);
-    std::cout << std::to_string(currentTurn) << std::to_string(direction) << std::to_string(playersSize) << "-";
-
-    for (int i = 0; i < playersSize; ++i)
-    {
-        uint16_t id;
-        std::memcpy(&id, ptr, sizeof(uint16_t));
-        std::cout << id;
-        ptr += sizeof(uint16_t);
-    }
+    turner->print(std::get<0>(data), std::get<1>(data));
     std::cout << "\nTurnSystem Data [End]\n";
 
     delete std::get<0>(data);
@@ -164,7 +147,7 @@ TEST(TurnSystem, SerializeTwoSystems)
 
     turnerA->setState(std::get<0>(dataA));
     turnerB->setState(std::get<0>(dataB));
-    
+
     EXPECT_EQ(playerA, turnerA->getCurrentPlayer());
     EXPECT_EQ(playerB, turnerB->getCurrentPlayer());
     EXPECT_EQ(countA, turnerA->playersCount());

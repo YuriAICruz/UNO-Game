@@ -1,5 +1,8 @@
 ﻿#include "pch.h"
 
+#include <tuple>
+#include <tuple>
+
 #include "Cards/baseCard.h"
 #include "Cards/drawCard.h"
 #include "Cards/ICard.h"
@@ -8,7 +11,7 @@
 #include "StateManager/gameStateManager.h"
 #include "TurnSystem/IPlayer.h"
 
-std::unique_ptr<gameStateManager> createGameManager(int players = 2, int handInitialSize = 7)
+std::unique_ptr<gameStateManager> createGameManager(int players = 2, int handInitialSize = 7, int seed = 1234)
 {
     std::vector<std::string> playersList = std::vector<std::string>(players);
     for (int i = 0; i < players; ++i)
@@ -19,7 +22,7 @@ std::unique_ptr<gameStateManager> createGameManager(int players = 2, int handIni
     }
     std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
     auto manager = std::make_unique<gameStateManager>(events);
-    manager->setupGame(playersList, handInitialSize, "Data\\deck_setup.json", 1234);
+    manager->setupGame(playersList, handInitialSize, "Data\\deck_setup.json", seed);
     manager->startGame();
     return manager;
 }
@@ -98,7 +101,7 @@ TEST(GameFlow, PlayReverse)
 
     cards::ICard* topCard = manager->getTopCard();
 
-    std::unique_ptr<cards::ICard> baseCard = std::make_unique<cards::baseCard>(topCard->Number(), 'e');
+    std::unique_ptr<cards::ICard> baseCard = std::make_unique<cards::baseCard>(0, topCard->Number(), 'e');
     EXPECT_TRUE(manager->tryExecutePlayerAction(baseCard.get()));
 
     currentPlayer = manager->getCurrentPlayer();
@@ -121,7 +124,7 @@ TEST(GameFlow, PlayDraw)
     turnSystem::IPlayer* firstPlayer = manager->getCurrentPlayer();
     cards::ICard* topCard = manager->getTopCard();
 
-    std::unique_ptr<cards::ICard> drawC = std::make_unique<cards::drawCard>(2, topCard->Color());
+    std::unique_ptr<cards::ICard> drawC = std::make_unique<cards::drawCard>(1, 2, topCard->Color());
     EXPECT_TRUE(manager->tryExecutePlayerAction(drawC.get()));
 
     turnSystem::IPlayer* currentPlayer = manager->getCurrentPlayer();
@@ -146,4 +149,32 @@ TEST(GameFlow, PlaySkip)
 
     EXPECT_EQ(thirdPlayer, manager->getCurrentPlayer());
     EXPECT_EQ(*skipCard, *manager->getTopCard());
+}
+
+TEST(GameFlow, States)
+{
+    auto manager = createGameManager(3, 7, 1234);
+
+    std::tuple<const char*, size_t> startData = manager->getState();
+
+    //1234507
+    //1234507
+    std::cout << "\nGame State [Begin]\n";
+    manager->print(std::get<0>(startData), std::get<1>(startData));
+    std::cout << "\nGame State [End]\n";
+
+    cards::ICard* topCard = manager->getTopCard();
+
+    std::unique_ptr<cards::ICard> skipCard = std::make_unique<cards::skipCard>(0, topCard->Color());
+    EXPECT_TRUE(manager->tryExecutePlayerAction(skipCard.get()));
+
+    EXPECT_EQ(*skipCard, *manager->getTopCard());
+
+    auto endData = manager->getState();
+    std::cout << "\nGame State [Begin]\n";
+    manager->print(std::get<0>(endData), std::get<1>(endData));
+    std::cout << "\nGame State [End]\n";
+
+    delete std::get<0>(startData);
+    delete std::get<0>(endData);
 }

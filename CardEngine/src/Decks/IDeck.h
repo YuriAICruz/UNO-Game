@@ -30,5 +30,6 @@ namespace decks
         void setState(const char* data, size_t size);
         std::list<cards::ICard*> getFullDeck();
         void setFullDeck(const std::list<cards::ICard*>& list);
+        static void print(const char* buffer, size_t size);
     };
 }

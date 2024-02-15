@@ -1,6 +1,9 @@
 ﻿#include "pch.h"
 #include "gameStateManager.h"
 
+#include <tuple>
+#include <iostream>
+
 #include "gameEventData.h"
 #include "turnEventData.h"
 #include "../coreEventIds.h"
@@ -44,7 +47,8 @@ void gameStateManager::beginTurn()
     {
         events->fireEvent(GAME_NO_UNO_PENALTY, gameEventData());
         makePlayerDraw(player, 2);
-    }else if(player->isInUnoMode())
+    }
+    else if (player->isInUnoMode())
     {
         player->resetUnoMode();
     }
@@ -69,14 +73,16 @@ void gameStateManager::setupGame(std::vector<std::string>& players, int handSize
     mainDeck = std::make_unique<decks::jsonDeck>(deckConfigFilePath);
     discardDeck = std::make_unique<decks::deck>();
 
+    this->seed = seed;
+
     turner = std::make_unique<turnSystem::turnSystem>(players);
-    mainDeck->shuffle(seed);
+    mainDeck->shuffle(this->seed);
 
     events->fireEvent(GAME_SETUP, gameEventData());
 }
 
 void gameStateManager::setupGame(std::vector<std::string>& players, std::vector<size_t>& playersIds, int handSize,
-    std::string deckConfigFilePath, size_t seed)
+                                 std::string deckConfigFilePath, size_t seed)
 {
     running = false;
     this->handSize = handSize;
@@ -188,6 +194,123 @@ void gameStateManager::yellUno()
 {
     events->fireEvent(GAME_UNO, gameEventData());
     getCurrentPlayer()->setUnoMode();
+}
+
+std::tuple<const char*, size_t> gameStateManager::getState()
+{
+    size_t size = sizeof(size_t) + sizeof(uint8_t) + sizeof(uint8_t);
+    std::tuple<const char*, size_t> md = mainDeck->getState();
+    size += sizeof(size_t) + std::get<1>(md);
+    std::tuple<const char*, size_t> dd = discardDeck->getState();
+    size += sizeof(size_t) + std::get<1>(dd);
+    std::tuple<const char*, size_t> t = turner->getState();
+    size += sizeof(size_t) + std::get<1>(t);
+
+    char* buffer = new char[size];
+    char* ptr = buffer;
+
+    std::memcpy(ptr, &seed, sizeof(size_t));
+    ptr += sizeof(size_t);
+    std::memcpy(ptr, &currentPlayerCardsDraw, sizeof(uint8_t));
+    ptr += sizeof(uint8_t);
+    std::memcpy(ptr, &handSize, sizeof(uint8_t));
+    ptr += sizeof(uint8_t);
+
+    std::memcpy(ptr, &std::get<1>(md), sizeof(size_t));
+    ptr += sizeof(size_t);
+    std::memcpy(ptr, std::get<0>(md), std::get<1>(md) * sizeof(uint8_t));
+    ptr += std::get<1>(md) * sizeof(uint8_t);
+
+    std::memcpy(ptr, &std::get<1>(dd), sizeof(size_t));
+    ptr += sizeof(size_t);
+    std::memcpy(ptr, std::get<0>(dd), std::get<1>(dd) * sizeof(uint8_t));
+    ptr += std::get<1>(dd) * sizeof(uint8_t);
+
+    std::memcpy(ptr, &std::get<1>(t), sizeof(size_t));
+    ptr += sizeof(size_t);
+    std::memcpy(ptr, std::get<0>(t), std::get<1>(t));
+    ptr += std::get<1>(t);
+
+    delete std::get<0>(md);
+    delete std::get<0>(dd);
+    delete std::get<0>(t);
+
+    return std::make_tuple(buffer, size);
+}
+
+void gameStateManager::setState(const char* data, size_t size)
+{
+    const char* ptr = data;
+
+    std::memcpy(&seed, ptr, sizeof(size_t));
+    ptr += sizeof(size_t);
+    std::memcpy(&currentPlayerCardsDraw, ptr, sizeof(uint8_t));
+    ptr += sizeof(uint8_t);
+    std::memcpy(&handSize, ptr, sizeof(uint8_t));
+    ptr += sizeof(uint8_t);
+
+    size_t mdSize;
+    std::memcpy(&mdSize, ptr, sizeof(size_t));
+    ptr += sizeof(size_t);
+    mainDeck->setState(ptr, mdSize);
+    ptr += mdSize;
+
+    size_t ddSize;
+    std::memcpy(&ddSize, ptr, sizeof(size_t));
+    ptr += sizeof(size_t);
+    discardDeck->setState(ptr, ddSize);
+    ptr += ddSize;
+
+    size_t tSize;
+    std::memcpy(&tSize, ptr, sizeof(size_t));
+    ptr += sizeof(size_t);
+    turner->setState(ptr);
+    ptr += tSize;
+}
+
+void gameStateManager::print(const char* buffer, size_t size)
+{
+    const char* ptr = buffer;
+
+    size_t s;
+    std::memcpy(&s, ptr, sizeof(size_t));
+    std::cout << s;
+    ptr += sizeof(size_t);
+    uint8_t cpcd;
+    std::memcpy(&cpcd, ptr, sizeof(uint8_t));
+    std::cout << std::to_string(cpcd);
+    ptr += sizeof(uint8_t);
+    uint8_t handS;
+    std::memcpy(&handS, ptr, sizeof(uint8_t));
+    std::cout << std::to_string(handS);
+    ptr += sizeof(uint8_t);
+
+    std::cout << "-md-";
+    size_t mdSize;
+    std::memcpy(&mdSize, ptr, sizeof(size_t));
+    std::cout << std::to_string(mdSize);
+    std::cout << "-";
+    ptr += sizeof(size_t);
+    mainDeck->print(ptr, mdSize);
+    ptr += mdSize * sizeof(uint8_t);
+
+    std::cout << "-dd-";
+    size_t ddSize;
+    std::memcpy(&ddSize, ptr, sizeof(size_t));
+    std::cout << std::to_string(ddSize);
+    std::cout << "-";
+    ptr += sizeof(size_t);
+    discardDeck->print(ptr, ddSize);
+    ptr += ddSize * sizeof(uint8_t);
+
+    std::cout << "-t-";
+    size_t tSize;
+    std::memcpy(&tSize, ptr, sizeof(size_t));
+    std::cout << std::to_string(tSize);
+    std::cout << "-";
+    ptr += sizeof(size_t);
+    turner->print(ptr, tSize);
+    ptr += tSize;
 }
 
 bool gameStateManager::canSkipTurn()

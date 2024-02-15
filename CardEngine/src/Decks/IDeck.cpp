@@ -2,6 +2,7 @@
 #include "IDeck.h"
 #include <tuple>
 #include <vector>
+#include <iostream>
 
 namespace decks
 {
@@ -61,5 +62,18 @@ namespace decks
     void IDeck::setFullDeck(const std::list<cards::ICard*>& fullDeck)
     {
         allCards = fullDeck;
+    }
+
+    void IDeck::print(const char* buffer, size_t numCards)
+    {
+        const char* ptr = buffer;
+
+        for (int i = 0; i < numCards; ++i)
+        {
+            uint8_t id;
+            std::memcpy(&id, ptr, sizeof(uint8_t));
+            std::cout << std::to_string(id);
+            ptr += sizeof(uint8_t);
+        }
     }
 }

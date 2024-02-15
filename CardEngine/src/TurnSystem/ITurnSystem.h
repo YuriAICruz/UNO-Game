@@ -15,5 +15,6 @@ namespace turnSystem
         virtual void setState(const char* data) = 0;
         virtual void shuffle() = 0;
         virtual void shuffle(size_t seed) = 0;
+        virtual void print(const char* buffer, size_t size) = 0;
     };
 }

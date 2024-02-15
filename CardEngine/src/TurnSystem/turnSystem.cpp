@@ -4,6 +4,7 @@
 #include <memory>
 #include <random>
 #include <sstream>
+#include <iostream>
 #include <unordered_map>
 
 #include "localPlayer.h"
@@ -138,7 +139,7 @@ namespace turnSystem
             + sizeof(int8_t) // direction
             + sizeof(uint8_t) // playersSize
             + sizeof(uint16_t) * playersSize;
-        
+
         char* buffer = new char[bufferSize];
 
         char* ptr = buffer;
@@ -181,6 +182,29 @@ namespace turnSystem
         }
 
         organizePlayers(playersIds);
+    }
+
+    void turnSystem::print(const char* buffer, size_t size)
+    {
+        const char* ptr = buffer;
+        uint16_t currentTurn;
+        std::memcpy(&currentTurn, ptr, sizeof(uint16_t));
+        ptr += sizeof(uint16_t);
+        uint8_t direction;
+        std::memcpy(&direction, ptr, sizeof(uint8_t));
+        ptr += sizeof(uint8_t);
+        uint8_t playersSize;
+        std::memcpy(&playersSize, ptr, sizeof(uint8_t));
+        ptr += sizeof(uint8_t);
+        std::cout << std::to_string(currentTurn) << std::to_string(direction) << std::to_string(playersSize) << "-";
+
+        for (int i = 0; i < playersSize; ++i)
+        {
+            uint16_t id;
+            std::memcpy(&id, ptr, sizeof(uint16_t));
+            std::cout << id;
+            ptr += sizeof(uint16_t);
+        }
     }
 
     int turnSystem::nextTurnIndex() const

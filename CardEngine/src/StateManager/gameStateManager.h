@@ -15,10 +15,10 @@ protected:
     std::unique_ptr<decks::IDeck> discardDeck;
     std::unique_ptr<turnSystem::turnSystem> turner;
     size_t seed;
-    int handSize;
+    uint8_t handSize;
     std::shared_ptr<eventBus::eventBus> events;
     bool running = false;
-    int currentPlayerCardsDraw = 0;
+    uint8_t currentPlayerCardsDraw = 0;
 
 public:
     gameStateManager(std::shared_ptr<eventBus::eventBus> events);
@@ -49,6 +49,9 @@ public:
     void endGame();
     void endTurn();
     void yellUno();
+    std::tuple<const char*, size_t> getState() override;
+    void setState(const char* data, size_t size) override;
+    void print(const char* buffer, size_t size);
 
 protected:
     void bindGameEvents();
