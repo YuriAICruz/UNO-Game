@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <list>
 #include <memory>
+#include <vector>
 
 #include "../Cards/ICard.h"
 #include "../../framework.h"
@@ -11,6 +12,7 @@ namespace decks
     {
     protected:
         std::list<cards::ICard*> cards;
+        std::list<cards::ICard*> allCards;
 
     public:
         virtual unsigned int count() = 0;
@@ -21,7 +23,12 @@ namespace decks
         virtual cards::ICard* dequeue() =0;
         virtual void shuffle() = 0;
         virtual void shuffle(size_t seed) = 0;
+        virtual void organizeDeck(std::vector<uint8_t> ids, std::list<cards::ICard*> allCards) = 0;
         std::list<cards::ICard*> Cards();
-        void moveAllCardsTo(decks::IDeck* deck);
+        void moveAllCardsTo(IDeck* deck);
+        std::tuple<const char*, size_t> getState() const;
+        void setState(const char* data, size_t size);
+        std::list<cards::ICard*> getFullDeck();
+        void setFullDeck(const std::list<cards::ICard*>& list);
     };
 }

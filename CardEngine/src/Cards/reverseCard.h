@@ -9,13 +9,14 @@ namespace cards
     class ENGINE_API reverseCard : public ICard
     {
     public:
-        explicit reverseCard(char color)
+        explicit reverseCard(const uint8_t id, char color)
         {
+            this->id = id;
             this->color = color;
             action = std::make_unique<actions::reverse>();
         }
 
-        explicit reverseCard(int number, char color): reverseCard(color)
+        explicit reverseCard(const uint8_t id, int number, char color): reverseCard(id,color)
         {
         }
 

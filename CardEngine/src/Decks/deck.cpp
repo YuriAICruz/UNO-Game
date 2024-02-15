@@ -8,9 +8,7 @@
 
 namespace decks
 {
-    deck::deck()
-    {
-    }
+    deck::deck() = default;
 
     unsigned int deck::count()
     {
@@ -56,5 +54,29 @@ namespace decks
         auto card = cards.front();
         cards.pop_front();
         return card;
+    }
+
+    void deck::organizeDeck(std::vector<uint8_t> ids, std::list<cards::ICard*> allCards)
+    {
+        std::list<cards::ICard*> newCards;
+
+        std::unordered_map<uint8_t, std::list<cards::ICard*>::iterator> idToIteratorMap;
+        for (auto it = allCards.begin(); it != allCards.end(); ++it)
+        {
+            idToIteratorMap[(*it)->Id()] = it;
+        }
+
+        for (auto id : ids)
+        {
+            auto it = idToIteratorMap.find(id);
+            if (it != idToIteratorMap.end())
+            {
+                std::list<cards::ICard*>::iterator c = it->second;
+                newCards.push_back(*c);
+            }
+        }
+
+        cards.clear();
+        cards.swap(newCards);
     }
 }

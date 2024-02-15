@@ -16,5 +16,6 @@ namespace decks
         void stack(cards::ICard* card) override;
         void enqueue(cards::ICard* card) override;
         cards::ICard* dequeue() override;
+        void organizeDeck(std::vector<uint8_t> ids, std::list<cards::ICard*> allCards) override;
     };
 }

@@ -10,12 +10,18 @@ namespace cards
     class ENGINE_API ICard
     {
     protected:
+        uint8_t id = 0;
         int number = -1;
         char color = 0;
         std::unique_ptr<actions::actionType> action;
 
     public:
         virtual ~ICard() = default;
+
+        uint8_t Id()
+        {
+            return id;
+        }
 
         int Number() const
         {
@@ -39,6 +45,7 @@ namespace cards
 
         virtual bool equal(const ICard& other) const = 0;
 
+
         virtual bool sameColor(const ICard& other) const
         {
             return color == other.color;
@@ -55,6 +62,7 @@ namespace cards
         }
 
         virtual bool hasAction() const = 0;
+
 
         virtual actions::actionType* actionType() const
         {

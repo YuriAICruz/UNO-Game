@@ -13,6 +13,6 @@ namespace cards
         static std::vector<std::unique_ptr<ICard>> instances;
 
     public:
-        static ICard* Instantiate(const char* type, int number, char color);
+        static ICard* Instantiate(uint8_t id, const char* type, int number, char color);
     };
 }

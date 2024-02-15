@@ -10,8 +10,9 @@ namespace cards
     class ENGINE_API drawCard : public ICard
     {
     public:
-        explicit drawCard(int drawCount, char color)
+        explicit drawCard(const uint8_t id, int drawCount, char color)
         {
+            this->id = id;
             this->number = drawCount;
             this->color = color;
             action = std::make_unique<actions::draw>();

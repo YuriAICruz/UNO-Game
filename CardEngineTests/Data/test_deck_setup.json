@@ -1,0 +1,46 @@
+﻿[
+  {
+    "number": 0,
+    "color": "g",
+    "repeat": 1
+  },
+  {
+    "number": 0,
+    "color": "y",
+    "repeat": 2
+  },
+  {
+    "number": 0,
+    "color": "r",
+    "repeat": 2
+  },
+  {
+    "number": 0,
+    "color": "b",
+    "repeat": 2
+  },
+  {
+    "type": "draw",
+    "number": 2,
+    "color": "g",
+    "repeat": 1
+  },
+  {
+    "type": "reverse",
+    "number": -1,
+    "color": "y",
+    "repeat": 1
+  },
+  {
+    "type": "skip",
+    "number": -1,
+    "color": "r",
+    "repeat": 1
+  },
+  {
+    "type": "skip",
+    "number": -1,
+    "color": "b",
+    "repeat": 1
+  }
+]
