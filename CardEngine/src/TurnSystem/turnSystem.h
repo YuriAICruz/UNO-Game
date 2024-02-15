@@ -14,6 +14,11 @@ namespace turnSystem
     class ENGINE_API turnSystem : public ITurnSystem
     {
     private:
+        struct playerData
+        {
+            uint16_t id;
+            std::vector<uint8_t> hand;
+        };
         std::vector<std::shared_ptr<IPlayer>> players;
         uint16_t currentTurn = 0;
         uint8_t playersSize;
@@ -33,9 +38,9 @@ namespace turnSystem
         void endTurn() override;
         int playersCount() const override;
         void reverse() override;
-        void organizePlayers(std::vector<uint16_t> playersIds);
+        void organizePlayers(std::vector<playerData> playersIds, decks::IDeck* deck);
         std::tuple<const char*, size_t> getState() override;
-        void setState(const char* data) override;
+        void setState(const char* data, decks::IDeck* deck) override;
         void print(const char* buffer, size_t size) override;
 
 

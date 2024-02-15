@@ -5,6 +5,7 @@
 
 #include "../../framework.h"
 #include "../EventBus/eventBus.h"
+#include "../Decks/IDeck.h"
 #include "IPlayer.h"
 
 namespace turnSystem
@@ -26,5 +27,6 @@ namespace turnSystem
         std::list<cards::ICard*> getHand() const override;
         cards::ICard* pickCard(int index) override;
         void receiveCard(cards::ICard* card) override;
+        void organizeHand(std::vector<uint8_t> hand, decks::IDeck* deck) override;
     };
 }

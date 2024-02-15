@@ -264,7 +264,7 @@ void gameStateManager::setState(const char* data, size_t size)
     size_t tSize;
     std::memcpy(&tSize, ptr, sizeof(size_t));
     ptr += sizeof(size_t);
-    turner->setState(ptr);
+    turner->setState(ptr, mainDeck.get());
     ptr += tSize;
 }
 

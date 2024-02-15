@@ -1,9 +1,11 @@
 ﻿#pragma once
 #include <list>
 #include <string>
+#include <vector>
 
 #include "../../framework.h"
 #include "../Cards/ICard.h"
+#include "../Decks/IDeck.h"
 
 namespace turnSystem
 {
@@ -47,6 +49,7 @@ namespace turnSystem
         virtual std::list<cards::ICard*> getHand() const = 0;
         virtual cards::ICard* pickCard(int index) = 0;
         virtual void receiveCard(cards::ICard* card) = 0;
+        virtual void organizeHand(std::vector<uint8_t> hand, decks::IDeck* deck) = 0;
 
         virtual void setUnoMode()
         {

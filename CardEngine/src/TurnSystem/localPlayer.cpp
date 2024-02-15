@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "localPlayer.h"
 
+#include <unordered_map>
+
 #include "Events/endTurnEventData.h"
 
 namespace turnSystem
@@ -32,5 +34,30 @@ namespace turnSystem
     void localPlayer::receiveCard(cards::ICard* card)
     {
         hand.push_back(card);
+    }
+
+    void localPlayer::organizeHand(std::vector<uint8_t> handIds, decks::IDeck* deck)
+    {
+        std::list<cards::ICard*> newHand;
+
+        std::list<cards::ICard*> cards = deck->getFullDeck();
+        std::unordered_map<uint8_t, std::list<cards::ICard*>::iterator> idToIteratorMap;
+        for (auto it = cards.begin(); it != cards.end(); ++it)
+        {
+            idToIteratorMap[(*it)->Id()] = it;
+        }
+
+        for (auto cardId : handIds)
+        {
+            auto it = idToIteratorMap.find(cardId);
+            if (it != idToIteratorMap.end())
+            {
+                std::list<cards::ICard*>::iterator c = it->second;
+                newHand.push_back(*c);
+            }
+        }
+
+        hand.clear();
+        hand.swap(newHand);
     }
 }

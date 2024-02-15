@@ -107,7 +107,7 @@ namespace turnSystem
         direction *= -1;
     }
 
-    void turnSystem::organizePlayers(std::vector<uint16_t> playersIds)
+    void turnSystem::organizePlayers(std::vector<playerData> playersIds, decks::IDeck* deck)
     {
         std::vector<std::shared_ptr<IPlayer>> newPlayers;
 
@@ -117,13 +117,15 @@ namespace turnSystem
             idToIteratorMap[(*it)->Id()] = it;
         }
 
-        for (auto id : playersIds)
+        for (auto playerData : playersIds)
         {
-            auto it = idToIteratorMap.find(id);
+            auto it = idToIteratorMap.find(playerData.id);
             if (it != idToIteratorMap.end())
             {
                 std::vector<std::shared_ptr<IPlayer>>::iterator c = it->second;
-                newPlayers.push_back(*c);
+                std::shared_ptr<IPlayer> player = *c;
+                player->organizeHand(playerData.hand, deck);
+                newPlayers.push_back(player);
             }
         }
 
@@ -137,8 +139,12 @@ namespace turnSystem
         size_t bufferSize =
             sizeof(uint16_t) // currentTurn
             + sizeof(int8_t) // direction
-            + sizeof(uint8_t) // playersSize
-            + sizeof(uint16_t) * playersSize;
+            + sizeof(uint8_t); // playersSize
+
+        for (auto player : players)
+        {
+            bufferSize += sizeof(uint16_t) + sizeof(uint8_t) + sizeof(uint8_t) * player->getHand().size();
+        }
 
         char* buffer = new char[bufferSize];
 
@@ -154,12 +160,21 @@ namespace turnSystem
             uint16_t id = player->Id();
             std::memcpy(ptr, &id, sizeof(uint16_t));
             ptr += sizeof(uint16_t);
+            uint8_t handSize = player->getHand().size();
+            std::memcpy(ptr, &handSize, sizeof(uint8_t));
+            ptr += sizeof(uint8_t);
+            for (const auto& card : player->getHand())
+            {
+                uint8_t cardId = card->Id();
+                std::memcpy(ptr, &cardId, sizeof(uint8_t));
+                ptr += sizeof(uint8_t);
+            }
         }
 
         return std::make_tuple(buffer, bufferSize);
     }
 
-    void turnSystem::setState(const char* data)
+    void turnSystem::setState(const char* data, decks::IDeck* deck)
     {
         const char* ptr = data;
         std::memcpy(&currentTurn, ptr, sizeof(uint16_t));
@@ -171,17 +186,28 @@ namespace turnSystem
         ptr += sizeof(uint8_t);
 
         int size = pSize;
-        std::vector<uint16_t> playersIds;
+        std::vector<playerData> playersIds;
         playersIds.resize(size);
         for (int i = 0; i < size; ++i)
         {
             uint16_t id;
             std::memcpy(&id, ptr, sizeof(uint16_t));
-            playersIds[i] = id;
+            playersIds[i].id = id;
             ptr += sizeof(uint16_t);
+            uint8_t handSize;
+            std::memcpy(&handSize, ptr, sizeof(uint8_t));
+            playersIds[i].hand.resize(handSize);
+            ptr += sizeof(uint8_t);
+            for (int j = 0; j < handSize; ++j)
+            {
+                uint8_t cardId;
+                std::memcpy(&cardId, ptr, sizeof(uint8_t));
+                playersIds[i].hand[j] = cardId;
+                ptr += sizeof(uint8_t);
+            }
         }
 
-        organizePlayers(playersIds);
+        organizePlayers(playersIds, deck);
     }
 
     void turnSystem::print(const char* buffer, size_t size)
@@ -202,8 +228,19 @@ namespace turnSystem
         {
             uint16_t id;
             std::memcpy(&id, ptr, sizeof(uint16_t));
-            std::cout << id;
+            std::cout << std::to_string(id);
             ptr += sizeof(uint16_t);
+            uint8_t handSize;
+            std::memcpy(&handSize, ptr, sizeof(uint8_t));
+            std::cout << std::to_string(handSize);
+            ptr += sizeof(uint8_t);
+            for (int j = 0; j < handSize; ++j)
+            {
+                uint8_t cardId;
+                std::memcpy(&cardId, ptr, sizeof(uint8_t));
+                std::cout << std::to_string(cardId);
+                ptr += sizeof(uint8_t);
+            }
         }
     }
 

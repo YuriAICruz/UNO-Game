@@ -3,7 +3,9 @@
 #include <tuple>
 #include <tuple>
 #include <tuple>
+#include <tuple>
 
+#include "Decks/jsonDeck.h"
 #include "TurnSystem/turnSystem.h"
 
 std::unique_ptr<turnSystem::ITurnSystem> createTurnSystem(int players)
@@ -68,9 +70,9 @@ TEST(TurnSystem, Reverse)
 
 TEST(TurnSystem, Serialize)
 {
-    auto turner = createTurnSystem(12);
+    std::unique_ptr<turnSystem::ITurnSystem> turner = createTurnSystem(12);
     turner->shuffle();
-    auto data = turner->getState();
+    std::tuple<const char*, size_t> data = turner->getState();
 
     std::cout << "\nTurnSystem Data [End]\n";
     turner->print(std::get<0>(data), std::get<1>(data));
@@ -81,19 +83,27 @@ TEST(TurnSystem, Serialize)
 
 TEST(TurnSystem, Deserialize)
 {
+    std::unique_ptr<decks::IDeck> deck = std::make_unique<decks::jsonDeck>("Data\\test_deck_setup.json");
+
     auto turner = createTurnSystem(12);
     turner->shuffle();
 
     uint16_t currentTurn = 6;
     int8_t direction = -1;
     uint8_t playersSize = 12;
-    uint16_t list[] = {3, 2, 1, 0, 6, 9, 11, 7, 5, 8, 4, 10};
+    // 0112-40905030208011070601000010
+    uint16_t list[] = {4, 9, 5, 3, 2, 8, 11, 7, 6, 1, 0, 10};
+    uint8_t cards[] = {0, 1, 2, 3, 4};
 
     size_t bufferSize =
         sizeof(uint16_t) // currentTurn
         + sizeof(int8_t) // direction
-        + sizeof(uint8_t) // playersSize
-        + sizeof(uint16_t) * playersSize;
+        + sizeof(uint8_t); // playersSize
+
+    for (auto player : list)
+    {
+        bufferSize += sizeof(uint16_t) + sizeof(uint8_t) + sizeof(uint8_t) * std::size(cards);
+    }
 
     char* buffer = new char[bufferSize];
 
@@ -105,14 +115,21 @@ TEST(TurnSystem, Deserialize)
     std::memcpy(ptr, &playersSize, sizeof(uint8_t));
     ptr += sizeof(uint8_t);
 
+    uint8_t size = std::size(cards);
     for (const auto& playerId : list)
     {
-        uint16_t id = playerId;
-        std::memcpy(ptr, &id, sizeof(uint16_t));
+        std::memcpy(ptr, &playerId, sizeof(uint16_t));
         ptr += sizeof(uint16_t);
+        std::memcpy(ptr, &size, sizeof(uint8_t));
+        ptr += sizeof(uint8_t);
+        for (uint8_t cardId : cards)
+        {
+            std::memcpy(ptr, &cardId, sizeof(uint8_t));
+            ptr += sizeof(uint8_t);
+        }
     }
 
-    turner->setState(buffer);
+    turner->setState(buffer, deck.get());
 
     EXPECT_EQ(list[currentTurn], turner->getCurrentPlayer()->Id());
     turner->endTurn();
@@ -123,6 +140,8 @@ TEST(TurnSystem, Deserialize)
 
 TEST(TurnSystem, SerializeTwoSystems)
 {
+    std::unique_ptr<decks::IDeck> deck = std::make_unique<decks::jsonDeck>("Data\\test_deck_setup.json");
+
     auto turnerA = createTurnSystem(4);
     turnerA->shuffle();
     auto turnerB = createTurnSystem(6);
@@ -145,19 +164,22 @@ TEST(TurnSystem, SerializeTwoSystems)
     EXPECT_EQ(countA, turnerA->playersCount());
     EXPECT_EQ(countB, turnerB->playersCount());
 
-    turnerA->setState(std::get<0>(dataA));
-    turnerB->setState(std::get<0>(dataB));
+    turnerA->setState(std::get<0>(dataA), deck.get());
+    turnerB->setState(std::get<0>(dataB), deck.get());
 
     EXPECT_EQ(playerA, turnerA->getCurrentPlayer());
     EXPECT_EQ(playerB, turnerB->getCurrentPlayer());
     EXPECT_EQ(countA, turnerA->playersCount());
     EXPECT_EQ(countB, turnerB->playersCount());
 
-    turnerA->setState(std::get<0>(dataB));
-    turnerB->setState(std::get<0>(dataA));
+    turnerA->setState(std::get<0>(dataB), deck.get());
+    turnerB->setState(std::get<0>(dataA), deck.get());
 
     EXPECT_EQ(*playerB, *turnerA->getCurrentPlayer());
     EXPECT_EQ(*playerA, *turnerB->getCurrentPlayer());
     EXPECT_EQ(countA, turnerA->playersCount());
     EXPECT_NE(countB, turnerB->playersCount());
+
+    delete std::get<0>(dataA);
+    delete std::get<0>(dataB);
 }

@@ -157,8 +157,6 @@ TEST(GameFlow, States)
 
     std::tuple<const char*, size_t> startData = manager->getState();
 
-    //1234507
-    //1234507
     std::cout << "\nGame State [Begin]\n";
     manager->print(std::get<0>(startData), std::get<1>(startData));
     std::cout << "\nGame State [End]\n";
