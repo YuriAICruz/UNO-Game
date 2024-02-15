@@ -37,6 +37,8 @@ private:
     std::promise<room*>* roomCallback;
     std::promise<int>* seedCallback;
 
+    std::map<std::string, std::function<void (std::string&)>> customCommands;
+    std::map<std::string, std::function<void (char*, size_t)>> customRawCommands;
     std::map<std::string, std::function<void (std::string&)>> commands = {
         {
             NC_CREATE_ROOM, [this](std::string& message)
@@ -128,11 +130,23 @@ public:
         return error;
     }
 
+    void addCustomCommands(const std::map<std::string, std::function<void(std::string&)>>& cmds)
+    {
+        customCommands = cmds;
+    }
+
+    void addCustomRawCommands(const std::map<std::string, std::function<void(char*, size_t)>>& cmds)
+    {
+        customRawCommands = cmds;
+    }
+
 private:
     int initializeWinsock();
     int createSocket();
     void listenToServer();
     bool containsCommand(const std::string& string);
+    bool containsCustomCommand(const std::string& command);
+    bool containsCustomRawCommand(const std::string& command);
 
     void invalidKeyCallback(const std::string& message);
     void validKeyCallback(const std::string& message);

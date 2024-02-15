@@ -288,6 +288,16 @@ void client::listenToServer()
         {
             commands[data[0]](lastResponse);
         }
+
+        if (containsCustomCommand(data[0]))
+        {
+            customCommands[data[0]](lastResponse);
+        }
+
+        if (containsCustomRawCommand(data[0]))
+        {
+            customRawCommands[data[0]](recvData, recvSize);
+        }
     }
 
     isListening = false;
@@ -298,6 +308,20 @@ bool client::containsCommand(const std::string& command)
     auto it = commands.find(command);
 
     return it != commands.end();
+}
+
+bool client::containsCustomCommand(const std::string& command)
+{
+    auto it = customCommands.find(command);
+
+    return it != customCommands.end();
+}
+
+bool client::containsCustomRawCommand(const std::string& command)
+{
+    auto it = customRawCommands.find(command);
+
+    return it != customRawCommands.end();
 }
 
 void client::invalidKeyCallback(const std::string& message)

@@ -275,18 +275,27 @@ TEST(NetGameFlowTests, PlayCardFromManager)
     auto topCard = hostManager->getTopCard();
     auto hand = currentPlayer->getHand();
     int index = 0;
+    int validIndex = 0;
+    int invalidIndex = 0;
     for (auto card : hand)
     {
         if (card->sameColor(*topCard) || card->sameNumber(*topCard))
         {
-            break;
+            validIndex = index;
         }
+        invalidIndex = index;
         index++;
     }
 
-    EXPECT_TRUE(hostManager->tryExecutePlayerAction(index));
+    EXPECT_FALSE(hostManager->tryExecutePlayerAction(invalidIndex));
+    EXPECT_TRUE(hostManager->tryExecutePlayerAction(validIndex));
+    
     EXPECT_NE(*currentPlayer, *hostManager->getCurrentPlayer());
     EXPECT_NE(*currentPlayer, *clientManager->getCurrentPlayer());
     EXPECT_LT(currentPlayer->getHand().size(), handSize);
     EXPECT_LT(clientCurrentPlayer->getHand().size(), handSize);
+
+    closeClient(clA.get());
+    closeClient(clB.get());
+    closeServer(sv.get());
 }

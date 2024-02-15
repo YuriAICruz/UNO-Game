@@ -84,6 +84,15 @@ void server::broadcast(std::string msg)
     }
 }
 
+void server::broadcastToRoom(const char* responseData, size_t size, SOCKET cs)
+{
+    auto room = roomManager.getRoom(getClient(cs).get());
+    for (auto pair : room->clients())
+    {
+        send(*pair->connection, responseData, size, 0);
+    }
+}
+
 int server::close()
 {
     if (!running)
