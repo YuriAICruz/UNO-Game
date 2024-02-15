@@ -228,7 +228,7 @@ namespace turnSystem
         {
             uint16_t id;
             std::memcpy(&id, ptr, sizeof(uint16_t));
-            std::cout << std::to_string(id);
+            std::cout << std::to_string(id) << ".";
             ptr += sizeof(uint16_t);
             uint8_t handSize;
             std::memcpy(&handSize, ptr, sizeof(uint8_t));

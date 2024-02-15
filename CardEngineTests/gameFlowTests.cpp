@@ -2,6 +2,7 @@
 
 #include <tuple>
 #include <tuple>
+#include <tuple>
 
 #include "Cards/baseCard.h"
 #include "Cards/drawCard.h"
@@ -151,7 +152,7 @@ TEST(GameFlow, PlaySkip)
     EXPECT_EQ(*skipCard, *manager->getTopCard());
 }
 
-TEST(GameFlow, States)
+TEST(GameFlow, SerializeStates)
 {
     auto manager = createGameManager(3, 7, 1234);
 
@@ -175,4 +176,56 @@ TEST(GameFlow, States)
 
     delete std::get<0>(startData);
     delete std::get<0>(endData);
+}
+
+TEST(GameFlow, StateWarp)
+{
+    int handSize = 7;
+    auto managerA = createGameManager(3, handSize, 1234);
+    auto managerB = createGameManager(3, handSize, 4321);
+
+    std::tuple<const char*, size_t> startDataA = managerA->getState();
+    std::tuple<const char*, size_t> startDataB = managerA->getState();
+
+    auto playerA = managerA->getCurrentPlayer();
+    auto cardsA = playerA->getHand();
+
+    for (int i = 0; i < handSize; ++i)
+    {
+        playerA->pickCard(0);
+    }
+
+    auto playerB = managerB->getCurrentPlayer();
+    auto cardsB = playerA->getHand();
+
+    auto endDataA = managerA->getState();
+    auto endDataB = managerB->getState();
+
+    EXPECT_EQ(0, managerA->getCurrentPlayer()->getHand().size());
+    EXPECT_EQ(handSize, managerB->getCurrentPlayer()->getHand().size());
+
+    managerA->setState(std::get<0>(startDataA), std::get<1>(startDataA));
+    EXPECT_EQ(handSize, managerA->getCurrentPlayer()->getHand().size());
+
+    managerA->setState(std::get<0>(startDataA), std::get<1>(startDataB));
+
+    auto hand = managerA->getCurrentPlayer()->getHand();
+
+    auto it1 = cardsB.begin();
+    auto it2 = hand.begin();
+
+    while (it1 != cardsB.end() && it2 != hand.end())
+    {
+        cards::ICard* cardA = *it1;
+        cards::ICard* cardB = *it1;
+        EXPECT_EQ(*cardA, *cardB);
+        ++it1;
+        ++it2;
+    }
+
+    delete std::get<0>(startDataA);
+    delete std::get<0>(endDataA);
+
+    delete std::get<0>(startDataB);
+    delete std::get<0>(endDataB);
 }
