@@ -1,37 +1,46 @@
 ﻿#pragma once
-#include <WS2tcpip.h>
+
+#ifndef NET_WinSock2
+#define NET_WinSock2
+#include <WinSock2.h>
+#pragma comment(lib, "ws2_32.lib")
+#endif
+
 #include <string>
 #include "../../framework.h"
 
-struct NETCODE_API clientInfo
+namespace netcode
 {
-    int id;
-    std::string name = "John Doe";
-    SOCKET* connection;
-
-    clientInfo() = default;
-
-    clientInfo(int id) : id(id)
+    struct NETCODE_API clientInfo
     {
-    }
+        int id;
+        std::string name = "John Doe";
+        SOCKET* connection;
 
-    clientInfo(int id, const std::string& name) : clientInfo(id)
-    {
-        this->name = name;
-    }
+        clientInfo() = default;
 
-    int getId() const
-    {
-        return id;
-    }
+        clientInfo(int id) : id(id)
+        {
+        }
 
-    std::string getName()
-    {
-        return name;
-    }
+        clientInfo(int id, const std::string& name) : clientInfo(id)
+        {
+            this->name = name;
+        }
 
-    void setName(const std::string& newName)
-    {
-        name = newName;
-    }
-};
+        int getId() const
+        {
+            return id;
+        }
+
+        std::string getName()
+        {
+            return name;
+        }
+
+        void setName(const std::string& newName)
+        {
+            name = newName;
+        }
+    };
+}

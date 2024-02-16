@@ -13,9 +13,9 @@
 
 bool waiting;
 
-std::shared_ptr<server> startServer()
+std::shared_ptr<netcode::server> startServer()
 {
-    auto sv = std::make_shared<server>();
+    auto sv = std::make_shared<netcode::server>();
 
     sv->start();
     while (!sv->isRunning() && !sv->hasError())
@@ -26,7 +26,7 @@ std::shared_ptr<server> startServer()
     return sv;
 }
 
-void closeServer(server* sv)
+void closeServer(netcode::server* sv)
 {
     logger::print("TEST: closing Server");
     sv->close();
@@ -36,7 +36,7 @@ void closeServer(server* sv)
     EXPECT_FALSE(sv->isRunning());
 }
 
-void closeClient(client* cl)
+void closeClient(netcode::client* cl)
 {
     logger::print("TEST: closeClient");
     cl->close();
@@ -47,10 +47,10 @@ void closeClient(client* cl)
     EXPECT_FALSE(cl->isRunning());
 }
 
-std::shared_ptr<client> startClient(std::string name)
+std::shared_ptr<netcode::client> startClient(std::string name)
 {
     logger::print("TEST: startAndConnectClient");
-    auto cl = std::make_shared<client>();
+    auto cl = std::make_shared<netcode::client>();
 
     cl->start();
     EXPECT_TRUE(cl->isRunning());
@@ -66,7 +66,7 @@ std::shared_ptr<client> startClient(std::string name)
     return cl;
 }
 
-void createRoom(std::string roomName, std::shared_ptr<client> client)
+void createRoom(std::string roomName, std::shared_ptr<netcode::client> client)
 {
     client->createRoom(roomName);
     while (!client->hasRoom() && !client->hasError())
@@ -74,7 +74,7 @@ void createRoom(std::string roomName, std::shared_ptr<client> client)
     }
 }
 
-void joinRoom(int roomId, std::shared_ptr<client> clB)
+void joinRoom(int roomId, std::shared_ptr<netcode::client> clB)
 {
     clB->enterRoom(roomId);
     while (!clB->hasRoom() && !clB->hasError())
@@ -82,7 +82,7 @@ void joinRoom(int roomId, std::shared_ptr<client> clB)
     }
 }
 
-std::shared_ptr<gameStateManager> createGameManager(room* r, int handInitialSize = 7)
+std::shared_ptr<gameStateManager> createGameManager(netcode::room* r, int handInitialSize = 7)
 {
     int players = r->count();
     std::vector<std::string> playersList = std::vector<std::string>(players);
@@ -98,8 +98,8 @@ std::shared_ptr<gameStateManager> createGameManager(room* r, int handInitialSize
     return manager;
 }
 
-std::shared_ptr<netGameStateManager> createHostGameManager(std::shared_ptr<client> client,
-                                                           std::shared_ptr<server> server,
+std::shared_ptr<netGameStateManager> createHostGameManager(std::shared_ptr<netcode::client> client,
+                                                           std::shared_ptr<netcode::server> server,
                                                            int handInitialSize, int seed)
 {
     auto room = server->getRoom(client->getRoomId());
@@ -121,7 +121,7 @@ std::shared_ptr<netGameStateManager> createHostGameManager(std::shared_ptr<clien
     return manager;
 }
 
-std::shared_ptr<netGameStateManager> createServerGameManager(room* room, std::shared_ptr<server> server,
+std::shared_ptr<netGameStateManager> createServerGameManager(netcode::room* room, std::shared_ptr<netcode::server> server,
                                                              int handInitialSize, int seed)
 {
     int players = room->count();
@@ -142,7 +142,7 @@ std::shared_ptr<netGameStateManager> createServerGameManager(room* room, std::sh
     return manager;
 }
 
-std::shared_ptr<netGameStateManager> createClientGameManager(std::shared_ptr<client> client, int handInitialSize)
+std::shared_ptr<netGameStateManager> createClientGameManager(std::shared_ptr<netcode::client> client, int handInitialSize)
 {
     auto r = client->getRoom();
     int seed = client->getSeed();
@@ -166,8 +166,8 @@ TEST(NetGameFlowTests, Begin)
 {
     auto sv = startServer();
 
-    std::shared_ptr<client> clA = startClient("Player A");
-    std::shared_ptr<client> clB = startClient("Player B");
+    std::shared_ptr<netcode::client> clA = startClient("Player A");
+    std::shared_ptr<netcode::client> clB = startClient("Player B");
 
     createRoom("GameRoom", clA);
     joinRoom(clA->getRoomId(), clB);

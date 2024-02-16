@@ -7,11 +7,11 @@
 
 bool running;
 
-std::tuple<std::shared_ptr<client>, std::shared_ptr<server>> startAndConnectClient()
+std::tuple<std::shared_ptr<netcode::client>, std::shared_ptr<netcode::server>> startAndConnectClient()
 {
     logger::print("TEST: startAndConnectClient");
-    auto cl = std::make_shared<client>();
-    auto sv = std::make_shared<server>();
+    auto cl = std::make_shared<netcode::client>();
+    auto sv = std::make_shared<netcode::server>();
 
     cl->start();
     EXPECT_TRUE(cl->isRunning());
@@ -27,10 +27,10 @@ std::tuple<std::shared_ptr<client>, std::shared_ptr<server>> startAndConnectClie
     {
     }
     EXPECT_TRUE(cl->isConnected());
-    return std::tuple<std::shared_ptr<client>, std::shared_ptr<server>>(cl, sv);
+    return std::tuple<std::shared_ptr<netcode::client>, std::shared_ptr<netcode::server>>(cl, sv);
 }
 
-void closeClient(client* cl, server* sv)
+void closeClient(netcode::client* cl, netcode::server* sv)
 {
     logger::print("TEST: closeClient");
     cl->close();
@@ -48,7 +48,7 @@ void closeClient(client* cl, server* sv)
 
 TEST(ClientTests, Create)
 {
-    auto cl = std::make_unique<client>();
+    auto cl = std::make_unique<netcode::client>();
     cl->start();
 
     EXPECT_TRUE(cl->isRunning());
@@ -64,7 +64,7 @@ TEST(ClientTests, Create)
 
 TEST(ClientTests, Close)
 {
-    auto cl = std::make_unique<client>();
+    auto cl = std::make_unique<netcode::client>();
 
     cl->start();
     EXPECT_TRUE(cl->isRunning());
@@ -154,9 +154,9 @@ TEST(ClientTests, ListRooms)
     }
 
     running = true;
-    cl->getRooms([this,roomsCount](std::vector<room> rooms)
+    cl->getRooms([this,roomsCount](std::vector<netcode::room> rooms)
     {
-        for (room r : rooms)
+        for (netcode::room r : rooms)
         {
             std::cout << "Room Name: " << r.getName() << "\n";
         }

@@ -33,7 +33,7 @@ void inputInt(int& value)
     }
 }
 
-int tryReconnect(std::string input, std::string addr, client* clientinstance)
+int tryReconnect(std::string input, std::string addr, netcode::client* clientinstance)
 {
     while (true)
     {
@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
     logger::printCout(true);
     int portValue;
     inputInt(portValue);
-    auto serverInstance = std::make_shared<server>();
+    auto serverInstance = std::make_shared<netcode::server>();
     int result = serverInstance->start(portValue);
     if (result != 0)
     {

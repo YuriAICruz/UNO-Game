@@ -1,6 +1,7 @@
 ﻿#include "netGameStateManager.h"
 
 #include <atomic>
+#include <iostream>
 #include <sstream>
 #include <tuple>
 
@@ -10,7 +11,7 @@
 
 netGameStateManager::netGameStateManager(
     std::shared_ptr<eventBus::eventBus> events,
-    std::shared_ptr<client> cl
+    std::shared_ptr<netcode::client> cl
 ) :
     gameStateManager(events), netClient(cl), isHost(false)
 {
@@ -19,8 +20,8 @@ netGameStateManager::netGameStateManager(
 
 netGameStateManager::netGameStateManager(
     std::shared_ptr<eventBus::eventBus> events,
-    std::shared_ptr<client> cl,
-    std::shared_ptr<server> sv
+    std::shared_ptr<netcode::client> cl,
+    std::shared_ptr<netcode::server> sv
 ) :
     gameStateManager(events), netClient(cl),
     netServer(sv), isHost(true), isServer(true)
@@ -30,7 +31,7 @@ netGameStateManager::netGameStateManager(
 }
 
 netGameStateManager::netGameStateManager(
-    std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<server> sv
+    std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<netcode::server> sv
 ) :
     gameStateManager(events),
     netServer(sv), isHost(false), isServer(true)
