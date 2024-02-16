@@ -58,11 +58,6 @@ int server::start(int port)
 
     logger::print((logger::getPrinter() << "SERVER: Server listening on port " << port << "...").str());
 
-    std::stringstream ss;
-    ss << "start cmd /c .\\ngrok.exe tcp " << port;
-    std::string cmd = ss.str();
-    ngrokPID = std::system(cmd.c_str());
-
     initializing = true;
     running = true;
 
@@ -114,13 +109,6 @@ int server::close()
     logger::print("SERVER: shutdown server . . .");
     closesocket(serverSocket);
     WSACleanup();
-
-    if (ngrokPID > 0)
-    {
-        logger::print("SERVER: terminating ngrok...");
-        std::string killCommand = "taskkill /PID " + std::to_string(ngrokPID) + " /F";
-        system(killCommand.c_str());
-    }
 
     initializing = false;
     running = false;
