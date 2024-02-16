@@ -113,7 +113,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy "$(SolutionDir)\CardEngineTests\Data" "$(TargetDir)\Data\" /E /Y</Command>
+      <Command>xcopy "$(SolutionDir)\GameConsole\Data" "$(TargetDir)\Data\" /E /Y</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

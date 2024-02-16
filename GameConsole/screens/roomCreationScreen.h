@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "buttons.h"
+#include "editBox.h"
 #include "IScreen.h"
 #include "popupWindow.h"
 #include "transitionData.h"
@@ -14,6 +15,7 @@ namespace screens
         int currentButton = 0;
         button buttons[2];
         popupWindow popup;
+        editBox box;
         std::shared_ptr<netcode::client> netClient;
 
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
@@ -58,7 +60,7 @@ namespace screens
     public:
         roomCreationScreen(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events,
             std::shared_ptr<netcode::client> cl)
-            : IScreen(rdr, events), netClient(cl), popup(popupWindow{rdr.get()})
+            : IScreen(rdr, events), netClient(cl), popup(popupWindow{rdr.get()}), box(editBox(rdr.get()))
         {
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
             {
@@ -97,6 +99,9 @@ namespace screens
         void returnToMainScreen();
 
     private:
+        void createNewRoom();
+        void listRooms();
+        void clearRoomsList();
         void selectButton(int index) const;
         void deselectButton(int index) const;
     };

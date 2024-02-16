@@ -37,6 +37,10 @@ namespace screens
                 static_cast<SHORT>(buttonWidth),
                 static_cast<SHORT>(buttonHeight),
             }, '+', 'g', "", "Create");
+        buttons[0].action = [this]
+        {
+            createNewRoom();
+        };
 
         lastX = winSize.X / 2 + offset;
         buttons[1].id = rdr->addElement<elements::card>(
@@ -47,6 +51,10 @@ namespace screens
                 static_cast<SHORT>(buttonWidth),
                 static_cast<SHORT>(buttonHeight),
             }, '+', 'g', "", "Select");
+        buttons[1].action = [this]
+        {
+            listRooms();
+        };
 
         popup.show();
 
@@ -136,6 +144,8 @@ namespace screens
             popup.executeActionAccept();
             return;
         }
+
+        buttons[currentButton].action();
     }
 
     void roomCreationScreen::cancel(input::inputData data)
@@ -161,6 +171,72 @@ namespace screens
         netClient->close();
         events->fireEvent(NAVIGATION_MAIN_MENU, transitionData());
         hide();
+    }
+
+    void roomCreationScreen::createNewRoom()
+    {
+        std::string roomName = "New Room";
+        box.openStringEditBox("Enter Room Name", roomName, [this, roomName]
+        {
+            netClient->createRoom(roomName);
+            events->fireEvent(NAVIGATION_ONLINE_GAME, transitionData());
+        });
+    }
+
+    void roomCreationScreen::listRooms()
+    {
+        netClient->getRooms([this](std::vector<netcode::room> rooms)
+        {
+            blockInputs = true;
+            rdr->blank();
+            std::cout << "Rooms available on the server:" << "\n";
+            int index = 0;
+            for (auto room : rooms)
+            {
+                std::cout << index << ": " << room.getName();
+                std::cout << ":" << room.getId();
+                std::cout << "with (" << room.count() << ") players." << "\n";
+                index++;
+            }
+
+            std::cout << "type the room index or [q] to exit.\n";
+            while (true)
+            {
+                try
+                {
+                    std::string strIndex;
+                    std::getline(std::cin, strIndex);
+                    if (strIndex == "q")
+                    {
+                        clearRoomsList();
+                        return;
+                    }
+                    index = std::stoul(strIndex);
+                    if(index < rooms.size() && index >= 0)
+                    {
+                        break;
+                    }
+                    std::cerr << "ERROR: Invalid index" << std::endl;
+                }
+                catch (const std::invalid_argument& e)
+                {
+                    std::cerr << "ERROR: Invalid argument: " << e.what() << std::endl;
+                } catch (const std::out_of_range& e)
+                {
+                    std::cerr << "ERROR: Out of range: " << e.what() << std::endl;
+                }
+            }
+
+            netClient->enterRoom(rooms[index].getId());
+            clearRoomsList();
+            
+        });
+    }
+
+    void roomCreationScreen::clearRoomsList()
+    {
+        blockInputs = false;
+        rdr->setDirty();
     }
 
     void roomCreationScreen::selectButton(int index) const

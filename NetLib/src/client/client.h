@@ -104,7 +104,7 @@ namespace netcode
         int sendMessage(const char* str);
         int close();
 
-        void createRoom(const std::string& roomName);
+        room* createRoom(const std::string& roomName);
         void exitRoom();
         void enterRoom(int id);
         bool hasRoom();

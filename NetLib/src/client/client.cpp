@@ -191,11 +191,17 @@ namespace netcode
         return 0;
     }
 
-    void client::createRoom(const std::string& roomName)
+    room* client::createRoom(const std::string& roomName)
     {
+        std::promise<room*> promise;
+        roomCallback = &promise;
+        auto future = promise.get_future();
         std::stringstream ss;
         ss << NC_CREATE_ROOM << NC_SEPARATOR << roomName;
         sendMessage(ss.str().c_str());
+        future.wait();
+        roomCallback = nullptr;
+        return future.get();
     }
 
     void client::exitRoom()
@@ -226,6 +232,7 @@ namespace netcode
         sendMessage(ss.str().c_str());
 
         future.wait();
+        roomCallback = nullptr;
         return future.get();
     }
 
@@ -362,7 +369,6 @@ namespace netcode
         if (roomCallback != nullptr)
         {
             roomCallback->set_value(&currentRoom);
-            roomCallback = nullptr;
         }
     }
 
