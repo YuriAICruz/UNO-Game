@@ -329,6 +329,10 @@ namespace screens
         }
         if (popup.isOpen())
         {
+            if (cardsAreHidden)
+            {
+                showCurrentPlayerCards(false);
+            }
             popup.hidePopup();
             popup.executeActionAccept();
             return;
