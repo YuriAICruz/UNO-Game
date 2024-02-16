@@ -55,6 +55,12 @@ namespace screens
                     std::bind(&roomCreationScreen::onShow, this, std::placeholders::_1)
                 }
             },
+            {
+                NAVIGATION_NETWORK_WAIT_ROOM,
+                eventBus::delegate<transitionData>{
+                    std::bind(&roomCreationScreen::onHide, this, std::placeholders::_1)
+                }
+            },
         };
 
     public:

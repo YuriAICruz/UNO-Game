@@ -57,6 +57,12 @@ namespace screens
                     std::bind(&connectToServerScreen::onHide, this, std::placeholders::_1)
                 }
             },
+            {
+                NAVIGATION_NETWORK_WAIT_ROOM,
+                eventBus::delegate<transitionData>{
+                    std::bind(&connectToServerScreen::onHide, this, std::placeholders::_1)
+                }
+            },
         };
 
     public:
