@@ -1,69 +1,64 @@
 ﻿#pragma once
-#include "IScreen.h"
-#include "client/client.h"
-#include "transitionData.h"
 #include "buttons.h"
+#include "IScreen.h"
 #include "popupWindow.h"
-#include "EventBus/eventBus.h"
+#include "transitionData.h"
+#include "client/client.h"
 
 namespace screens
 {
-    class connectToServerScreen : public IScreen
+    class roomCreationScreen : public screens::IScreen
     {
     private:
         size_t titleId;
         int currentButton = 0;
-        button buttons[3];
+        button buttons[2];
         popupWindow popup;
         std::shared_ptr<netcode::client> netClient;
-        std::string serverAddr{"tcp://127.0.0.1:8080"};
 
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
                 NAVIGATION_MAIN_MENU,
                 eventBus::delegate<transitionData>{
-                    std::bind(&connectToServerScreen::onHide, this, std::placeholders::_1)
+                    std::bind(&roomCreationScreen::onHide, this, std::placeholders::_1)
                 }
             },
             {
                 NAVIGATION_SETTINGS,
                 eventBus::delegate<transitionData>{
-                    std::bind(&connectToServerScreen::onHide, this, std::placeholders::_1)
+                    std::bind(&roomCreationScreen::onHide, this, std::placeholders::_1)
                 }
             },
             {
                 NAVIGATION_GAME,
                 eventBus::delegate<transitionData>{
-                    std::bind(&connectToServerScreen::onHide, this, std::placeholders::_1)
+                    std::bind(&roomCreationScreen::onHide, this, std::placeholders::_1)
                 }
             },
             {
                 NAVIGATION_GAME_OVER,
                 eventBus::delegate<transitionData>{
-                    std::bind(&connectToServerScreen::onHide, this, std::placeholders::_1)
+                    std::bind(&roomCreationScreen::onHide, this, std::placeholders::_1)
                 }
             },
             {
                 NAVIGATION_NETWORK_CONNECT,
                 eventBus::delegate<transitionData>{
-                    std::bind(&connectToServerScreen::onShow, this, std::placeholders::_1)
+                    std::bind(&roomCreationScreen::onHide, this, std::placeholders::_1)
                 }
             },
             {
                 NAVIGATION_NETWORK_ROOMS,
                 eventBus::delegate<transitionData>{
-                    std::bind(&connectToServerScreen::onHide, this, std::placeholders::_1)
+                    std::bind(&roomCreationScreen::onShow, this, std::placeholders::_1)
                 }
             },
         };
 
     public:
-        explicit connectToServerScreen(
-            std::shared_ptr<renderer::renderer> rdr,
-            std::shared_ptr<eventBus::eventBus> events,
-            std::shared_ptr<netcode::client> cl
-        ) : IScreen(rdr, events),
-            netClient(cl), popup(popupWindow(rdr.get()))
+        roomCreationScreen(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events,
+            std::shared_ptr<netcode::client> cl)
+            : IScreen(rdr, events), netClient(cl), popup(popupWindow{rdr.get()})
         {
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
             {
@@ -72,13 +67,14 @@ namespace screens
             }
         }
 
-        ~connectToServerScreen() override
+        ~roomCreationScreen() override
         {
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
             {
                 events->unsubscribe<transitionData>(transitionMap.first, transitionMap.second);
             }
         }
+
 
         void onHide(transitionData data)
         {
@@ -97,16 +93,10 @@ namespace screens
         void moveLeft(input::inputData data) override;
         void moveRight(input::inputData data) override;
         void accept(input::inputData data) override;
-        void returnToPreviousScreen();
         void cancel(input::inputData data) override;
+        void returnToMainScreen();
 
     private:
-        void updateServerAddress();
-        template <class T>
-        bool editBoxSetup(std::string title, T& data, std::string& newValue);
-        void editBoxTearDown(const std::function<void()>& callback);
-        void openStringEditBox(std::string title, std::string& data, const std::function<void()>& callback);
-        void tryConnectClient();
         void selectButton(int index) const;
         void deselectButton(int index) const;
     };

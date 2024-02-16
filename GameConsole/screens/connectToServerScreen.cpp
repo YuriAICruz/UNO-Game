@@ -248,7 +248,7 @@ namespace screens
             return;
         }
         
-        events->fireEvent(NAVIGATION_ONLINE_GAME, transitionData());
+        events->fireEvent(NAVIGATION_NETWORK_ROOMS, transitionData());
         hide();
     }
 

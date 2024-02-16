@@ -13,6 +13,7 @@
 #include "screens/gameOverScreen.h"
 #include "StateManager/gameStateManager.h"
 #include "client/client.h"
+#include "screens/roomCreationScreen.h"
 
 int main()
 {
@@ -63,6 +64,11 @@ int main()
         strapper->create<eventBus::eventBus>()
     );
     std::shared_ptr<screens::connectToServerScreen> connectToServer = std::make_shared<screens::connectToServerScreen>(
+        strapper->create<renderer::renderer>(),
+        strapper->create<eventBus::eventBus>(),
+        strapper->create<netcode::client>()
+    );
+    std::shared_ptr<screens::roomCreationScreen> roomCreation = std::make_shared<screens::roomCreationScreen>(
         strapper->create<renderer::renderer>(),
         strapper->create<eventBus::eventBus>(),
         strapper->create<netcode::client>()
