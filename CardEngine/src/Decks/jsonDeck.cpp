@@ -20,6 +20,7 @@ namespace decks
         file >> jsonData;
         file.close();
 
+        uint8_t cardsCount = 0;
         for (auto data : jsonData)
         {
             std::string t = "default";
@@ -32,12 +33,16 @@ namespace decks
             for (int i = 0; i < copies; ++i)
             {
                 cards::ICard* card = cards::cardFactory::Instantiate(
+                    cardsCount,
                     t.c_str(),
                     data["number"],
                     data["color"].get<std::string>()[0]
                 );
                 cards.push_back(card);
+                cardsCount++;
             }
         }
+
+        allCards = std::list<cards::ICard*>(cards.begin(), cards.end());
     }
 }

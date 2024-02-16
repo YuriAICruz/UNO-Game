@@ -2,10 +2,11 @@
 #include <string>
 
 #include "../Decks/deck.h"
+#include "../../framework.h"
 
 namespace decks
 {
-    class jsonDeck : public deck
+    class ENGINE_API jsonDeck : public deck
     {
     public:
         explicit jsonDeck(const std::string& jsonFilePath) : jsonDeck(jsonFilePath.c_str())

@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <functional>
+#include <future>
 #include <iostream>
 #include <map>
 #include <WinSock2.h>
@@ -27,11 +28,17 @@ private:
     std::atomic<bool> error{false};
     std::atomic<bool> isListening{false};
     room currentRoom;
+    int seed = 1234;
+    size_t id = 0;
     std::string lastResponse;
     struct addrinfo* addr_info;
     std::function<void(std::vector<room>)> roomsCallback;
     std::vector<room> lastRoomsList;
+    std::promise<room*>* roomCallback;
+    std::promise<int>* seedCallback;
 
+    std::map<std::string, std::function<void (std::string&)>> customCommands;
+    std::map<std::string, std::function<void (char*, size_t)>> customRawCommands;
     std::map<std::string, std::function<void (std::string&)>> commands = {
         {
             NC_CREATE_ROOM, [this](std::string& message)
@@ -46,9 +53,21 @@ private:
             }
         },
         {
+            NC_GET_ROOM, [this](std::string& message)
+            {
+                this->getRoomCallback(message);
+            }
+        },
+        {
             NC_ENTER_ROOM, [this](std::string& message)
             {
                 this->enterRoomCallback(message);
+            }
+        },
+        {
+            NC_GET_SEED, [this](std::string& message)
+            {
+                this->getSeedCallback(message);
             }
         },
         {
@@ -76,6 +95,7 @@ public:
 
     int start(std::string addr = "ftp://127.0.0.1:8080");
     int connectToServer();
+    void setName(const std::string& name);
     int sendMessage(const char* str);
     int close();
 
@@ -83,9 +103,16 @@ public:
     void exitRoom();
     void enterRoom(int id);
     bool hasRoom();
+    room* getRoom();
+    int getSeed();
     void getRooms(std::function<void (std::vector<room>)> callback);
     std::string& getRoomName();
     int getRoomId();
+
+    size_t getId()
+    {
+        return id;
+    }
 
 
     bool isRunning() const
@@ -103,16 +130,31 @@ public:
         return error;
     }
 
+    void addCustomCommands(const std::map<std::string, std::function<void(std::string&)>>& cmds)
+    {
+        customCommands = cmds;
+    }
+
+    void addCustomRawCommands(const std::map<std::string, std::function<void(char*, size_t)>>& cmds)
+    {
+        customRawCommands = cmds;
+    }
+
 private:
     int initializeWinsock();
     int createSocket();
     void listenToServer();
     bool containsCommand(const std::string& string);
+    bool containsCustomCommand(const std::string& command);
+    bool containsCustomRawCommand(const std::string& command);
 
     void invalidKeyCallback(const std::string& message);
     void validKeyCallback(const std::string& message);
+    void updateRoom(const std::string& message);
     void createRoomCallback(const std::string& message);
     void listRoomsCallback(const std::string& message);
+    void getRoomCallback(const std::string& message);
+    void getSeedCallback(const std::string& message);
     void enterRoomCallback(const std::string& message);
     void exitRoomCallback(const std::string& message);
 };

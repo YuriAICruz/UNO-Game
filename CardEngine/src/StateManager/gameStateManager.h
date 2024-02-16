@@ -6,24 +6,33 @@
 #include "../Decks/IDeck.h"
 #include "../TurnSystem/IPlayer.h"
 #include "../TurnSystem/turnSystem.h"
+#include "../../framework.h"
 
-class gameStateManager : IStateManager
+class ENGINE_API gameStateManager : public IStateManager
 {
-private:
+protected:
     std::unique_ptr<decks::IDeck> mainDeck;
     std::unique_ptr<decks::IDeck> discardDeck;
     std::unique_ptr<turnSystem::turnSystem> turner;
     size_t seed;
-    int handSize;
+    uint8_t handSize;
     std::shared_ptr<eventBus::eventBus> events;
     bool running = false;
-    int currentPlayerCardsDraw = 0;
+    uint8_t currentPlayerCardsDraw = 0;
 
 public:
     gameStateManager(std::shared_ptr<eventBus::eventBus> events);
-    bool isGameStarted();
+
+    ~gameStateManager() override
+    {
+    }
+
+    bool isGameRunning();
     void makePlayerDraw(turnSystem::IPlayer* player, int count);
-    virtual void setupGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath, size_t seed);
+    virtual void setupGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath,
+                           size_t seed);
+    virtual void setupGame(std::vector<std::string>& players, std::vector<size_t>& playersIds,
+                           int handSize, std::string deckConfigFilePath, size_t seed);
     virtual void startGame();
     virtual turnSystem::IPlayer* getCurrentPlayer() const;
     virtual turnSystem::IPlayer* getNextPlayer() const;
@@ -40,8 +49,11 @@ public:
     void endGame();
     void endTurn();
     void yellUno();
+    std::tuple<const char*, size_t> getState() override;
+    void setState(const char* data, size_t size) override;
+    void print(const char* buffer, size_t size);
 
-private:
+protected:
     void bindGameEvents();
     void beginTurn();
     void finishAction(cards::ICard* card);

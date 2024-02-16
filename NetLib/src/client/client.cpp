@@ -1,5 +1,6 @@
 ﻿#include "client.h"
 
+#include <future>
 #include <string>
 #include <WS2tcpip.h>
 #include <thread>
@@ -132,9 +133,23 @@ int client::connectToServer()
     return result;
 }
 
+void client::setName(const std::string& name)
+{
+    std::stringstream ss;
+    ss << NC_SET_NAME << NC_SEPARATOR << name;
+    std::string str = ss.str();
+    sendMessage(str.c_str());
+}
+
 
 int client::sendMessage(const char* str)
 {
+    if (!running)
+    {
+        logger::printError("CLIENT: Not Connected");
+        error = true;
+        return 1;
+    }
     logger::print("CLIENT: sending data . . .");
     int sendResult = send(clientSocket, str, strlen(str), 0);
     if (sendResult == SOCKET_ERROR)
@@ -157,12 +172,13 @@ int client::close()
     }
 
     logger::print("CLIENT: closing client . . .");
-    freeaddrinfo(addr_info);
-    closesocket(clientSocket);
-    WSACleanup();
 
     running = false;
     connected = false;
+
+    freeaddrinfo(addr_info);
+    closesocket(clientSocket);
+    WSACleanup();
     return 0;
 }
 
@@ -188,6 +204,32 @@ void client::enterRoom(int id)
 bool client::hasRoom()
 {
     return currentRoom.count() > 0;
+}
+
+room* client::getRoom()
+{
+    std::promise<room*> promise;
+    roomCallback = &promise;
+    std::future<room*> future = promise.get_future();
+
+    std::stringstream ss;
+    ss << NC_GET_ROOM << NC_SEPARATOR << currentRoom.getId();
+    sendMessage(ss.str().c_str());
+
+    future.wait();
+    return future.get();
+}
+
+int client::getSeed()
+{
+    std::promise<int> promise;
+    seedCallback = &promise;
+    std::future<int> future = promise.get_future();
+
+    sendMessage(NC_GET_SEED);
+
+    future.wait();
+    return future.get();
 }
 
 void client::getRooms(std::function<void(std::vector<room>)> callback)
@@ -246,6 +288,16 @@ void client::listenToServer()
         {
             commands[data[0]](lastResponse);
         }
+
+        if (containsCustomCommand(data[0]))
+        {
+            customCommands[data[0]](lastResponse);
+        }
+
+        if (containsCustomRawCommand(data[0]))
+        {
+            customRawCommands[data[0]](recvData, recvSize);
+        }
     }
 
     isListening = false;
@@ -258,6 +310,20 @@ bool client::containsCommand(const std::string& command)
     return it != commands.end();
 }
 
+bool client::containsCustomCommand(const std::string& command)
+{
+    auto it = customCommands.find(command);
+
+    return it != customCommands.end();
+}
+
+bool client::containsCustomRawCommand(const std::string& command)
+{
+    auto it = customRawCommands.find(command);
+
+    return it != customRawCommands.end();
+}
+
 void client::invalidKeyCallback(const std::string& message)
 {
     connected = false;
@@ -266,10 +332,12 @@ void client::invalidKeyCallback(const std::string& message)
 
 void client::validKeyCallback(const std::string& message)
 {
+    auto data = stringUtils::splitString(message);
     connected = true;
+    id = std::stoul(data[1]);
 }
 
-void client::createRoomCallback(const std::string& message)
+void client::updateRoom(const std::string& message)
 {
     auto data = stringUtils::splitString(message);
     std::stringstream ss;
@@ -282,6 +350,16 @@ void client::createRoomCallback(const std::string& message)
         }
     }
     currentRoom = room::constructRoom(ss.str());
+    if (roomCallback != nullptr)
+    {
+        roomCallback->set_value(&currentRoom);
+        roomCallback = nullptr;
+    }
+}
+
+void client::createRoomCallback(const std::string& message)
+{
+    updateRoom(message);
 }
 
 void client::listRoomsCallback(const std::string& message)
@@ -318,9 +396,25 @@ void client::listRoomsCallback(const std::string& message)
     }
 }
 
+void client::getRoomCallback(const std::string& message)
+{
+    updateRoom(message);
+}
+
+void client::getSeedCallback(const std::string& message)
+{
+    auto data = stringUtils::splitString(message);
+    seed = std::stoi(data[1]);
+    if(seedCallback!=nullptr)
+    {
+        seedCallback->set_value(seed);
+        seedCallback = nullptr;
+    }
+}
+
 void client::enterRoomCallback(const std::string& message)
 {
-    createRoomCallback(message);
+    updateRoom(message);
 }
 
 void client::exitRoomCallback(const std::string& message)

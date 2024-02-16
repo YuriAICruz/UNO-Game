@@ -28,6 +28,7 @@ namespace screens
         int cardSizeX = 8;
         int cardSizeY = 6;
         bool unoPopup = false;
+        bool cardsAreHidden = false;
 
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
@@ -44,6 +45,10 @@ namespace screens
             },
             {
                 NAVIGATION_GAME_OVER,
+                eventBus::delegate<transitionData>{std::bind(&gameScreen::onHide, this, std::placeholders::_1)}
+            },
+            {
+                NAVIGATION_NETWORK_CONNECT,
                 eventBus::delegate<transitionData>{std::bind(&gameScreen::onHide, this, std::placeholders::_1)}
             },
         };
@@ -116,7 +121,7 @@ namespace screens
         void onGameStart(gameEventData data)
         {
             switchToCards();
-            showCurrentPlayerCards();
+            showCurrentPlayerCards(true);
         }
         void onUnoPenalty(gameEventData data);
         void onGameEnded(gameEventData data);
@@ -127,8 +132,8 @@ namespace screens
         void expandCardsPool(int hand_size);
         void hideCard(std::vector<button>::const_reference button);
         void drawOneCard();
-        void showCurrentPlayerCards();
-        void setCardData(elements::card* cardElement, cards::ICard* card);
+        void showCurrentPlayerCards(bool hidden);
+        void setCardData(elements::card* cardElement, cards::ICard* card, bool hidden);
         void updateTopCard();
         void updateCurrentPlayerName() const;
         void hidePopup();

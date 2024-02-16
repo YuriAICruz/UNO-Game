@@ -2,6 +2,7 @@
 #include <functional>
 #include <vector>
 
+#include "../../framework.h"
 #include "abstractEventBase.h"
 #include "delegate.h"
 #include "../guidGenerator.h"
@@ -9,7 +10,7 @@
 namespace eventBus
 {
     template <typename T>
-    class event : public abstractEventBase
+    class ENGINE_API event : public abstractEventBase
     {
     public:
         using FunctionType = std::function<void(T)>;

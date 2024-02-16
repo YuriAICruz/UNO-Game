@@ -18,11 +18,11 @@ namespace screens
         int offset = 1;
 
         int lastX = winSize.X / 2 - buttonWidth / 2;
-        int lastY = winSize.Y / 2 + buttonHeight / 2;
+        int lastY = winSize.Y / 2 - buttonHeight / 2;
 
         rdr->addElement<elements::fileRead>(
             COORD{
-                static_cast<SHORT>(winSize.X/2-14),
+                static_cast<SHORT>(winSize.X/2-16),
                 static_cast<SHORT>(4),
             },
             'b',
@@ -36,7 +36,7 @@ namespace screens
             }, COORD{
                 static_cast<SHORT>(buttonWidth),
                 static_cast<SHORT>(buttonHeight),
-            }, '+', 'g', "", "Start Game");
+            }, '+', 'g', "", "Start Offline Game");
         buttons[0].action = [this]
         {
             events->fireEvent(NAVIGATION_GAME, transitionData());
@@ -50,10 +50,10 @@ namespace screens
             }, COORD{
                 static_cast<SHORT>(buttonWidth),
                 static_cast<SHORT>(buttonHeight),
-            }, '+', 'g', "", "Settings");
+            }, '+', 'g', "", "Start Multiplayer Game");
         buttons[1].action = [this]
         {
-            events->fireEvent(NAVIGATION_SETTINGS, transitionData());
+            events->fireEvent(NAVIGATION_NETWORK_CONNECT, transitionData());
         };
 
         lastY = lastY + buttonHeight + offset;
@@ -64,8 +64,22 @@ namespace screens
             }, COORD{
                 static_cast<SHORT>(buttonWidth),
                 static_cast<SHORT>(buttonHeight),
-            }, '+', 'g', "", "Exit");
+            }, '+', 'g', "", "Settings");
         buttons[2].action = [this]
+        {
+            events->fireEvent(NAVIGATION_SETTINGS, transitionData());
+        };
+
+        lastY = lastY + buttonHeight + offset;
+        buttons[3].id = rdr->addElement<elements::card>(
+            COORD{
+                static_cast<SHORT>(lastX),
+                static_cast<SHORT>(lastY),
+            }, COORD{
+                static_cast<SHORT>(buttonWidth),
+                static_cast<SHORT>(buttonHeight),
+            }, '+', 'g', "", "Exit");
+        buttons[3].action = [this]
         {
             hide();
             rdr->exit();

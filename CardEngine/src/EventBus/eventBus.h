@@ -3,16 +3,15 @@
 #include <memory>
 
 #include "alreadyExistException.h"
+#include "../../framework.h"
 #include "event.h"
 
 namespace eventBus
 {
-    struct abstractEventBase;
-
-    class eventBus
+    class ENGINE_API eventBus
     {
     private:
-        std::map<int, std::unique_ptr<abstractEventBase>> events;
+        std::map<int, std::shared_ptr<abstractEventBase>> events;
 
     public:
         template <typename T>
@@ -20,7 +19,7 @@ namespace eventBus
         {
             if (!events.count(id))
             {
-                events.emplace(id, std::make_unique<event<T>>());
+                events.emplace(id, std::make_shared<event<T>>());
                 return;
             }
 

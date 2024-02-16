@@ -3,8 +3,9 @@
 #include <string>
 
 #include "serverCommands.h"
+#include "../framework.h"
 
-class stringUtils
+class NETCODE_API stringUtils
 {
 public:
     static std::vector<std::string> splitString(const std::string& s, char separator = NC_SEPARATOR);    

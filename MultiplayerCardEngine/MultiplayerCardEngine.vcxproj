@@ -19,13 +19,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <VCProjectVersion>17.0</VCProjectVersion>
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{B0F171FF-8A38-47B2-BC48-63052C938A4A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{5271d90a-72bb-4b58-861c-7725e0fb7105}</ProjectGuid>
-    <RootNamespace>CardEngine</RootNamespace>
+    <RootNamespace>MultiplayerCardEngine</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -70,139 +73,107 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;CARDENGINE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;CPPDYNAMICLIBRARYTEMPLATE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>"$(SolutionDir)\NetLib\src";"$(SolutionDir)\CardEngine\src"</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableUAC>false</EnableUAC>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;CARDENGINE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableUAC>false</EnableUAC>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;CARDENGINE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;CPPDYNAMICLIBRARYTEMPLATE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>"$(SolutionDir)\NetLib\src";"$(SolutionDir)\CardEngine\src"</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableUAC>false</EnableUAC>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;CARDENGINE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;CPPDYNAMICLIBRARYTEMPLATE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>"$(SolutionDir)\NetLib\src";"$(SolutionDir)\CardEngine\src"</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableUAC>false</EnableUAC>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;CPPDYNAMICLIBRARYTEMPLATE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>"$(SolutionDir)\NetLib\src";"$(SolutionDir)\CardEngine\src"</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="framework.h" />
-    <ClInclude Include="json.hpp" />
-    <ClInclude Include="pch.h" />
-    <ClInclude Include="src\Bootstrapper\bootstrapper.h" />
-    <ClInclude Include="src\Cards\ActionTypes\actionType.h" />
-    <ClInclude Include="src\Cards\ActionTypes\base.h" />
-    <ClInclude Include="src\Cards\ActionTypes\draw.h" />
-    <ClInclude Include="src\Cards\ActionTypes\reverse.h" />
-    <ClInclude Include="src\Cards\ActionTypes\skip.h" />
-    <ClInclude Include="src\Cards\cardFactory.h" />
-    <ClInclude Include="src\Cards\drawCard.h" />
-    <ClInclude Include="src\Cards\baseCard.h" />
-    <ClInclude Include="src\Cards\ICard.h" />
-    <ClInclude Include="src\Cards\reverseCard.h" />
-    <ClInclude Include="src\Cards\skipCard.h" />
-    <ClInclude Include="src\coreEventIds.h" />
-    <ClInclude Include="src\Decks\deck.h" />
-    <ClInclude Include="src\Decks\IDeck.h" />
-    <ClInclude Include="src\Decks\jsonDeck.h" />
-    <ClInclude Include="src\EventBus\abstractEventBase.h" />
-    <ClInclude Include="src\EventBus\alreadyExistException.h" />
-    <ClInclude Include="src\EventBus\delegate.h" />
-    <ClInclude Include="src\EventBus\event.h" />
-    <ClInclude Include="src\EventBus\eventBus.h" />
-    <ClInclude Include="src\guidGenerator.h" />
-    <ClInclude Include="src\netCommands.h" />
-    <ClInclude Include="src\StateManager\gameEventData.h" />
-    <ClInclude Include="src\StateManager\gameStateManager.h" />
-    <ClInclude Include="src\StateManager\IStateManager.h" />
-    <ClInclude Include="src\StateManager\turnEventData.h" />
-    <ClInclude Include="src\TurnSystem\Events\endTurnEventData.h" />
-    <ClInclude Include="src\TurnSystem\IPlayer.h" />
-    <ClInclude Include="src\TurnSystem\ITurnSystem.h" />
-    <ClInclude Include="src\TurnSystem\localPlayer.h" />
-    <ClInclude Include="src\TurnSystem\turnSystem.h" />
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="src\netGameStateManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="pch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="src\Bootstrapper\bootstrapper.cpp" />
-    <ClCompile Include="src\Cards\cardFactory.cpp" />
-    <ClCompile Include="src\Cards\drawCard.cpp" />
-    <ClCompile Include="src\Cards\baseCard.cpp" />
-    <ClCompile Include="src\Cards\reverseCard.cpp" />
-    <ClCompile Include="src\Cards\skipCard.cpp" />
-    <ClCompile Include="src\Decks\deck.cpp" />
-    <ClCompile Include="src\Decks\IDeck.cpp" />
-    <ClCompile Include="src\Decks\jsonDeck.cpp"/>
-    <ClCompile Include="src\EventBus\abstractEventBase.cpp" />
-    <ClCompile Include="src\EventBus\alreadyExistException.cpp" />
-    <ClCompile Include="src\EventBus\event.cpp" />
-    <ClCompile Include="src\EventBus\eventBus.cpp"/>
-    <ClCompile Include="src\guidGenerator.cpp" />
-    <ClCompile Include="src\StateManager\gameStateManager.cpp" />
-    <ClCompile Include="src\StateManager\IStateManager.cpp" />
-    <ClCompile Include="src\TurnSystem\IPlayer.cpp" />
-    <ClCompile Include="src\TurnSystem\ITurnSystem.cpp" />
-    <ClCompile Include="src\TurnSystem\localPlayer.cpp" />
-    <ClCompile Include="src\TurnSystem\turnSystem.cpp" />
+    <ProjectReference Include="..\CardEngine\CardEngine.vcxproj">
+      <Project>{5271d90a-72bb-4b58-861c-7725e0fb7105}</Project>
+      <Name>CardEngine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NetLib\NetLib.vcxproj">
+      <Project>{251cd7bc-f08a-4018-8387-aaa9fcd42675}</Project>
+      <Name>NetLib</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h" />
+    <ClInclude Include="src\netGameStateManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

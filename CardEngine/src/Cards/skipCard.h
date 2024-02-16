@@ -10,13 +10,14 @@ namespace cards
     class ENGINE_API skipCard : public ICard
     {
     public:
-        explicit skipCard(char color)
+        explicit skipCard(const uint8_t id, char color)
         {
+            this->id = id;
             this->color = color;
             action = std::make_unique<actions::skip>();
         }
 
-        explicit skipCard(int number, char color): skipCard(color)
+        explicit skipCard(const uint8_t id, int number, char color): skipCard(id, color)
         {
         }
 

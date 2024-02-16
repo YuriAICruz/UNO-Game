@@ -84,6 +84,25 @@ void server::broadcast(std::string msg)
     }
 }
 
+void server::broadcastToRoom(std::string msg, SOCKET cs)
+{
+    auto room = roomManager.getRoom(getClient(cs).get());
+    for (auto pair : room->clients())
+    {
+        auto responseData = msg.c_str();
+        send(*pair->connection, responseData, strlen(responseData), 0);
+    }
+}
+
+void server::broadcastToRoom(const char* responseData, size_t size, SOCKET cs)
+{
+    auto room = roomManager.getRoom(getClient(cs).get());
+    for (auto pair : room->clients())
+    {
+        send(*pair->connection, responseData, size, 0);
+    }
+}
+
 int server::close()
 {
     if (!running)
@@ -106,6 +125,11 @@ int server::close()
     initializing = false;
     running = false;
     return 0;
+}
+
+room* server::getRoom(int id)
+{
+    return roomManager.getRoom(id);
 }
 
 void server::listening()
@@ -161,14 +185,19 @@ void server::listening()
 
 void server::clientHandler(SOCKET clientSocket)
 {
+    connectionsCount++;
+    std::shared_ptr<clientInfo> client = std::make_shared<clientInfo>(connectionsCount);
+    client->connection = &clientSocket;
+
     if (!validateKey(clientSocket))
     {
         logger::printError(
             (logger::getPrinter() << "SERVER: closing client connection [" << clientSocket << "] invalid Key").str());
         closesocket(clientSocket);
-        clients.erase(connectionsCount);
         return;
     }
+
+    clients.insert(std::make_pair(connectionsCount, client));
 
     if (!running)
     {
@@ -178,10 +207,6 @@ void server::clientHandler(SOCKET clientSocket)
 
     logger::print((logger::getPrinter() << "SERVER: Connection accepted from " << clientSocket << "").str());
 
-    std::shared_ptr<clientInfo> client = std::make_shared<clientInfo>(connectionsCount);
-    client->connection = &clientSocket;
-    clients.insert(std::make_pair(connectionsCount, client));
-    connectionsCount++;
 
     char recvData[1024];
     int recvSize;
@@ -198,6 +223,11 @@ void server::clientHandler(SOCKET clientSocket)
         if (containsCommand(data[0]))
         {
             commands[data[0]](message, clientSocket);
+        }
+
+        if (containsCustomCommand(data[0]))
+        {
+            customCommands[data[0]](message, clientSocket);
         }
     }
 
@@ -218,7 +248,12 @@ void server::clientHandler(SOCKET clientSocket)
 
     logger::print((logger::getPrinter() << "SERVER: closing client connection [" << clientSocket << "]").str());
     closesocket(clientSocket);
-    clients.erase(connectionsCount);
+
+    auto it = clients.find(connectionsCount);
+    if (it != clients.end())
+    {
+        clients.erase(it);
+    }
 }
 
 bool server::containsCommand(const std::string& command)
@@ -226,6 +261,13 @@ bool server::containsCommand(const std::string& command)
     auto it = commands.find(command);
 
     return it != commands.end();
+}
+
+bool server::containsCustomCommand(const std::string& command)
+{
+    auto it = customCommands.find(command);
+
+    return it != customCommands.end();
 }
 
 bool server::validateKey(SOCKET clientSocket) const
@@ -261,7 +303,11 @@ bool server::validateKey(SOCKET clientSocket) const
         return false;
     }
 
-    send(clientSocket, NC_VALID_KEY, strlen(NC_VALID_KEY), 0);
+    std::stringstream ss;
+    ss << NC_VALID_KEY << NC_SEPARATOR << connectionsCount;
+    std::string str = ss.str();
+    const char* response = str.c_str();
+    send(clientSocket, response, strlen(response), 0);
     return true;
 }
 
@@ -307,6 +353,20 @@ void server::listRoom(const std::string& message, SOCKET clientSocket)
     send(clientSocket, responseData, strlen(responseData), 0);
 }
 
+void server::getRoom(const std::string& message, SOCKET clientSocket)
+{
+    std::vector<std::string> data = stringUtils::splitString(message);
+    logger::print((logger::printer() << "SERVER: getting room [" << data[1] << "] information").str());
+    int id = stoi(data[1]);
+    std::stringstream ss;
+    ss << NC_GET_ROOM << NC_SEPARATOR;
+    ss << roomManager.getRoomSerialized(id);
+    std::string str = ss.str();
+    const char* responseData = str.c_str();
+    send(clientSocket, responseData, strlen(responseData), 0);
+    logger::print((logger::getPrinter() << "SERVER: sent to client room updated data [" << id << "]").str());
+}
+
 void server::enterRoom(const std::string& message, SOCKET clientSocket)
 {
     std::vector<std::string> data = stringUtils::splitString(message);
@@ -331,4 +391,28 @@ void server::exitRoom(const std::string& message, SOCKET clientSocket)
     roomManager.exitRoom(client.get());
     const char* responseData = NC_EXIT_ROOM;
     send(clientSocket, responseData, strlen(responseData), 0);
+}
+
+void server::updateClientName(const std::string& message, SOCKET clientSocket)
+{
+    std::vector<std::string> data = stringUtils::splitString(message);
+    logger::print("SERVER: updating client name");
+    auto client = getClient(clientSocket);
+    client->name = data[1];
+    const char* responseData = NC_SET_NAME;
+    send(clientSocket, responseData, strlen(responseData), 0);
+}
+
+void server::getSeed(const std::string& message, SOCKET clientSocket)
+{
+    logger::print("SERVER: getting seed");
+    std::stringstream ss;
+    ss << NC_GET_SEED << NC_SEPARATOR << seed;
+    std::string str = ss.str();
+    const char* responseData = str.c_str();
+    send(clientSocket, responseData, strlen(responseData), 0);
+}
+
+void server::setSeed(const std::string& message, SOCKET clientSocket)
+{
 }

@@ -34,12 +34,13 @@ public:
     int count();
     void addClient(const std::shared_ptr<clientInfo>& client);
     void removeClient(clientInfo* client);
+    std::vector<clientInfo*> clients();
+    clientInfo* getClientByIndex(int index) const;
     clientInfo* getClient(int clientId) const;
     bool hasClient(clientInfo* client) const;
 
     std::string getRoomSerialized(int id);
     static room constructRoom(std::string data);
-    static int headerSerializationElementsCount();
 
     std::string& getName()
     {

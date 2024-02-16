@@ -1,9 +1,10 @@
 ﻿#pragma once
 #include "IDeck.h"
+#include "../../framework.h"
 
 namespace decks
 {
-    class deck : public IDeck
+    class ENGINE_API deck : public IDeck
     {
     public:
         deck();
@@ -15,5 +16,6 @@ namespace decks
         void stack(cards::ICard* card) override;
         void enqueue(cards::ICard* card) override;
         cards::ICard* dequeue() override;
+        void organizeDeck(std::vector<uint8_t> ids, std::list<cards::ICard*> allCards) override;
     };
 }

@@ -35,6 +35,23 @@ void room::removeClient(clientInfo* client)
     connectedClients.erase(connectedClients.begin() + i);
 }
 
+std::vector<clientInfo*> room::clients()
+{
+    std::vector<clientInfo*> list;
+    list.resize(connectedClients.size());
+    for (int i = 0, n = connectedClients.size(); i < n; ++i)
+    {
+        list[i] = connectedClients[i].get();
+    }
+
+    return list;
+}
+
+clientInfo* room::getClientByIndex(int index) const
+{
+    return connectedClients.at(index).get();
+}
+
 clientInfo* room::getClient(int clientId) const
 {
     for (auto client : connectedClients)
@@ -52,7 +69,7 @@ bool room::hasClient(clientInfo* client) const
 {
     for (auto connectedClient : connectedClients)
     {
-        if(connectedClient->id == client->id)
+        if (connectedClient->id == client->id)
         {
             return true;
         }
@@ -86,12 +103,12 @@ room room::constructRoom(std::string data)
     int id = std::stoi(splitData[0]);
     std::string name = splitData[1];
     std::vector<clientInfo> clients;
-    for (int i = 2, n = splitData.size(); i < n; i+=2)
+    for (int i = 2, n = splitData.size(); i < n; i += 2)
     {
         int clientId = std::stoi(splitData[i]);
-        std::string clientName = splitData[i+1];
+        std::string clientName = splitData[i + 1];
         clients.emplace_back(clientInfo{clientId, clientName});
-    }    
+    }
 
     return room(id, name, clients);
 }

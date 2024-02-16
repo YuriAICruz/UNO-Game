@@ -1,6 +1,7 @@
 ﻿#pragma once
+#include "../framework.h"
 
-class guidGenerator
+class ENGINE_API guidGenerator
 {
 private:
     static size_t counter;

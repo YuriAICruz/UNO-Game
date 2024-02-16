@@ -10,8 +10,9 @@ namespace cards
     class ENGINE_API baseCard : public ICard
     {
     public:
-        explicit baseCard(const int number, const char color)
+        explicit baseCard(const uint8_t id, const int number, const char color)
         {
+            this->id = id;
             this->number = number;
             this->color = color;
             action = std::make_unique<actions::base>();

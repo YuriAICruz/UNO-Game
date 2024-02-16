@@ -1,5 +1,7 @@
 ﻿#include "pch.h"
 
+#include <tuple>
+
 #include "Cards/baseCard.h"
 #include "Cards/drawCard.h"
 #include "Decks/jsonDeck.h"
@@ -64,7 +66,7 @@ TEST(Deck, EnqueueAndStack)
     const std::unique_ptr<decks::IDeck> deck = createDeck("Data\\deck_setup.json");
     cards::ICard* first = deck->peek();
 
-    std::unique_ptr<cards::baseCard> card = std::make_unique<cards::baseCard>(1, 'b');
+    std::unique_ptr<cards::baseCard> card = std::make_unique<cards::baseCard>(0, 1, 'b');
 
     unsigned int count = deck->count();
     deck->stack(card.get());
@@ -89,6 +91,7 @@ TEST(Deck, Shuffle)
     deck->shuffle();
     EXPECT_NE(first, deck->peek());
 }
+
 TEST(Deck, ShuffleSeed)
 {
     const std::unique_ptr<decks::IDeck> deck = createDeck("Data\\deck_setup.json");
@@ -131,4 +134,99 @@ TEST(Deck, MoveDeck)
     EXPECT_EQ(count, emptyDeck->count());
     EXPECT_EQ(0, deck->count());
     EXPECT_EQ(card, emptyDeck->peek());
+}
+
+TEST(Deck, Serialize)
+{
+    std::unique_ptr<decks::IDeck> deck = createDeck("Data\\test_deck_setup.json");
+    deck->shuffle(1234);
+
+    std::tuple<const char*, size_t> data = deck->getState();
+
+    std::cout << "\nDeck Data [Begin]\n";
+    deck->print(std::get<0>(data), std::get<1>(data));
+    std::cout << "\nDeck Data [End]\n";
+
+    delete std::get<0>(data);
+    
+    deck = createDeck("Data\\deck_setup.json");
+    deck->shuffle(1234);
+
+    data = deck->getState();
+
+    std::cout << "\nDeck Data [Begin]\n";
+    deck->print(std::get<0>(data), std::get<1>(data));
+    std::cout << "\nDeck Data [End]\n";
+
+    delete std::get<0>(data);
+}
+
+TEST(Deck, Deserialize)
+{
+    const std::unique_ptr<decks::IDeck> deck = createDeck("Data\\test_deck_setup.json");
+    deck->shuffle();
+
+    uint8_t list[] = {7, 6, 5, 10, 2, 9, 8, 4, 1, 3, 0};
+    size_t bufferSize = sizeof(uint8_t) * std::size(list);
+    char* buffer = new char[bufferSize];
+
+    char* ptr = buffer;
+    for (const auto& cardId : list)
+    {
+        uint8_t id = cardId;
+        std::memcpy(ptr, &id, sizeof(uint8_t));
+        ptr += sizeof(uint8_t);
+    }
+
+    deck->setState(buffer, bufferSize);
+
+    for (int i = 0, n = std::size(list); i < n; ++i)
+    {
+        EXPECT_EQ(list[i], deck->dequeue()->Id());
+    }
+
+    EXPECT_EQ(0, deck->count());
+
+    deck->setState(buffer, bufferSize);
+    for (int i = 0, n = std::size(list); i < n; ++i)
+    {
+        EXPECT_EQ(list[i], deck->dequeue()->Id());
+    }
+
+    delete buffer;
+}
+
+TEST(Deck, SerializeTwoDecks)
+{
+    const std::unique_ptr<decks::IDeck> deck = createDeck("Data\\test_deck_setup.json");
+    const std::unique_ptr<decks::IDeck> emptyDeck = std::make_unique<decks::deck>();
+    deck->shuffle();
+    emptyDeck->setFullDeck(deck->getFullDeck());
+
+    int count = deck->count();
+    cards::ICard* card = deck->peek();
+
+    auto deckData = deck->getState();
+    auto emptyDeckData = emptyDeck->getState();
+
+    for (int i = 0; i < 3; ++i)
+    {
+        auto card = deck->dequeue();
+        emptyDeck->enqueue(card);
+    }
+    deck->shuffle();
+
+    deck->setState(std::get<0>(deckData), std::get<1>(deckData));
+    emptyDeck->setState(std::get<0>(emptyDeckData), std::get<1>(emptyDeckData));
+
+    EXPECT_EQ(0, emptyDeck->count());
+    EXPECT_EQ(count, deck->count());
+    EXPECT_EQ(*card, *deck->peek());
+
+    emptyDeck->setState(std::get<0>(deckData), std::get<1>(deckData));
+    deck->setState(std::get<0>(emptyDeckData), std::get<1>(emptyDeckData));
+
+    EXPECT_EQ(0, deck->count());
+    EXPECT_EQ(count, emptyDeck->count());
+    EXPECT_EQ(*card, *emptyDeck->peek());
 }
