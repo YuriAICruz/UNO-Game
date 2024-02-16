@@ -118,6 +118,16 @@ int main(int argc, char* argv[])
             {
                 return result;
             }
+            while (!serverInstance->isRunning() && !serverInstance->hasError())
+            {
+            }
+            if (serverInstance->hasError())
+            {
+                return 1;
+            }
+            while (serverInstance->isRunning())
+            {
+            }
             return serverInstance->close();
         }
     }
