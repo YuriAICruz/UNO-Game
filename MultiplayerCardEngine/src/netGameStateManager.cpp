@@ -74,7 +74,7 @@ void netGameStateManager::sendGameSettings(std::string path)
         ss << CORE_NC_GAME_SETTINGS << NC_SEPARATOR;
         ss << static_cast<int>(handSize) << NC_SEPARATOR;
         ss << path << NC_SEPARATOR;
-        ss << seed << NC_SEPARATOR;
+        ss << std::to_string(seed) << NC_SEPARATOR;
         ss << size << NC_SEPARATOR;
         int i = 0;
         for (uint16_t id : turner->getPlayersIds())

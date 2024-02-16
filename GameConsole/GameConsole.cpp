@@ -76,12 +76,6 @@ int main()
                 settingsMenu->getConfigFilePath(),
                 settingsMenu->getSeed()
             );
-            netGameManager->setupGame(
-                settingsMenu->getPlayers(),
-                settingsMenu->getHandCount(),
-                settingsMenu->getConfigFilePath(),
-                settingsMenu->getSeed()
-            );
         });
     events->subscribe<screens::transitionData>(
         NAVIGATION_GAME, [game, gameManager](screens::transitionData data)
@@ -91,8 +85,14 @@ int main()
             gameManager->startGame();
         });
     events->subscribe<screens::transitionData>(
-        NAVIGATION_ONLINE_GAME, [game, netGameManager](screens::transitionData data)
+        NAVIGATION_ONLINE_GAME, [game, settingsMenu, netGameManager](screens::transitionData data)
         {
+            netGameManager->setupGame(
+                settingsMenu->getPlayers(),
+                settingsMenu->getHandCount(),
+                settingsMenu->getConfigFilePath(),
+                settingsMenu->getSeed()
+            );
             game->setGameManager(netGameManager.get());
             game->show();
             netGameManager->startGame();
