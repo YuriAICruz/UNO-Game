@@ -42,7 +42,7 @@ namespace screens
             }, '+', 'g', "", "Server Address");
         buttons[0].action = [this]()
         {
-            openStringEditBox("Server Address [use tcp://]", serverAddr, [this]
+            box.openStringEditBox("Server Address [use tcp://]", serverAddr, [this]
             {
                 updateServerAddress();
             });
@@ -91,7 +91,7 @@ namespace screens
 
     void connectToServerScreen::moveUp(input::inputData data)
     {
-        if (blockInputs)
+        if (blockInputs || box.isBlocking())
         {
             return;
         }
@@ -114,7 +114,7 @@ namespace screens
 
     void connectToServerScreen::moveDown(input::inputData data)
     {
-        if (blockInputs)
+        if (blockInputs || box.isBlocking())
         {
             return;
         }
@@ -133,7 +133,7 @@ namespace screens
 
     void connectToServerScreen::moveLeft(input::inputData data)
     {
-        if (blockInputs)
+        if (blockInputs || box.isBlocking())
         {
             return;
         }
@@ -147,7 +147,7 @@ namespace screens
 
     void connectToServerScreen::moveRight(input::inputData data)
     {
-        if (blockInputs)
+        if (blockInputs || box.isBlocking())
         {
             return;
         }
@@ -161,7 +161,7 @@ namespace screens
 
     void connectToServerScreen::accept(input::inputData data)
     {
-        if (blockInputs)
+        if (blockInputs || box.isBlocking())
         {
             return;
         }
@@ -177,7 +177,7 @@ namespace screens
 
     void connectToServerScreen::cancel(input::inputData data)
     {
-        if (blockInputs)
+        if (blockInputs || box.isBlocking())
         {
             return;
         }
@@ -198,38 +198,6 @@ namespace screens
         ss << "Server Address [" << serverAddr << "]";
         button->setCenterText(ss.str());
         rdr->setDirty();
-    }
-
-    template <typename T>
-    bool connectToServerScreen::editBoxSetup(std::string title, T& data, std::string& newValue)
-    {
-        blockInputs = true;
-        rdr->blank();
-        std::cout << "Enter a new value for " << title << ", you can cancel by typing 'quit'" << "\n";
-        std::cout << "Current value is: " << data << "\n";
-        std::getline(std::cin, newValue);
-        if (newValue != "quit")
-        {
-            return true;
-        }
-        return false;
-    }
-
-    void connectToServerScreen::editBoxTearDown(const std::function<void()>& callback)
-    {
-        callback();
-        blockInputs = false;
-    }
-
-    void connectToServerScreen::openStringEditBox(std::string title,
-                                                  std::string& data, const std::function<void()>& callback)
-    {
-        std::string newValue;
-        if (editBoxSetup(title, data, newValue))
-        {
-            data = newValue;
-        }
-        editBoxTearDown(callback);
     }
 
     void connectToServerScreen::tryConnectClient()
