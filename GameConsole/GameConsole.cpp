@@ -42,6 +42,7 @@ int main()
     events->bindEvent<input::inputData>(NAVIGATION_SETTINGS);
     events->bindEvent<input::inputData>(NAVIGATION_GAME_OVER);
     events->bindEvent<input::inputData>(NAVIGATION_NETWORK_CONNECT);
+    events->bindEvent<input::inputData>(NAVIGATION_NETWORK_ROOMS);
 
     auto inputH = std::make_unique<input::inputHandler>(strapper->create<eventBus::eventBus>());
 
