@@ -106,7 +106,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>"$(SolutionDir)\CardEngine\src";"$(SolutionDir)\NetLib\src"</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>"$(SolutionDir)\CardEngine\src";"$(SolutionDir)\NetLib\src";"$(SolutionDir)\MultiplayerGameEngine\src"</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -149,6 +149,7 @@
     <ClCompile Include="renderer\renderer.cpp" />
     <ClCompile Include="renderer\rendererException.cpp" />
     <ClCompile Include="screens\buttons.cpp" />
+    <ClCompile Include="screens\connectToServerScreen.cpp" />
     <ClCompile Include="screens\gameOverScreen.cpp" />
     <ClCompile Include="screens\gameScreen.cpp" />
     <ClCompile Include="screens\IScreen.cpp" />
@@ -161,9 +162,9 @@
     <ProjectReference Include="..\CardEngine\CardEngine.vcxproj">
       <Project>{5271d90a-72bb-4b58-861c-7725e0fb7105}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\MultiplayerCardEngine\MultiplayerCardEngine.vcxproj">
-      <Project>{b0f171ff-8a38-47b2-bc48-63052c938a4a}</Project>
-      <Name>MultiplayerCardEngine</Name>
+    <ProjectReference Include="..\NetLib\NetLib.vcxproj">
+      <Project>{251cd7bc-f08a-4018-8387-aaa9fcd42675}</Project>
+      <Name>NetLib</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -182,6 +183,7 @@
     <ClInclude Include="renderer\renderer.h" />
     <ClInclude Include="renderer\rendererException.h" />
     <ClInclude Include="screens\buttons.h" />
+    <ClInclude Include="screens\connectToServerScreen.h" />
     <ClInclude Include="screens\gameOverScreen.h" />
     <ClInclude Include="screens\gameScreen.h" />
     <ClInclude Include="screens\IScreen.h" />

@@ -6,10 +6,12 @@
 #include "screens/mainMenuScreen.h"
 #include "eventIds.h"
 #include "renderer/elements/fileRead.h"
+#include "screens/connectToServerScreen.h"
 #include "screens/gameScreen.h"
 #include "screens/settingsMenuScreen.h"
 #include "screens/gameOverScreen.h"
 #include "StateManager/gameStateManager.h"
+#include "client/client.h"
 
 int main()
 {
@@ -17,10 +19,12 @@ int main()
     strapper->bind<eventBus::eventBus>()->to<eventBus::eventBus>()->asSingleton();
     strapper->bind<renderer::renderer>()->to<renderer::renderer>()->asSingleton();
     strapper->bind<gameStateManager, std::shared_ptr<eventBus::eventBus>>()->to<gameStateManager>()->asSingleton();
+    strapper->bind<netcode::client>()->to<netcode::client>()->asSingleton();
 
     auto gameManager = strapper->create<gameStateManager>(strapper->create<eventBus::eventBus>());
     auto rdr = strapper->create<renderer::renderer>();
     auto events = strapper->create<eventBus::eventBus>();
+    auto netClient = strapper->create<netcode::client>();
 
     events->bindEvent<input::inputData>(INPUT_UP);
     events->bindEvent<input::inputData>(INPUT_DOWN);
@@ -52,6 +56,11 @@ int main()
     std::shared_ptr<screens::gameOverScreen> gameOver = std::make_shared<screens::gameOverScreen>(
         strapper->create<renderer::renderer>(),
         strapper->create<eventBus::eventBus>()
+    );
+    std::shared_ptr<screens::connectToServerScreen> connectToServer = std::make_shared<screens::connectToServerScreen>(
+        strapper->create<renderer::renderer>(),
+        strapper->create<eventBus::eventBus>(),
+        strapper->create<netcode::client>()
     );
 
     events->subscribe<screens::transitionData>(

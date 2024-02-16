@@ -20,7 +20,7 @@ namespace screens
         int lastX = winSize.X / 2 - buttonWidth / 2;
         int lastY = winSize.Y / 2 - buttonHeight / 2;
 
-        rdr->addElement<elements::fileRead>(
+        titleId = rdr->addElement<elements::fileRead>(
             COORD{
                 static_cast<SHORT>(winSize.X/2-16),
                 static_cast<SHORT>(4),
