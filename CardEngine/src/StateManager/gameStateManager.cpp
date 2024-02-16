@@ -16,7 +16,6 @@
 
 gameStateManager::gameStateManager(std::shared_ptr<eventBus::eventBus> events): events(events)
 {
-    bindGameEvents();
 }
 
 bool gameStateManager::isGameRunning()
@@ -65,15 +64,14 @@ void gameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
     }
 }
 
-void gameStateManager::setupGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath,
-                                 size_t seed)
+void gameStateManager::setupGame(std::vector<std::string>& players, int handSize,
+                                 std::string deckConfigFilePath, size_t seed)
 {
     running = false;
+    this->seed = seed;
     this->handSize = handSize;
     mainDeck = std::make_unique<decks::jsonDeck>(deckConfigFilePath);
     discardDeck = std::make_unique<decks::deck>();
-
-    this->seed = seed;
 
     turner = std::make_unique<turnSystem::turnSystem>(players);
     mainDeck->shuffle(this->seed);
@@ -85,6 +83,7 @@ void gameStateManager::setupGame(std::vector<std::string>& players, std::vector<
                                  std::string deckConfigFilePath, size_t seed)
 {
     running = false;
+    this->seed = seed;
     this->handSize = handSize;
     mainDeck = std::make_unique<decks::jsonDeck>(deckConfigFilePath);
     discardDeck = std::make_unique<decks::deck>();

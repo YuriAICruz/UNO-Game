@@ -22,6 +22,7 @@ protected:
 
 public:
     gameStateManager(std::shared_ptr<eventBus::eventBus> events);
+    void bindGameEvents();
 
     ~gameStateManager() override
     {
@@ -54,7 +55,6 @@ public:
     void print(const char* buffer, size_t size);
 
 protected:
-    void bindGameEvents();
     void beginTurn();
     void finishAction(cards::ICard* card);
     bool isActionCardValid(cards::ICard* card, cards::ICard* topCard) const;

@@ -5,6 +5,7 @@
 #include "renderer/renderer.h"
 #include "screens/mainMenuScreen.h"
 #include "eventIds.h"
+#include "netGameStateManager.h"
 #include "renderer/elements/fileRead.h"
 #include "screens/connectToServerScreen.h"
 #include "screens/gameScreen.h"
@@ -19,13 +20,16 @@ int main()
     strapper->bind<eventBus::eventBus>()->to<eventBus::eventBus>()->asSingleton();
     strapper->bind<renderer::renderer>()->to<renderer::renderer>()->asSingleton();
     strapper->bind<gameStateManager, std::shared_ptr<eventBus::eventBus>>()->to<gameStateManager>()->asSingleton();
+    strapper->bind<netGameStateManager, std::shared_ptr<eventBus::eventBus>, std::shared_ptr<netcode::client>>()->to<netGameStateManager>()->asSingleton();
     strapper->bind<netcode::client>()->to<netcode::client>()->asSingleton();
 
     auto gameManager = strapper->create<gameStateManager>(strapper->create<eventBus::eventBus>());
+    auto netGameManager = strapper->create<netGameStateManager>(strapper->create<eventBus::eventBus>(), strapper->create<netcode::client>());
     auto rdr = strapper->create<renderer::renderer>();
     auto events = strapper->create<eventBus::eventBus>();
     auto netClient = strapper->create<netcode::client>();
 
+    gameManager->bindGameEvents();
     events->bindEvent<input::inputData>(INPUT_UP);
     events->bindEvent<input::inputData>(INPUT_DOWN);
     events->bindEvent<input::inputData>(INPUT_LEFT);
@@ -34,6 +38,7 @@ int main()
     events->bindEvent<input::inputData>(INPUT_CANCEL);
     events->bindEvent<input::inputData>(NAVIGATION_MAIN_MENU);
     events->bindEvent<input::inputData>(NAVIGATION_GAME);
+    events->bindEvent<input::inputData>(NAVIGATION_ONLINE_GAME);
     events->bindEvent<input::inputData>(NAVIGATION_SETTINGS);
     events->bindEvent<input::inputData>(NAVIGATION_GAME_OVER);
     events->bindEvent<input::inputData>(NAVIGATION_NETWORK_CONNECT);
@@ -50,8 +55,7 @@ int main()
     );
     std::shared_ptr<screens::gameScreen> game = std::make_shared<screens::gameScreen>(
         strapper->create<renderer::renderer>(),
-        strapper->create<eventBus::eventBus>(),
-        strapper->create<gameStateManager>()
+        strapper->create<eventBus::eventBus>()
     );
     std::shared_ptr<screens::gameOverScreen> gameOver = std::make_shared<screens::gameOverScreen>(
         strapper->create<renderer::renderer>(),
@@ -64,7 +68,7 @@ int main()
     );
 
     events->subscribe<screens::transitionData>(
-        NAVIGATION_MAIN_MENU, [settingsMenu, gameManager](screens::transitionData data)
+        NAVIGATION_MAIN_MENU, [settingsMenu, gameManager, netGameManager](screens::transitionData data)
         {
             gameManager->setupGame(
                 settingsMenu->getPlayers(),
@@ -72,11 +76,26 @@ int main()
                 settingsMenu->getConfigFilePath(),
                 settingsMenu->getSeed()
             );
+            netGameManager->setupGame(
+                settingsMenu->getPlayers(),
+                settingsMenu->getHandCount(),
+                settingsMenu->getConfigFilePath(),
+                settingsMenu->getSeed()
+            );
         });
     events->subscribe<screens::transitionData>(
-        NAVIGATION_GAME, [settingsMenu, gameManager](screens::transitionData data)
+        NAVIGATION_GAME, [game, gameManager](screens::transitionData data)
         {
+            game->setGameManager(gameManager.get());
+            game->show();
             gameManager->startGame();
+        });
+    events->subscribe<screens::transitionData>(
+        NAVIGATION_ONLINE_GAME, [game, netGameManager](screens::transitionData data)
+        {
+            game->setGameManager(netGameManager.get());
+            game->show();
+            netGameManager->startGame();
         });
 
     events->fireEvent(NAVIGATION_MAIN_MENU, screens::transitionData());

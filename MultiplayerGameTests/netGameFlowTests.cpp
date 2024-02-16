@@ -93,6 +93,7 @@ std::shared_ptr<gameStateManager> createGameManager(netcode::room* r, int handIn
     }
     std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
     auto manager = std::make_shared<gameStateManager>(events);
+    manager->bindGameEvents();
     manager->setupGame(playersList, handInitialSize, "Data\\deck_setup.json", 12345);
     manager->startGame();
     return manager;
@@ -116,6 +117,7 @@ std::shared_ptr<netGameStateManager> createHostGameManager(std::shared_ptr<netco
     }
     std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
     auto manager = std::make_shared<netGameStateManager>(events, client, server);
+    manager->bindGameEvents();
     manager->setupGame(playersList, playersIds, handInitialSize, "Data\\deck_setup.json", server->getSeed());
     manager->startGame();
     return manager;
@@ -137,6 +139,7 @@ std::shared_ptr<netGameStateManager> createServerGameManager(netcode::room* room
     }
     std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
     auto manager = std::make_shared<netGameStateManager>(events, server);
+    manager->bindGameEvents();
     manager->setupGame(playersList, playersIds, handInitialSize, "Data\\deck_setup.json", server->getSeed());
     manager->startGame();
     return manager;
@@ -157,6 +160,7 @@ std::shared_ptr<netGameStateManager> createClientGameManager(std::shared_ptr<net
     }
     std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
     auto manager = std::make_shared<netGameStateManager>(events, client);
+    manager->bindGameEvents();
     manager->setupGame(playersList, playersIds, handInitialSize, "Data\\deck_setup.json", seed);
     manager->startGame();
     return manager;

@@ -23,6 +23,7 @@ std::unique_ptr<gameStateManager> createGameManager(int players = 2, int handIni
     }
     std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
     auto manager = std::make_unique<gameStateManager>(events);
+    manager->bindGameEvents();
     manager->setupGame(playersList, handInitialSize, "Data\\deck_setup.json", seed);
     manager->startGame();
     return manager;

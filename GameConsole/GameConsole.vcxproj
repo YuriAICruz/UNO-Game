@@ -76,7 +76,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>"$(SolutionDir)\CardEngine\src";"$(SolutionDir)\NetLib\src"</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>"$(SolutionDir)\CardEngine\src";"$(SolutionDir)\NetLib\src";"$(SolutionDir)\MultiplayerCardEngine\src"</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -91,7 +91,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>"$(SolutionDir)\CardEngine\src";"$(SolutionDir)\NetLib\src"</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>"$(SolutionDir)\CardEngine\src";"$(SolutionDir)\NetLib\src";"$(SolutionDir)\MultiplayerCardEngine\src"</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -106,7 +106,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>"$(SolutionDir)\CardEngine\src";"$(SolutionDir)\NetLib\src";"$(SolutionDir)\MultiplayerGameEngine\src"</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>"$(SolutionDir)\CardEngine\src";"$(SolutionDir)\NetLib\src";"$(SolutionDir)\MultiplayerCardEngine\src"</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -124,7 +124,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>"$(SolutionDir)\CardEngine\src";"$(SolutionDir)\NetLib\src"</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>"$(SolutionDir)\CardEngine\src";"$(SolutionDir)\NetLib\src";"$(SolutionDir)\MultiplayerCardEngine\src"</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -162,6 +162,10 @@
   <ItemGroup>
     <ProjectReference Include="..\CardEngine\CardEngine.vcxproj">
       <Project>{5271d90a-72bb-4b58-861c-7725e0fb7105}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\MultiplayerCardEngine\MultiplayerCardEngine.vcxproj">
+      <Project>{b0f171ff-8a38-47b2-bc48-63052c938a4a}</Project>
+      <Name>MultiplayerCardEngine</Name>
     </ProjectReference>
     <ProjectReference Include="..\NetLib\NetLib.vcxproj">
       <Project>{251cd7bc-f08a-4018-8387-aaa9fcd42675}</Project>

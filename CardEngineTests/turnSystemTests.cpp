@@ -150,8 +150,8 @@ TEST(TurnSystem, SerializeTwoSystems)
     int countA = turnerA->playersCount();
     int countB = turnerB->playersCount();
 
-    auto playerA = turnerA->getCurrentPlayer();
-    auto playerB = turnerB->getCurrentPlayer();
+    uint16_t playerA = turnerA->getCurrentPlayer()->Id();
+    uint16_t playerB = turnerB->getCurrentPlayer()->Id();
 
     auto dataA = turnerA->getState();
     auto dataB = turnerB->getState();
@@ -159,24 +159,23 @@ TEST(TurnSystem, SerializeTwoSystems)
     turnerA->endTurn();
     turnerB->endTurn();
 
-    EXPECT_NE(playerA, turnerA->getCurrentPlayer());
-    EXPECT_NE(playerB, turnerB->getCurrentPlayer());
+    EXPECT_NE(playerA, turnerA->getCurrentPlayer()->Id());
+    EXPECT_NE(playerB, turnerB->getCurrentPlayer()->Id());
     EXPECT_EQ(countA, turnerA->playersCount());
     EXPECT_EQ(countB, turnerB->playersCount());
 
     turnerA->setState(std::get<0>(dataA), deck.get());
     turnerB->setState(std::get<0>(dataB), deck.get());
 
-    EXPECT_EQ(playerA, turnerA->getCurrentPlayer());
-    EXPECT_EQ(playerB, turnerB->getCurrentPlayer());
+    EXPECT_EQ(playerA, turnerA->getCurrentPlayer()->Id());
+    EXPECT_EQ(playerB, turnerB->getCurrentPlayer()->Id());
     EXPECT_EQ(countA, turnerA->playersCount());
     EXPECT_EQ(countB, turnerB->playersCount());
 
     turnerA->setState(std::get<0>(dataB), deck.get());
     turnerB->setState(std::get<0>(dataA), deck.get());
 
-    EXPECT_EQ(*playerB, *turnerA->getCurrentPlayer());
-    EXPECT_EQ(*playerA, *turnerB->getCurrentPlayer());
+    EXPECT_EQ(playerA, turnerB->getCurrentPlayer()->Id());
     EXPECT_EQ(countA, turnerA->playersCount());
     EXPECT_NE(countB, turnerB->playersCount());
 

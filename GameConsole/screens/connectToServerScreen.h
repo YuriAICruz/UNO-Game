@@ -60,6 +60,7 @@ namespace screens
             IScreen(rdr, events),
             netClient(cl), popup(popupWindow(rdr.get()))
         {
+            
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
             {
                 size_t id = events->subscribe<transitionData>(transitionMap.first, transitionMap.second.action);

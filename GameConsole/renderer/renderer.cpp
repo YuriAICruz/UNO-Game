@@ -214,7 +214,7 @@ namespace renderer
     void renderer::clearScreen()
     {
         system("cls");
-        forceNextFrame = true;
+        forceRedraw();
         clearBuffer();
     }
 

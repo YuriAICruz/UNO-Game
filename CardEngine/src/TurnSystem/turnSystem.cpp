@@ -73,6 +73,19 @@ namespace turnSystem
         return players[i].get();
     }
 
+    std::vector<uint16_t> turnSystem::getPlayersIds()
+    {
+        std::vector<uint16_t> list;
+        list.resize(playersCount());
+
+        for (int i = 0, n = playersCount(); i < n; ++i)
+        {
+            list[i] = players[i]->Id();
+        }
+
+        return list;
+    }
+
     void turnSystem::shuffle()
     {
         std::random_device rng;

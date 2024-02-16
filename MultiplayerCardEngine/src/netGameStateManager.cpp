@@ -39,6 +39,90 @@ netGameStateManager::netGameStateManager(
     createServerCustomCommands();
 }
 
+void netGameStateManager::setupGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath,
+                                    size_t seed)
+{
+    if(isServer && !isHost)
+    {
+        return;
+    }
+    gameStateManager::setupGame(players, handSize, deckConfigFilePath, seed);
+    sendGameSettings(deckConfigFilePath);
+}
+
+void netGameStateManager::setupGame(std::vector<std::string>& players, std::vector<size_t>& playersIds, int handSize,
+                                    std::string deckConfigFilePath, size_t seed)
+{
+    if(isServer && !isHost)
+    {
+        return;
+    }
+    gameStateManager::setupGame(players, playersIds, handSize, deckConfigFilePath, seed);
+    sendGameSettings(deckConfigFilePath);
+}
+
+void netGameStateManager::sendGameSettings(std::string path)
+{
+    if (!isServer && !running)
+    {
+        std::promise<bool> promise;
+        trySetGameSettingsCallback = &promise;
+        auto future = promise.get_future();
+
+        std::stringstream ss;
+        int size = turner->playersCount();
+        ss << CORE_NC_GAME_SETTINGS << NC_SEPARATOR;
+        ss << static_cast<int>(handSize) << NC_SEPARATOR;
+        ss << path << NC_SEPARATOR;
+        ss << seed << NC_SEPARATOR;
+        ss << size << NC_SEPARATOR;
+        int i = 0;
+        for (uint16_t id : turner->getPlayersIds())
+        {
+            if (i > 0)
+            {
+                ss << NC_SEPARATOR;
+            }
+            ss << id;
+            i++;
+        }
+        std::string str = ss.str();
+        netClient->sendMessage(str.c_str());
+        future.wait();
+        trySetGameSettingsCallback = nullptr;
+    }
+}
+
+void netGameStateManager::trySetGameSettings(const std::string& msg, SOCKET cs)
+{
+    auto data = stringUtils::splitString(msg);
+
+    int hand = std::stoi(data[1]);
+    std::string path = data[2];
+    size_t seed = std::stoull(data[3]);
+    int size = std::stoi(data[4]);
+    std::vector<size_t> ids;
+    std::vector<std::string> names;
+    ids.resize(size);
+    names.resize(size);
+    for (int i = 0; i < size; ++i)
+    {
+        ids[i] = std::stoi(data[5+i]);
+        names[i] = std::to_string(ids[i]);
+    }
+    gameStateManager::setupGame(names, ids, hand, path, seed);
+
+    send(cs, CORE_NC_GAME_SETTINGS, strlen(CORE_NC_GAME_SETTINGS), 0);
+}
+
+void netGameStateManager::gameSettingsCallback(const std::string& msg)
+{
+    if (trySetGameSettingsCallback != nullptr)
+    {
+        trySetGameSettingsCallback->set_value(true);
+    }
+}
+
 void netGameStateManager::startGame()
 {
     if (!isServer && !running)
@@ -98,6 +182,12 @@ void netGameStateManager::createClientCustomCommands()
             {
                 gameStartCallback(msg);
             },
+        },
+        {
+            CORE_NC_GAME_SETTINGS, [this](std::string& msg)
+            {
+                gameSettingsCallback(msg);
+            },
         }
     };
     std::map<std::string, std::function<void (char*, size_t)>> rawCommands = {
@@ -127,6 +217,12 @@ void netGameStateManager::createServerCustomCommands()
             {
                 tryStartGame(msg, cs);
             }
+        },
+        {
+            CORE_NC_GAME_SETTINGS, [this](std::string& msg, SOCKET cs)
+            {
+                trySetGameSettings(msg, cs);
+            }
         }
     };
 
@@ -154,11 +250,11 @@ bool netGameStateManager::tryExecutePlayerAction(int index)
         throw std::exception("invalid action, pure server can't execute this");
     }
 
-    if(!isCurrentPlayer())
+    if (!isCurrentPlayer())
     {
         return false;
     }
-    
+
     if (tryExecuteActionCallback != nullptr)
     {
         tryExecuteActionCallback->get_future().wait();

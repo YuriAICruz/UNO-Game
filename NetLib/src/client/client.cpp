@@ -176,7 +176,6 @@ namespace netcode
 
         logger::print("CLIENT: closing client . . .");
 
-
         if (running)
         {
             closesocket(clientSocket);

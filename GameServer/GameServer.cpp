@@ -2,7 +2,10 @@
 #include <iostream>
 
 #include "logger.h"
+#include "netGameStateManager.h"
+#include "Bootstrapper/bootstrapper.h"
 #include "client/client.h"
+#include "EventBus/eventBus.h"
 #include "server/server.h"
 
 void inputInt(int& value)
@@ -59,10 +62,23 @@ int tryReconnect(std::string input, std::string addr, netcode::client* clientins
 
 int main(int argc, char* argv[])
 {
+    std::unique_ptr<bootstrapper> strapper = std::make_unique<bootstrapper>();
+    strapper->bind<eventBus::eventBus>()->to<eventBus::eventBus>()->asSingleton();
+    strapper->bind<netcode::server>()->to<netcode::server>()->asSingleton();
+    strapper->bind<netGameStateManager, std::shared_ptr<eventBus::eventBus>, std::shared_ptr<netcode::server>>()->to<
+        netGameStateManager>()->asSingleton();
+
+    auto serverInstance = strapper->create<netcode::server>();
+    auto serverGameManager = strapper->create<netGameStateManager>(
+        strapper->create<eventBus::eventBus>(),
+        strapper->create<netcode::server>()
+    );
+    serverGameManager->bindGameEvents();
+
     logger::printCout(true);
     int portValue;
     inputInt(portValue);
-    auto serverInstance = std::make_shared<netcode::server>();
+
     int result = serverInstance->start(portValue);
     if (result != 0)
     {

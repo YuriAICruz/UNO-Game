@@ -1,5 +1,6 @@
 ﻿#include "gameScreen.h"
 
+#include "netGameStateManager.h"
 #include "../renderer/elements/card.h"
 #include "../renderer/elements/horizontalLayoutGroup.h"
 #include "../renderer/elements/text.h"
@@ -172,6 +173,12 @@ namespace screens
         popup.hide();
     }
 
+    void gameScreen::setGameManager(gameStateManager* gm)
+    {
+        isOnline = dynamic_cast<netGameStateManager*>(gm) != nullptr;
+        gameManager = gm;
+    }
+
     void gameScreen::moveUp(input::inputData data)
     {
         if (blockInputs)
@@ -181,6 +188,10 @@ namespace screens
         if (unoPopup)
         {
             hideUnoPopup();
+        }
+        if (cardsAreHidden)
+        {
+            showCurrentPlayerCards(false);
         }
         if (popup.isOpen())
         {
@@ -212,6 +223,10 @@ namespace screens
         if (unoPopup)
         {
             hideUnoPopup();
+        }
+        if (cardsAreHidden)
+        {
+            showCurrentPlayerCards(false);
         }
         if (popup.isOpen())
         {
@@ -245,6 +260,10 @@ namespace screens
         {
             hideUnoPopup();
         }
+        if (cardsAreHidden)
+        {
+            showCurrentPlayerCards(false);
+        }
         if (popup.isOpen())
         {
             popup.hidePopup();
@@ -276,6 +295,16 @@ namespace screens
         {
             hideUnoPopup();
         }
+        if (cardsAreHidden)
+        {
+            showCurrentPlayerCards(false);
+        }
+        if (popup.isOpen())
+        {
+            popup.hidePopup();
+            popup.executeActionCancel();
+            return;
+        }
         if (selectingCards)
         {
             int handSize = gameManager->getCurrentPlayer()->getHand().size();
@@ -298,14 +327,15 @@ namespace screens
             hideUnoPopup();
             return;
         }
-        if (cardsAreHidden)
-        {
-            showCurrentPlayerCards(false);
-        }
         if (popup.isOpen())
         {
             popup.hidePopup();
             popup.executeActionAccept();
+            return;
+        }
+        if (cardsAreHidden)
+        {
+            showCurrentPlayerCards(false);
             return;
         }
         if (selectingCards)
@@ -332,6 +362,10 @@ namespace screens
         if (unoPopup)
         {
             hideUnoPopup();
+        }
+        if (cardsAreHidden)
+        {
+            showCurrentPlayerCards(false);
         }
         if (popup.isOpen())
         {

@@ -13,7 +13,7 @@ namespace screens
     class gameScreen : public IScreen
     {
     private:
-        std::shared_ptr<gameStateManager> gameManager;
+        gameStateManager* gameManager;
         size_t currentPlayerInfoId;
         size_t handCardsPoolId;
         std::vector<button> cardListButtons;
@@ -29,6 +29,7 @@ namespace screens
         int cardSizeY = 6;
         bool unoPopup = false;
         bool cardsAreHidden = false;
+        int isOnline = false;
 
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
@@ -38,10 +39,6 @@ namespace screens
             {
                 NAVIGATION_SETTINGS,
                 eventBus::delegate<transitionData>{std::bind(&gameScreen::onHide, this, std::placeholders::_1)}
-            },
-            {
-                NAVIGATION_GAME,
-                eventBus::delegate<transitionData>{std::bind(&gameScreen::onShow, this, std::placeholders::_1)}
             },
             {
                 NAVIGATION_GAME_OVER,
@@ -68,9 +65,8 @@ namespace screens
         };
 
     public:
-        gameScreen(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events,
-                   std::shared_ptr<gameStateManager> gameManager)
-            : IScreen(rdr, events), gameManager(gameManager), popup(popupWindow(rdr.get()))
+        gameScreen(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events)
+            : IScreen(rdr, events), popup(popupWindow(rdr.get()))
         {
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
             {
@@ -104,6 +100,7 @@ namespace screens
 
         void show() override;
         void hide() override;
+        void setGameManager(gameStateManager* gm);
         void moveUp(input::inputData data) override;
         void moveDown(input::inputData data) override;
         void moveLeft(input::inputData data) override;
