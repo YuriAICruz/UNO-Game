@@ -84,6 +84,16 @@ void server::broadcast(std::string msg)
     }
 }
 
+void server::broadcastToRoom(std::string msg, SOCKET cs)
+{
+    auto room = roomManager.getRoom(getClient(cs).get());
+    for (auto pair : room->clients())
+    {
+        auto responseData = msg.c_str();
+        send(*pair->connection, responseData, strlen(responseData), 0);
+    }
+}
+
 void server::broadcastToRoom(const char* responseData, size_t size, SOCKET cs)
 {
     auto room = roomManager.getRoom(getClient(cs).get());

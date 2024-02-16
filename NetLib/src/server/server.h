@@ -94,6 +94,7 @@ public:
     int close();
     room* getRoom(int id);
     void broadcast(std::string msg);
+    void broadcastToRoom(std::string msg, SOCKET cs);
     void broadcastToRoom(const char* responseData, size_t size, SOCKET cs);
 
     int getSeed() const

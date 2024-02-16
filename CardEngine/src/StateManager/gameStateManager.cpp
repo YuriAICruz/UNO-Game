@@ -88,6 +88,7 @@ void gameStateManager::setupGame(std::vector<std::string>& players, std::vector<
     this->handSize = handSize;
     mainDeck = std::make_unique<decks::jsonDeck>(deckConfigFilePath);
     discardDeck = std::make_unique<decks::deck>();
+    discardDeck->setFullDeck(mainDeck->getFullDeck());
 
     turner = std::make_unique<turnSystem::turnSystem>(players, playersIds);
     mainDeck->shuffle(seed);

@@ -6,6 +6,7 @@
 #include "netCommands.h"
 #include "netGameStateManager.h"
 #include "stringUtils.h"
+#include "Cards/ActionTypes/base.h"
 #include "client/client.h"
 #include "server/server.h"
 #include "StateManager/gameStateManager.h"
@@ -279,7 +280,11 @@ TEST(NetGameFlowTests, PlayCardFromManager)
     int invalidIndex = 0;
     for (auto card : hand)
     {
-        if (card->sameColor(*topCard) || card->sameNumber(*topCard))
+        if (
+            card->sameColor(*topCard) ||
+            card->sameNumber(*topCard) ||
+            (!card->actionType()->isEqual(typeid(cards::actions::base)) && card->sameType(*topCard))
+        )
         {
             validIndex = index;
         }
@@ -289,7 +294,7 @@ TEST(NetGameFlowTests, PlayCardFromManager)
 
     EXPECT_FALSE(hostManager->tryExecutePlayerAction(invalidIndex));
     EXPECT_TRUE(hostManager->tryExecutePlayerAction(validIndex));
-    
+
     EXPECT_NE(*currentPlayer, *hostManager->getCurrentPlayer());
     EXPECT_NE(*currentPlayer, *clientManager->getCurrentPlayer());
     EXPECT_LT(currentPlayer->getHand().size(), handSize);

@@ -1,5 +1,6 @@
 ﻿#include "netGameStateManager.h"
 
+#include <atomic>
 #include <sstream>
 #include <tuple>
 
@@ -24,10 +25,61 @@ netGameStateManager::netGameStateManager(std::shared_ptr<eventBus::eventBus> eve
             {
                 tryExecuteNetPlayerAction(msg, cs);
             }
+        },
+        {
+            CORE_NC_GAME_START, [this](std::string& msg, SOCKET cs)
+            {
+                tryStartGame(msg, cs);
+            }
         }
     };
 
     sv->addCustomCommands(commands);
+}
+
+void netGameStateManager::startGame()
+{
+    if (!isHost && !running)
+    {
+        std::promise<bool> promise;
+        std::promise<bool> promiseState;
+        tryStartGameCallback = &promise;
+        gameStateUpdatedCallback = &promiseState;
+        auto future = promise.get_future();
+        auto stateFuture = promiseState.get_future();
+        netClient->sendMessage(CORE_NC_GAME_START);
+        future.wait();
+        stateFuture.wait();
+        gameStateUpdatedCallback = nullptr;
+        tryStartGameCallback = nullptr;
+    }
+}
+
+void netGameStateManager::tryStartGame(const std::string& msg, SOCKET cs)
+{
+    if (!isHost)
+    {
+        return;
+    }
+    if (!running)
+    {
+        gameStateManager::startGame();
+    }
+    netServer->broadcastToRoom(CORE_NC_GAME_START, cs);
+    sendServerStateData(cs);
+}
+
+void netGameStateManager::gameStartCallback(const std::string& msg)
+{
+    if (!running)
+    {
+        gameStateManager::startGame();
+    }
+
+    if (tryStartGameCallback != nullptr)
+    {
+        tryStartGameCallback->set_value(true);
+    }
 }
 
 void netGameStateManager::createClientCustomCommands()
@@ -36,8 +88,14 @@ void netGameStateManager::createClientCustomCommands()
         {
             CORE_NC_PLAYCARD, [this](std::string& msg)
             {
-                netPlayerActionFailedCallback(msg);
-            }
+                netPlayerActionCallback(msg);
+            },
+        },
+        {
+            CORE_NC_GAME_START, [this](std::string& msg)
+            {
+                gameStartCallback(msg);
+            },
         }
     };
     std::map<std::string, std::function<void (char*, size_t)>> rawCommands = {
@@ -65,21 +123,68 @@ bool netGameStateManager::tryExecutePlayerAction(cards::ICard* card)
 
 bool netGameStateManager::tryExecutePlayerAction(int index)
 {
+    if (tryExecuteActionCallback != nullptr)
+    {
+        tryExecuteActionCallback->get_future().wait();
+    }
     std::promise<bool> promise;
-    actionCallback = &promise;
+    tryExecuteActionCallback = &promise;
     auto future = promise.get_future();
     std::stringstream ss;
     ss << CORE_NC_PLAYCARD << NC_SEPARATOR << index;
     std::string str = ss.str();
     netClient->sendMessage(str.c_str());
     future.wait();
+    tryExecuteActionCallback = nullptr;
     return future.get();
 }
 
-void netGameStateManager::netPlayerActionFailedCallback(const std::string& msg)
+void netGameStateManager::netPlayerActionCallback(const std::string& msg)
+{    
+    std::vector<std::string> data = stringUtils::splitString(msg);
+    if (tryExecuteActionCallback != nullptr)
+    {
+        int r = stoi(data[1]);
+        tryExecuteActionCallback->set_value(r > 0);
+    }
+}
+
+void netGameStateManager::sendServerStateData(SOCKET cs)
 {
-    actionCallback->set_value(false);
-    actionCallback = nullptr;
+    if (!isHost)
+    {
+        return;
+    }
+    auto data = getState();
+    size_t bufferSize =
+        strlen(CORE_NC_UPDATE_STATE) * sizeof(char) +
+        sizeof(char) +
+        sizeof(size_t) +
+        sizeof(char) +
+        std::get<1>(data);
+
+    char* buffer = new char[bufferSize];
+    char* ptr = buffer;
+
+    char separator = NC_SEPARATOR;
+
+    std::cout << "\nSENT\n";
+    print(std::get<0>(data), std::get<1>(data));
+    std::cout << "\n----\n";
+
+    std::memcpy(ptr, &CORE_NC_UPDATE_STATE, strlen(CORE_NC_UPDATE_STATE) * sizeof(char));
+    ptr += strlen(CORE_NC_UPDATE_STATE) * sizeof(char);
+    std::memcpy(ptr, &separator, sizeof(char));
+    ptr += sizeof(char);
+    std::memcpy(ptr, &std::get<1>(data), sizeof(size_t));
+    ptr += sizeof(size_t);
+    std::memcpy(ptr, &separator, sizeof(char));
+    ptr += sizeof(char);
+    std::memcpy(ptr, std::get<0>(data), std::get<1>(data));
+    ptr += std::get<1>(data);
+
+    netServer->broadcastToRoom(buffer, bufferSize, cs);
+    delete std::get<0>(data);
 }
 
 void netGameStateManager::tryExecuteNetPlayerAction(const std::string& msg, SOCKET cs)
@@ -87,43 +192,22 @@ void netGameStateManager::tryExecuteNetPlayerAction(const std::string& msg, SOCK
     std::vector<std::string> data = stringUtils::splitString(msg);
     int index = std::stoi(data[1]);
     turnSystem::IPlayer* currentPlayer = getCurrentPlayer();
+    
+    std::stringstream ss;
+    ss << CORE_NC_PLAYCARD << NC_SEPARATOR;
+    
     if (gameStateManager::tryExecutePlayerAction(currentPlayer->pickCard(index)))
     {
-        auto data = getState();
-        size_t bufferSize =
-            strlen(CORE_NC_UPDATE_STATE) * sizeof(char) +
-            sizeof(char) +
-            sizeof(size_t) +
-            sizeof(char) +
-            std::get<1>(data);
-
-        char* buffer = new char[bufferSize];
-        char* ptr = buffer;
-
-        char separator = NC_SEPARATOR;
-
-        std::cout << "\nSENT\n";
-        print(std::get<0>(data), std::get<1>(data));
-        std::cout << "\n----\n";
-
-        std::memcpy(ptr, &CORE_NC_UPDATE_STATE, strlen(CORE_NC_UPDATE_STATE) * sizeof(char));
-        ptr += strlen(CORE_NC_UPDATE_STATE) * sizeof(char);
-        std::memcpy(ptr, &separator, sizeof(char));
-        ptr += sizeof(char);
-        std::memcpy(ptr, &std::get<1>(data), sizeof(size_t));
-        ptr += sizeof(size_t);
-        std::memcpy(ptr, &separator, sizeof(char));
-        ptr += sizeof(char);
-        std::memcpy(ptr, std::get<0>(data), std::get<1>(data));
-        ptr += std::get<1>(data);
-
-        netServer->broadcastToRoom(buffer, bufferSize, cs);
-        delete std::get<0>(data);
+        sendServerStateData(cs);
+        ss << 1;
     }
     else
     {
-        send(cs, CORE_NC_PLAYCARD, strlen(CORE_NC_PLAYCARD), 0);
+        ss << 0;
     }
+    std::string str = ss.str();
+    const char* response = str.c_str();
+    send(cs, response, strlen(response), 0);
 }
 
 void netGameStateManager::setStateNet(char* buffer, size_t size)
@@ -146,9 +230,8 @@ void netGameStateManager::setStateNet(char* buffer, size_t size)
 
     setState(ptr, bufferSize);
 
-    if (actionCallback != nullptr)
+    if(gameStateUpdatedCallback != nullptr)
     {
-        actionCallback->set_value(true);
-        actionCallback = nullptr;
+        gameStateUpdatedCallback->set_value(true);
     }
 }
