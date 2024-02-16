@@ -314,12 +314,12 @@ void gameStateManager::print(const char* buffer, size_t size)
     ptr += tSize;
 }
 
-bool gameStateManager::canSkipTurn()
+bool gameStateManager::canSkipTurn() const
 {
     return currentPlayerCardsDraw > 0;
 }
 
-bool gameStateManager::canDrawCard()
+bool gameStateManager::canDrawCard() const
 {
     return currentPlayerCardsDraw == 0;
 }

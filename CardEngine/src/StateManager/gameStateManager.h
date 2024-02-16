@@ -42,8 +42,8 @@ public:
     virtual bool playerHasValidCardOnHand(turnSystem::IPlayer* player);
     int getStartHandSize();
     bool canYellUno();
-    bool canSkipTurn();
-    bool canDrawCard();
+    bool canSkipTurn() const;
+    bool canDrawCard() const;
     void skipTurn();
     void cheatWin();
     void endGame();

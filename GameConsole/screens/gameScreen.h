@@ -4,6 +4,7 @@
 #include "transitionData.h"
 #include "StateManager/gameStateManager.h"
 #include "coreEventIds.h"
+#include "popupWindow.h"
 #include "StateManager/gameEventData.h"
 #include "../renderer/elements/card.h"
 
@@ -17,8 +18,7 @@ namespace screens
         size_t handCardsPoolId;
         std::vector<button> cardListButtons;
         button optionButtons[3];
-        button popupButton;
-        bool isPopupOpen = false;
+        popupWindow popup;
         bool selectingCards = false;
         bool selectingOptions = false;
         int currentCardButton = 0;
@@ -70,7 +70,7 @@ namespace screens
     public:
         gameScreen(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events,
                    std::shared_ptr<gameStateManager> gameManager)
-            : IScreen(rdr, events), gameManager(gameManager)
+            : IScreen(rdr, events), gameManager(gameManager), popup(popupWindow(rdr.get()))
         {
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
             {
@@ -136,8 +136,6 @@ namespace screens
         void setCardData(elements::card* cardElement, cards::ICard* card, bool hidden);
         void updateTopCard();
         void updateCurrentPlayerName() const;
-        void hidePopup();
-        void openWarningPopup(std::string bodyText);
         void selectCard(int index);
         void switchToCards();
         void switchToOptions();
