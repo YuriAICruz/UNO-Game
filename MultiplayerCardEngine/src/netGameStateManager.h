@@ -15,10 +15,13 @@ private:
     std::promise<bool>* tryStartGameCallback = nullptr;
     std::promise<bool>* gameStateUpdatedCallback = nullptr;
     bool isHost = false;
+    bool isServer = false;
 
 public:
     netGameStateManager(std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<client> cl);
+    void createServerCustomCommands();
     netGameStateManager(std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<client> cl, std::shared_ptr<server> sv);
+    netGameStateManager(std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<server> sv);
     void startGame() override;
     void tryStartGame(const std::string& msg, SOCKET cs);
     void gameStartCallback(const std::string& msg);

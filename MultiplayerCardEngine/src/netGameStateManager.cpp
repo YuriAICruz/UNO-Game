@@ -8,38 +8,39 @@
 #include "netCommands.h"
 #include "stringUtils.h"
 
-netGameStateManager::netGameStateManager(std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<client> cl)
-    : gameStateManager(events), netClient(cl), isHost(false)
+netGameStateManager::netGameStateManager(
+    std::shared_ptr<eventBus::eventBus> events,
+    std::shared_ptr<client> cl
+) :
+    gameStateManager(events), netClient(cl), isHost(false)
 {
     createClientCustomCommands();
 }
 
-netGameStateManager::netGameStateManager(std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<client> cl,
-                                         std::shared_ptr<server> sv) : gameStateManager(events), netClient(cl),
-                                                                       netServer(sv), isHost(true)
+netGameStateManager::netGameStateManager(
+    std::shared_ptr<eventBus::eventBus> events,
+    std::shared_ptr<client> cl,
+    std::shared_ptr<server> sv
+) :
+    gameStateManager(events), netClient(cl),
+    netServer(sv), isHost(true), isServer(true)
 {
     createClientCustomCommands();
-    std::map<std::string, std::function<void (std::string&, SOCKET)>> commands = {
-        {
-            CORE_NC_PLAYCARD, [this](std::string& msg, SOCKET cs)
-            {
-                tryExecuteNetPlayerAction(msg, cs);
-            }
-        },
-        {
-            CORE_NC_GAME_START, [this](std::string& msg, SOCKET cs)
-            {
-                tryStartGame(msg, cs);
-            }
-        }
-    };
+    createServerCustomCommands();
+}
 
-    sv->addCustomCommands(commands);
+netGameStateManager::netGameStateManager(
+    std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<server> sv
+) :
+    gameStateManager(events),
+    netServer(sv), isHost(false), isServer(true)
+{
+    createServerCustomCommands();
 }
 
 void netGameStateManager::startGame()
 {
-    if (!isHost && !running)
+    if (!isServer && !running)
     {
         std::promise<bool> promise;
         std::promise<bool> promiseState;
@@ -57,7 +58,7 @@ void netGameStateManager::startGame()
 
 void netGameStateManager::tryStartGame(const std::string& msg, SOCKET cs)
 {
-    if (!isHost)
+    if (!isServer)
     {
         return;
     }
@@ -111,8 +112,32 @@ void netGameStateManager::createClientCustomCommands()
     netClient->addCustomRawCommands(rawCommands);
 }
 
+void netGameStateManager::createServerCustomCommands()
+{
+    std::map<std::string, std::function<void (std::string&, SOCKET)>> commands = {
+        {
+            CORE_NC_PLAYCARD, [this](std::string& msg, SOCKET cs)
+            {
+                tryExecuteNetPlayerAction(msg, cs);
+            }
+        },
+        {
+            CORE_NC_GAME_START, [this](std::string& msg, SOCKET cs)
+            {
+                tryStartGame(msg, cs);
+            }
+        }
+    };
+
+    netServer->addCustomCommands(commands);
+}
+
 bool netGameStateManager::isCurrentPlayer()
 {
+    if (isServer && !isHost)
+    {
+        return false;
+    }
     return getCurrentPlayer()->Id() == netClient->getId();
 }
 
@@ -123,6 +148,16 @@ bool netGameStateManager::tryExecutePlayerAction(cards::ICard* card)
 
 bool netGameStateManager::tryExecutePlayerAction(int index)
 {
+    if (isServer && !isHost)
+    {
+        throw std::exception("invalid action, pure server can't execute this");
+    }
+
+    if(!isCurrentPlayer())
+    {
+        return false;
+    }
+    
     if (tryExecuteActionCallback != nullptr)
     {
         tryExecuteActionCallback->get_future().wait();
@@ -140,7 +175,7 @@ bool netGameStateManager::tryExecutePlayerAction(int index)
 }
 
 void netGameStateManager::netPlayerActionCallback(const std::string& msg)
-{    
+{
     std::vector<std::string> data = stringUtils::splitString(msg);
     if (tryExecuteActionCallback != nullptr)
     {
@@ -151,7 +186,7 @@ void netGameStateManager::netPlayerActionCallback(const std::string& msg)
 
 void netGameStateManager::sendServerStateData(SOCKET cs)
 {
-    if (!isHost)
+    if (!isServer)
     {
         return;
     }
@@ -192,10 +227,10 @@ void netGameStateManager::tryExecuteNetPlayerAction(const std::string& msg, SOCK
     std::vector<std::string> data = stringUtils::splitString(msg);
     int index = std::stoi(data[1]);
     turnSystem::IPlayer* currentPlayer = getCurrentPlayer();
-    
+
     std::stringstream ss;
     ss << CORE_NC_PLAYCARD << NC_SEPARATOR;
-    
+
     if (gameStateManager::tryExecutePlayerAction(currentPlayer->pickCard(index)))
     {
         sendServerStateData(cs);
@@ -230,7 +265,7 @@ void netGameStateManager::setStateNet(char* buffer, size_t size)
 
     setState(ptr, bufferSize);
 
-    if(gameStateUpdatedCallback != nullptr)
+    if (gameStateUpdatedCallback != nullptr)
     {
         gameStateUpdatedCallback->set_value(true);
     }
