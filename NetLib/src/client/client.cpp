@@ -2,8 +2,8 @@
 
 #include <future>
 #include <string>
-#include <WS2tcpip.h>
 #include <thread>
+
 #include "../logger.h"
 #include "../serverCommands.h"
 #include "../stringUtils.h"
@@ -176,12 +176,19 @@ namespace netcode
 
         logger::print("CLIENT: closing client . . .");
 
+
+        if (running)
+        {
+            closesocket(clientSocket);
+            WSACleanup();
+        }
+
+        if (connected)
+        {
+            freeaddrinfo(addr_info);
+        }
         running = false;
         connected = false;
-
-        freeaddrinfo(addr_info);
-        closesocket(clientSocket);
-        WSACleanup();
         return 0;
     }
 

@@ -3,6 +3,7 @@
 #include "client/client.h"
 #include "transitionData.h"
 #include "buttons.h"
+#include "popupWindow.h"
 #include "EventBus/eventBus.h"
 
 namespace screens
@@ -13,8 +14,9 @@ namespace screens
         size_t titleId;
         int currentButton = 0;
         button buttons[3];
+        popupWindow popup;
         std::shared_ptr<netcode::client> netClient;
-        std::string serverAddr = "tcp://127.0.0.1:8080";
+        std::string serverAddr{"tcp://127.0.0.1:8080"};
 
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
@@ -56,7 +58,7 @@ namespace screens
             std::shared_ptr<netcode::client> cl
         ):
             IScreen(rdr, events),
-            netClient(cl)
+            netClient(cl), popup(popupWindow(rdr.get()))
         {
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
             {
@@ -84,14 +86,23 @@ namespace screens
         }
 
         void show() override;
+        void hide() override;
         void moveUp(input::inputData data) override;
         void moveDown(input::inputData data) override;
         void moveLeft(input::inputData data) override;
         void moveRight(input::inputData data) override;
         void accept(input::inputData data) override;
+        void returnToPreviousScreen();
         void cancel(input::inputData data) override;
 
     private:
         void updateServerAddress();
+        template <class T>
+        bool editBoxSetup(std::string title, T& data, std::string& newValue);
+        void editBoxTearDown(const std::function<void()>& callback);
+        void openStringEditBox(std::string title, std::string& data, const std::function<void()>& callback);
+        void tryConnectClient();
+        void selectButton(int index) const;
+        void deselectButton(int index) const;
     };
 }
