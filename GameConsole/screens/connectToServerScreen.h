@@ -49,6 +49,12 @@ namespace screens
                     std::bind(&connectToServerScreen::onShow, this, std::placeholders::_1)
                 }
             },
+            {
+                NAVIGATION_NETWORK_ROOMS,
+                eventBus::delegate<transitionData>{
+                    std::bind(&connectToServerScreen::onShow, this, std::placeholders::_1)
+                }
+            },
         };
 
     public:
