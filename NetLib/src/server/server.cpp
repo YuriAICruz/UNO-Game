@@ -333,8 +333,7 @@ namespace netcode
         std::string str = ss.str();
         const char* responseData = str.c_str();
 
-        broadcastToRoom(responseData, strlen(responseData), clientSocket);
-        //sendMessage(clientSocket, responseData, strlen(responseData), 0);
+        sendMessage(clientSocket, responseData, strlen(responseData), 0);
         logger::print((logger::getPrinter() << "SERVER: created room with id" << id << "").str());
     }
 
@@ -373,7 +372,7 @@ namespace netcode
         std::string str = ss.str();
         const char* responseData = str.c_str();
 
-        sendMessage(clientSocket, responseData, strlen(responseData), 0);
+        broadcastToRoom(responseData, strlen(responseData), clientSocket);
         logger::print((logger::getPrinter() << "SERVER: added client to room with id [" << id << "]").str());
     }
 
