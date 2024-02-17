@@ -162,6 +162,10 @@ void netGameStateManager::gameStartCallback(const std::string& msg)
         gameStateManager::startGame();
     }
 
+    if (onRoomGameStarted != nullptr)
+    {
+        onRoomGameStarted();
+    }
     if (tryStartGameCallback != nullptr)
     {
         tryStartGameCallback->set_value(true);

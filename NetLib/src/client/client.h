@@ -96,6 +96,7 @@ namespace netcode
         };
 
     public:
+        std::function<void (room*)> onRoomUpdate;
         client() = default;
 
         int start(std::string addr = "ftp://127.0.0.1:8080");

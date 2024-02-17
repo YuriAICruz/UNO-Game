@@ -1,72 +1,65 @@
 ﻿#pragma once
 #include "buttons.h"
-#include "editBox.h"
 #include "IScreen.h"
-#include "popupWindow.h"
+#include "netGameStateManager.h"
 #include "transitionData.h"
 #include "client/client.h"
 
 namespace screens
 {
-    class roomCreationScreen : public screens::IScreen
+    class roomWaitingScreen : public IScreen
     {
     private:
-        size_t titleId;
+        int titleId;
         int currentButton = 0;
-        button buttons[2];
-        popupWindow popup;
-        editBox box;
+        button buttons[3];
         std::shared_ptr<netcode::client> netClient;
+        netGameStateManager* netGameManager;
 
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
                 NAVIGATION_MAIN_MENU,
                 eventBus::delegate<transitionData>{
-                    std::bind(&roomCreationScreen::onHide, this, std::placeholders::_1)
+                    std::bind(&roomWaitingScreen::onHide, this, std::placeholders::_1)
                 }
             },
             {
                 NAVIGATION_SETTINGS,
                 eventBus::delegate<transitionData>{
-                    std::bind(&roomCreationScreen::onHide, this, std::placeholders::_1)
+                    std::bind(&roomWaitingScreen::onHide, this, std::placeholders::_1)
                 }
             },
             {
                 NAVIGATION_GAME,
                 eventBus::delegate<transitionData>{
-                    std::bind(&roomCreationScreen::onHide, this, std::placeholders::_1)
+                    std::bind(&roomWaitingScreen::onHide, this, std::placeholders::_1)
                 }
             },
             {
                 NAVIGATION_GAME_OVER,
                 eventBus::delegate<transitionData>{
-                    std::bind(&roomCreationScreen::onHide, this, std::placeholders::_1)
+                    std::bind(&roomWaitingScreen::onHide, this, std::placeholders::_1)
                 }
             },
             {
                 NAVIGATION_NETWORK_CONNECT,
                 eventBus::delegate<transitionData>{
-                    std::bind(&roomCreationScreen::onHide, this, std::placeholders::_1)
+                    std::bind(&roomWaitingScreen::onHide, this, std::placeholders::_1)
                 }
             },
             {
                 NAVIGATION_NETWORK_ROOMS,
                 eventBus::delegate<transitionData>{
-                    std::bind(&roomCreationScreen::onShow, this, std::placeholders::_1)
-                }
-            },
-            {
-                NAVIGATION_NETWORK_WAIT_ROOM,
-                eventBus::delegate<transitionData>{
-                    std::bind(&roomCreationScreen::onHide, this, std::placeholders::_1)
+                    std::bind(&roomWaitingScreen::onHide, this, std::placeholders::_1)
                 }
             },
         };
 
     public:
-        roomCreationScreen(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events,
-            std::shared_ptr<netcode::client> cl)
-            : IScreen(rdr, events), netClient(cl), popup(popupWindow{rdr.get()}), box(editBox(rdr.get()))
+        roomWaitingScreen(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events,
+                          std::shared_ptr<netcode::client> cl
+                          )
+            : IScreen(rdr, events), netClient(cl)
         {
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
             {
@@ -75,14 +68,13 @@ namespace screens
             }
         }
 
-        ~roomCreationScreen() override
+        ~roomWaitingScreen() override
         {
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
             {
                 events->unsubscribe<transitionData>(transitionMap.first, transitionMap.second);
             }
         }
-
 
         void onHide(transitionData data)
         {
@@ -102,13 +94,11 @@ namespace screens
         void moveRight(input::inputData data) override;
         void accept(input::inputData data) override;
         void cancel(input::inputData data) override;
-        void returnToMainScreen();
+        void setGameManager(netGameStateManager* gameManager);
 
     private:
-        void createNewRoom();
-        void listRooms();
-        void moveToNextRoom();
-        void clearRoomsList();
+        void updateStartButton(netcode::room* room);
+        void goToGameScreen();
         void selectButton(int index) const;
         void deselectButton(int index) const;
     };

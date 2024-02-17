@@ -365,7 +365,14 @@ namespace netcode
                 ss << NC_SEPARATOR;
             }
         }
+
         currentRoom = room::constructRoom(ss.str());
+
+        if (onRoomUpdate != nullptr)
+        {
+            onRoomUpdate(&currentRoom);
+        }
+
         if (roomCallback != nullptr)
         {
             roomCallback->set_value(&currentRoom);

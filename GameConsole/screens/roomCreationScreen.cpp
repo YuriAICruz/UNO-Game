@@ -179,7 +179,7 @@ namespace screens
         box.openStringEditBox("Enter Room Name", roomName, [this, roomName]
         {
             netClient->createRoom(roomName);
-            events->fireEvent(NAVIGATION_ONLINE_GAME, transitionData());
+            moveToNextRoom();
         });
     }
 
@@ -212,7 +212,7 @@ namespace screens
                         return;
                     }
                     index = std::stoul(strIndex);
-                    if(index < rooms.size() && index >= 0)
+                    if (index < rooms.size() && index >= 0)
                     {
                         break;
                     }
@@ -229,8 +229,15 @@ namespace screens
 
             netClient->enterRoom(rooms[index].getId());
             clearRoomsList();
-            
+
+            moveToNextRoom();
         });
+    }
+
+    void roomCreationScreen::moveToNextRoom()
+    {
+        events->fireEvent(NAVIGATION_NETWORK_WAIT_ROOM, transitionData());
+        hide();
     }
 
     void roomCreationScreen::clearRoomsList()

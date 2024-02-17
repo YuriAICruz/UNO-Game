@@ -157,6 +157,7 @@
     <ClCompile Include="screens\mainMenuScreen.cpp" />
     <ClCompile Include="screens\popupWindow.cpp" />
     <ClCompile Include="screens\roomCreationScreen.cpp" />
+    <ClCompile Include="screens\roomWaitingScreen.cpp" />
     <ClCompile Include="screens\settingsMenuScreen.cpp" />
     <ClCompile Include="screens\transitionData.cpp" />
     <ClCompile Include="wInclude.cpp" />
@@ -198,6 +199,7 @@
     <ClInclude Include="screens\mainMenuScreen.h" />
     <ClInclude Include="screens\popupWindow.h" />
     <ClInclude Include="screens\roomCreationScreen.h" />
+    <ClInclude Include="screens\roomWaitingScreen.h" />
     <ClInclude Include="screens\settingsMenuScreen.h" />
     <ClInclude Include="screens\transitionData.h" />
     <ClInclude Include="wInclude.h" />

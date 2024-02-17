@@ -14,6 +14,7 @@
 #include "StateManager/gameStateManager.h"
 #include "client/client.h"
 #include "screens/roomCreationScreen.h"
+#include "screens/roomWaitingScreen.h"
 
 int main()
 {
@@ -74,6 +75,11 @@ int main()
         strapper->create<eventBus::eventBus>(),
         strapper->create<netcode::client>()
     );
+    std::shared_ptr<screens::roomWaitingScreen> roomWaiting = std::make_shared<screens::roomWaitingScreen>(
+        strapper->create<renderer::renderer>(),
+        strapper->create<eventBus::eventBus>(),
+        strapper->create<netcode::client>()
+    );
 
     events->subscribe<screens::transitionData>(
         NAVIGATION_MAIN_MENU, [settingsMenu, gameManager, netGameManager](screens::transitionData data)
@@ -91,6 +97,12 @@ int main()
             game->setGameManager(gameManager.get());
             game->show();
             gameManager->startGame();
+        });
+    events->subscribe<screens::transitionData>(
+        NAVIGATION_NETWORK_WAIT_ROOM, [roomWaiting, netGameManager](screens::transitionData data)
+        {
+            roomWaiting->setGameManager(netGameManager.get());
+            roomWaiting->show();
         });
     events->subscribe<screens::transitionData>(
         NAVIGATION_ONLINE_GAME, [game, settingsMenu, netGameManager](screens::transitionData data)

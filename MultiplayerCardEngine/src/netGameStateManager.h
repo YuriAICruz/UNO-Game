@@ -19,9 +19,13 @@ private:
     bool isServer = false;
 
 public:
+    std::function<void()> onRoomGameStarted;
+
+public:
     netGameStateManager(std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<netcode::client> cl);
     void createServerCustomCommands();
-    netGameStateManager(std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<netcode::client> cl, std::shared_ptr<netcode::server> sv);
+    netGameStateManager(std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<netcode::client> cl,
+                        std::shared_ptr<netcode::server> sv);
     netGameStateManager(std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<netcode::server> sv);
     void setupGame(
         std::vector<std::string>& players,
