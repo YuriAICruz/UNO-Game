@@ -42,7 +42,7 @@ namespace screens
             }, '+', 'g', "", "Server Address");
         buttons[0].action = [this]()
         {
-            box.openStringEditBox("Server Address [use tcp://]", serverAddr, [this]
+            box.openStringEditBox("Server Address [use tcp://]", serverAddr, [this](std::string)
             {
                 updateServerAddress();
             });

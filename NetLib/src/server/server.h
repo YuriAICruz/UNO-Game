@@ -145,5 +145,6 @@ namespace netcode
         void updateClientName(const std::string& message, SOCKET clientSocket);
         void getSeed(const std::string& message, SOCKET clientSocket);
         void setSeed(const std::string& message, SOCKET clientSocket);
+        void sendMessage(SOCKET clientSocket, const char* responseData, int len, int flags) const;
     };
 }

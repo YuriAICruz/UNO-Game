@@ -211,9 +211,14 @@ namespace netcode
 
     void client::enterRoom(int id)
     {
+        std::promise<room*> promise;
+        roomCallback = &promise;
+        auto future = promise.get_future();
         std::stringstream ss;
         ss << NC_ENTER_ROOM << NC_SEPARATOR << id;
         sendMessage(ss.str().c_str());
+        future.wait();
+        roomCallback = nullptr;
     }
 
     bool client::hasRoom()
@@ -248,10 +253,16 @@ namespace netcode
         return future.get();
     }
 
-    void client::getRooms(std::function<void(std::vector<room>)> callback)
+    std::vector<room> client::getRooms()
     {
-        roomsCallback = callback;
+        std::promise<std::vector<room>> promise;
+        roomsCallback = &promise;
+        auto future = promise.get_future();
+
         sendMessage(NC_LIST_ROOMS);
+        future.wait();
+        roomsCallback = nullptr;
+        return future.get();
     }
 
     std::string& client::getRoomName()
@@ -413,8 +424,7 @@ namespace netcode
 
         if (roomsCallback != nullptr)
         {
-            roomsCallback(lastRoomsList);
-            roomsCallback = nullptr;
+            roomsCallback->set_value(lastRoomsList);
         }
     }
 

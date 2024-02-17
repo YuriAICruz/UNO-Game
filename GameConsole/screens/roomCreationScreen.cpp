@@ -176,62 +176,62 @@ namespace screens
     void roomCreationScreen::createNewRoom()
     {
         std::string roomName = "New Room";
-        box.openStringEditBox("Enter Room Name", roomName, [this, roomName]
+        box.openStringEditBox("Enter Room Name", roomName, [this, roomName](const std::string& newValue)
         {
-            netClient->createRoom(roomName);
+            netClient->createRoom(newValue);
             moveToNextRoom();
         });
     }
 
     void roomCreationScreen::listRooms()
     {
-        netClient->getRooms([this](std::vector<netcode::room> rooms)
+        blockInputs = true;
+        rdr->blank();
+
+        std::vector<netcode::room> rooms = netClient->getRooms();
+
+        std::cout << "Rooms available on the server:" << "\n";
+        int index = 0;
+        for (auto room : rooms)
         {
-            blockInputs = true;
-            rdr->blank();
-            std::cout << "Rooms available on the server:" << "\n";
-            int index = 0;
-            for (auto room : rooms)
+            std::cout << index << ": " << room.getName();
+            std::cout << ":" << room.getId();
+            std::cout << "with (" << room.count() << ") players." << "\n";
+            index++;
+        }
+
+        std::cout << "type the room index or [q] to exit.\n";
+        while (true)
+        {
+            try
             {
-                std::cout << index << ": " << room.getName();
-                std::cout << ":" << room.getId();
-                std::cout << "with (" << room.count() << ") players." << "\n";
-                index++;
+                std::string strIndex;
+                std::getline(std::cin, strIndex);
+                if (strIndex == "q")
+                {
+                    clearRoomsList();
+                    return;
+                }
+                index = std::stoul(strIndex);
+                if (index < rooms.size() && index >= 0)
+                {
+                    break;
+                }
+                std::cerr << "ERROR: Invalid index" << std::endl;
             }
-
-            std::cout << "type the room index or [q] to exit.\n";
-            while (true)
+            catch (const std::invalid_argument& e)
             {
-                try
-                {
-                    std::string strIndex;
-                    std::getline(std::cin, strIndex);
-                    if (strIndex == "q")
-                    {
-                        clearRoomsList();
-                        return;
-                    }
-                    index = std::stoul(strIndex);
-                    if (index < rooms.size() && index >= 0)
-                    {
-                        break;
-                    }
-                    std::cerr << "ERROR: Invalid index" << std::endl;
-                }
-                catch (const std::invalid_argument& e)
-                {
-                    std::cerr << "ERROR: Invalid argument: " << e.what() << std::endl;
-                } catch (const std::out_of_range& e)
-                {
-                    std::cerr << "ERROR: Out of range: " << e.what() << std::endl;
-                }
+                std::cerr << "ERROR: Invalid argument: " << e.what() << std::endl;
+            } catch (const std::out_of_range& e)
+            {
+                std::cerr << "ERROR: Out of range: " << e.what() << std::endl;
             }
+        }
 
-            netClient->enterRoom(rooms[index].getId());
-            clearRoomsList();
+        netClient->enterRoom(rooms[index].getId());
+        clearRoomsList();
 
-            moveToNextRoom();
-        });
+        moveToNextRoom();
     }
 
     void roomCreationScreen::moveToNextRoom()

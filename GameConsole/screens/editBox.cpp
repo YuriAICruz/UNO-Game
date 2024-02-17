@@ -2,17 +2,17 @@
 
 namespace screens
 {
-    void editBox::openStringEditBox(std::string title, std::string& data, const std::function<void()>& callback)
+    void editBox::openStringEditBox(std::string title, std::string& data, const std::function<void(std::string newData)>& callback)
     {
         std::string newValue;
         if (editBoxSetup(title, data, newValue))
         {
             data = newValue;
         }
-        editBoxTearDown(callback);
+        editBoxTearDown(newValue, callback);
     }
 
-    void editBox::openSizeTEditBox(std::string title, size_t& data, const std::function<void()>& callback)
+    void editBox::openSizeTEditBox(std::string title, size_t& data, const std::function<void(std::string)>& callback)
     {
         std::string newValue;
         if (editBoxSetup(title, data, newValue))
@@ -29,7 +29,7 @@ namespace screens
                 std::cerr << "ERROR: Out of range: " << e.what() << std::endl;
             }
         }
-        editBoxTearDown(callback);
+        editBoxTearDown(newValue, callback);
     }
 
     bool editBox::isBlocking()
@@ -52,9 +52,9 @@ namespace screens
         return false;
     }
 
-    void editBox::editBoxTearDown(const std::function<void()>& callback)
+    void editBox::editBoxTearDown(std::string newData, const std::function<void(std::string)>& callback)
     {
-        callback();
+        callback(newData);
         blockInputs = false;
     }
 }

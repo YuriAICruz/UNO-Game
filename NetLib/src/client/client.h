@@ -37,8 +37,8 @@ namespace netcode
         size_t id = 0;
         std::string lastResponse;
         struct addrinfo* addr_info;
-        std::function<void(std::vector<room>)> roomsCallback;
         std::vector<room> lastRoomsList;
+        std::promise<std::vector<room>>* roomsCallback;
         std::promise<room*>* roomCallback;
         std::promise<int>* seedCallback;
 
@@ -111,7 +111,7 @@ namespace netcode
         bool hasRoom();
         room* getRoom();
         int getSeed();
-        void getRooms(std::function<void (std::vector<room>)> callback);
+        std::vector<room> getRooms();
         std::string& getRoomName();
         int getRoomId();
 

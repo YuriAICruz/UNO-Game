@@ -77,7 +77,7 @@ namespace netcode
         for (auto pair : clients)
         {
             auto responseData = msg.c_str();
-            send(*pair.second->connection, responseData, strlen(responseData), 0);
+            sendMessage(*pair.second->connection, responseData, strlen(responseData), 0);
         }
     }
 
@@ -87,7 +87,7 @@ namespace netcode
         for (auto pair : room->clients())
         {
             auto responseData = msg.c_str();
-            send(*pair->connection, responseData, strlen(responseData), 0);
+            sendMessage(*pair->connection, responseData, strlen(responseData), 0);
         }
     }
 
@@ -96,7 +96,7 @@ namespace netcode
         auto room = roomManager.getRoom(getClient(cs).get());
         for (auto pair : room->clients())
         {
-            send(*pair->connection, responseData, size, 0);
+            sendMessage(*pair->connection, responseData, size, 0);
         }
     }
 
@@ -141,7 +141,8 @@ namespace netcode
             sockaddr_in clientAddr;
             int clientAddrSize = sizeof(clientAddr);
 
-            SOCKET currentClientSocket = accept(serverSocket, reinterpret_cast<SOCKADDR*>(&clientAddr), &clientAddrSize);
+            SOCKET currentClientSocket = accept(serverSocket, reinterpret_cast<SOCKADDR*>(&clientAddr),
+                                                &clientAddrSize);
             if (currentClientSocket == INVALID_SOCKET)
             {
                 logger::printError("SERVER: Accept failed");
@@ -182,7 +183,8 @@ namespace netcode
         if (!validateKey(clientSocket))
         {
             logger::printError(
-                (logger::getPrinter() << "SERVER: closing client connection [" << clientSocket << "] invalid Key").str());
+                (logger::getPrinter() << "SERVER: closing client connection [" << clientSocket << "] invalid Key").
+                str());
             closesocket(clientSocket);
             return;
         }
@@ -289,7 +291,7 @@ namespace netcode
         if (validKeys.find(keyReceived) == validKeys.end())
         {
             logger::printError("SERVER: Invalid key");
-            send(clientSocket, NC_INVALID_KEY, strlen(NC_INVALID_KEY), 0);
+            sendMessage(clientSocket, NC_INVALID_KEY, strlen(NC_INVALID_KEY), 0);
             return false;
         }
 
@@ -297,7 +299,7 @@ namespace netcode
         ss << NC_VALID_KEY << NC_SEPARATOR << connectionsCount;
         std::string str = ss.str();
         const char* response = str.c_str();
-        send(clientSocket, response, strlen(response), 0);
+        sendMessage(clientSocket, response, strlen(response), 0);
         return true;
     }
 
@@ -331,7 +333,8 @@ namespace netcode
         std::string str = ss.str();
         const char* responseData = str.c_str();
 
-        send(clientSocket, responseData, strlen(responseData), 0);
+        broadcastToRoom(responseData, strlen(responseData), clientSocket);
+        //sendMessage(clientSocket, responseData, strlen(responseData), 0);
         logger::print((logger::getPrinter() << "SERVER: created room with id" << id << "").str());
     }
 
@@ -340,7 +343,7 @@ namespace netcode
         logger::print("SERVER: listing rooms");
         std::string str = roomManager.listRooms();
         const char* responseData = str.c_str();
-        send(clientSocket, responseData, strlen(responseData), 0);
+        sendMessage(clientSocket, responseData, strlen(responseData), 0);
     }
 
     void server::getRoom(const std::string& message, SOCKET clientSocket)
@@ -353,7 +356,7 @@ namespace netcode
         ss << roomManager.getRoomSerialized(id);
         std::string str = ss.str();
         const char* responseData = str.c_str();
-        send(clientSocket, responseData, strlen(responseData), 0);
+        sendMessage(clientSocket, responseData, strlen(responseData), 0);
         logger::print((logger::getPrinter() << "SERVER: sent to client room updated data [" << id << "]").str());
     }
 
@@ -370,8 +373,8 @@ namespace netcode
         std::string str = ss.str();
         const char* responseData = str.c_str();
 
-        send(clientSocket, responseData, strlen(responseData), 0);
-        logger::print((logger::getPrinter() << "SERVER: added client to room with id" << id << "").str());
+        sendMessage(clientSocket, responseData, strlen(responseData), 0);
+        logger::print((logger::getPrinter() << "SERVER: added client to room with id [" << id << "]").str());
     }
 
     void server::exitRoom(const std::string& message, SOCKET clientSocket)
@@ -380,7 +383,7 @@ namespace netcode
         auto client = getClient(clientSocket);
         roomManager.exitRoom(client.get());
         const char* responseData = NC_EXIT_ROOM;
-        send(clientSocket, responseData, strlen(responseData), 0);
+        sendMessage(clientSocket, responseData, strlen(responseData), 0);
     }
 
     void server::updateClientName(const std::string& message, SOCKET clientSocket)
@@ -390,7 +393,7 @@ namespace netcode
         auto client = getClient(clientSocket);
         client->name = data[1];
         const char* responseData = NC_SET_NAME;
-        send(clientSocket, responseData, strlen(responseData), 0);
+        sendMessage(clientSocket, responseData, strlen(responseData), 0);
     }
 
     void server::getSeed(const std::string& message, SOCKET clientSocket)
@@ -400,10 +403,25 @@ namespace netcode
         ss << NC_GET_SEED << NC_SEPARATOR << seed;
         std::string str = ss.str();
         const char* responseData = str.c_str();
-        send(clientSocket, responseData, strlen(responseData), 0);
+        sendMessage(clientSocket, responseData, strlen(responseData), 0);
     }
 
     void server::setSeed(const std::string& message, SOCKET clientSocket)
     {
+        std::vector<std::string> data = stringUtils::splitString(message);
+        this->seed = std::stoull(data[1]);
+    }
+
+    void server::sendMessage(SOCKET clientSocket, const char* responseData, int len, int flags) const
+    {
+        auto result = send(clientSocket, responseData, len, flags);
+        if (result == SOCKET_ERROR)
+        {
+            logger::printError((logger::getPrinter() << "Failed to send message [" << result << "]").str());
+        }
+        if (result == 0)
+        {
+            logger::printError((logger::getPrinter() << "Connection closed [" << result << "]").str());
+        }
     }
 }

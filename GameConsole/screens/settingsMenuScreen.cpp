@@ -69,7 +69,7 @@ namespace screens
             ss,
             [this]
             {
-                box.openStringEditBox("Deck configuration json path", configFilePath, [this]
+                box.openStringEditBox("Deck configuration json path", configFilePath, [this](std::string)
                 {
                     std::stringstream ss;
                     ss << "Deck configuration json path: \"" << configFilePath << "\"";
@@ -92,7 +92,7 @@ namespace screens
             ss,
             [this]
             {
-                box.openSizeTEditBox("Random Seed", seed, [this]
+                box.openSizeTEditBox("Random Seed", seed, [this](std::string)
                 {
                     std::stringstream ss;
                     ss << "Random Seed: [" << seed << "]";
@@ -323,7 +323,7 @@ namespace screens
                 ss,
                 [this, i]
                 {
-                    box.openStringEditBox("Enter Player Name:", players[i], [this, i]
+                    box.openStringEditBox("Enter Player Name:", players[i], [this, i](std::string)
                     {
                         auto playerButton = static_cast<elements::card*>(rdr->getElement(playersButtons[i].id));
                         playerButton->setCenterText(players[i]);
