@@ -209,8 +209,8 @@ namespace screens
         }
         if (popup.isOpen())
         {
-            popup.executeActionAccept();
             popup.hidePopup();
+            popup.executeActionAccept();
             return;
         }
 
@@ -292,8 +292,9 @@ namespace screens
             return;
         }
 
+        blockInputs = true;
         netGameManager->setupGame(netClient->getUpdatedRoom(), handSize, cardsPath, seed);
-        netGameManager->startGame();
+        events->fireEvent(NAVIGATION_ONLINE_GAME, transitionData());
     }
 
     void roomWaitingScreen::goToGameScreen()

@@ -143,13 +143,6 @@ namespace screens
         int baseCardPoolSize = gameManager->getStartHandSize();
         expandCardsPool(baseCardPoolSize);
 
-        if (gameManager->isGameRunning())
-        {
-            showCurrentPlayerCards(true);
-        }
-
-        switchToCards();
-
         popup.show();
 
         unoYell[0].id = rdr->addElement<elements::frame>(
@@ -162,6 +155,13 @@ namespace screens
                 static_cast<SHORT>(windowSize.X + 100),
                 static_cast<SHORT>(windowSize.Y + 100)
             }, 'b', "Data\\UNO.txt");
+
+
+        if (gameManager->isGameRunning())
+        {
+            switchToCards();
+            showCurrentPlayerCards(true);
+        }
 
         rdr->setDirty();
     }
@@ -654,6 +654,11 @@ namespace screens
 
     void gameScreen::switchToCards()
     {
+        if(blockInputs)
+        {
+            return;
+        }
+        
         selectingCards = true;
         selectingOptions = false;
         selectCardButton(currentCardButton);

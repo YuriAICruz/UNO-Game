@@ -108,15 +108,12 @@ int main()
     events->subscribe<screens::transitionData>(
         NAVIGATION_ONLINE_GAME, [game, settingsMenu, netGameManager](screens::transitionData data)
         {
-            netGameManager->setupGame(
-                settingsMenu->getPlayers(),
-                settingsMenu->getHandCount(),
-                settingsMenu->getConfigFilePath(),
-                settingsMenu->getSeed()
-            );
             game->setGameManager(netGameManager.get());
             game->show();
-            netGameManager->startGame();
+            if(!netGameManager->isGameRunning())
+            {
+                netGameManager->startGame();
+            }
         });
 
     events->fireEvent(NAVIGATION_MAIN_MENU, screens::transitionData());
