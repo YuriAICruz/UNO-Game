@@ -76,4 +76,14 @@ namespace netcode
     {
         return rooms[id].getRoomSerialized(id);
     }
+
+    void roomManager::clientDisconnected(clientInfo* client)
+    {
+        auto room = getRoom(client);
+        if(room == nullptr)
+        {
+            return;
+        }
+        room->removeClient(client);
+    }
 }

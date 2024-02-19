@@ -34,6 +34,7 @@ namespace screens
         int offset = 1;
         lastX = windowSize.X / 2 - buttonWidth / 2;
 
+
         lastY += buttonHeight + offset;
         buttons[0].id = rdr->addElement<elements::card>(
             COORD{
@@ -47,27 +48,20 @@ namespace screens
             ' ',
             'g',
             "",
-            "Ready"
+            "Number of Starting Cards []"
         );
-
-        lastY += buttonHeight + offset;
-        buttons[1].id = rdr->addElement<elements::card>(
-            COORD{
-                static_cast<SHORT>(lastX),
-                static_cast<SHORT>(lastY)
-            },
-            COORD{
-                static_cast<SHORT>(buttonWidth),
-                static_cast<SHORT>(buttonHeight)
-            },
-            ' ',
-            'g',
-            "",
-            "Return"
-        );
+        buttons[0].actionLeft = [this]
+        {
+            decreaseStartingCards();
+        };
+        buttons[0].actionRight = [this]
+        {
+            increaseStartingCards();
+        };
+        updateStatingCardsCount();
 
         lastY += (buttonHeight + offset) * 2;
-        buttons[2].id = rdr->addElement<elements::card>(
+        buttons[1].id = rdr->addElement<elements::card>(
             COORD{
                 static_cast<SHORT>(lastX),
                 static_cast<SHORT>(lastY)
@@ -81,8 +75,32 @@ namespace screens
             "",
             "Start"
         );
+        buttons[1].action = [this]
+        {
+            startRoomGame();
+        };
 
-        updateStartButton(netClient->getRoom());
+        lastY += buttonHeight + offset;
+        buttons[2].id = rdr->addElement<elements::card>(
+            COORD{
+                static_cast<SHORT>(lastX),
+                static_cast<SHORT>(lastY)
+            },
+            COORD{
+                static_cast<SHORT>(buttonWidth),
+                static_cast<SHORT>(buttonHeight)
+            },
+            ' ',
+            'g',
+            "",
+            "Return"
+        );
+        buttons[2].action = [this]
+        {
+            tryExitRoom();
+        };
+
+        updateStartButton(netClient->getUpdatedRoom());
         netClient->onRoomUpdate = [this](netcode::room* r)
         {
             updateStartButton(r);
@@ -92,6 +110,8 @@ namespace screens
             goToGameScreen();
         };
 
+        popup.show();
+
         selectButton(currentButton);
 
         rdr->setDirty();
@@ -100,6 +120,7 @@ namespace screens
     void roomWaitingScreen::hide()
     {
         IScreen::hide();
+        popup.hide();
     }
 
     void roomWaitingScreen::moveUp(input::inputData data)
@@ -108,16 +129,10 @@ namespace screens
         {
             return;
         }
-
-        deselectButton(currentButton);
-        currentButton = (1 + currentButton) % std::size(buttons);
-        selectButton(currentButton);
-    }
-
-    void roomWaitingScreen::moveDown(input::inputData data)
-    {
-        if (blockInputs)
+        if (popup.isOpen())
         {
+            popup.executeActionCancel();
+            popup.hidePopup();
             return;
         }
 
@@ -130,11 +145,40 @@ namespace screens
         selectButton(currentButton);
     }
 
+    void roomWaitingScreen::moveDown(input::inputData data)
+    {
+        if (blockInputs)
+        {
+            return;
+        }
+        if (popup.isOpen())
+        {
+            popup.executeActionCancel();
+            popup.hidePopup();
+            return;
+        }
+
+        deselectButton(currentButton);
+        currentButton = (1 + currentButton) % std::size(buttons);
+        selectButton(currentButton);
+    }
+
     void roomWaitingScreen::moveLeft(input::inputData data)
     {
         if (blockInputs)
         {
             return;
+        }
+        if (popup.isOpen())
+        {
+            popup.executeActionCancel();
+            popup.hidePopup();
+            return;
+        }
+
+        if (buttons[currentButton].actionLeft != nullptr)
+        {
+            buttons[currentButton].actionLeft();
         }
     }
 
@@ -144,6 +188,17 @@ namespace screens
         {
             return;
         }
+        if (popup.isOpen())
+        {
+            popup.executeActionCancel();
+            popup.hidePopup();
+            return;
+        }
+
+        if (buttons[currentButton].actionRight != nullptr)
+        {
+            buttons[currentButton].actionRight();
+        }
     }
 
     void roomWaitingScreen::accept(input::inputData data)
@@ -151,6 +206,17 @@ namespace screens
         if (blockInputs)
         {
             return;
+        }
+        if (popup.isOpen())
+        {
+            popup.executeActionAccept();
+            popup.hidePopup();
+            return;
+        }
+
+        if (buttons[currentButton].action != nullptr)
+        {
+            buttons[currentButton].action();
         }
     }
 
@@ -160,11 +226,25 @@ namespace screens
         {
             return;
         }
+        if (popup.isOpen())
+        {
+            popup.executeActionCancel();
+            popup.hidePopup();
+            return;
+        }
+
+        tryExitRoom();
     }
 
     void roomWaitingScreen::setGameManager(netGameStateManager* gameManager)
     {
         netGameManager = gameManager;
+    }
+
+    void roomWaitingScreen::setGameSettings(std::string cardsPath, size_t seed)
+    {
+        this->cardsPath = cardsPath;
+        this->seed = seed;
     }
 
     void roomWaitingScreen::updateStartButton(netcode::room* room)
@@ -174,12 +254,46 @@ namespace screens
             return;
         }
 
-        auto button = dynamic_cast<elements::card*>(rdr->getElement(buttons[2].id));
+        auto button = dynamic_cast<elements::card*>(rdr->getElement(buttons[1].id));
 
         std::stringstream ss;
         ss << "[" << room->count() << "] players in room, Start?";
         button->setCenterText(ss.str());
         rdr->setDirty();
+    }
+
+    void roomWaitingScreen::tryExitRoom()
+    {
+        popup.clearActions();
+        popup.assignActionAccept([this]
+        {
+            exitRoomAndReturnToMainScreen();
+        });
+        popup.openWarningPopup("Are you sure you want to return to the main menu?");
+    }
+
+    void roomWaitingScreen::exitRoomAndReturnToMainScreen()
+    {
+        netClient->exitRoom();
+        events->fireEvent(NAVIGATION_MAIN_MENU, transitionData());
+    }
+
+    void roomWaitingScreen::startRoomGame()
+    {
+        if (blockInputs)
+        {
+            return;
+        }
+
+        if (netClient->getRoomCount() <= 1)
+        {
+            popup.clearActions();
+            popup.openWarningPopup("Not enough players available");
+            return;
+        }
+
+        netGameManager->setupGame(netClient->getUpdatedRoom(), handSize, cardsPath, seed);
+        netGameManager->startGame();
     }
 
     void roomWaitingScreen::goToGameScreen()
@@ -191,6 +305,24 @@ namespace screens
 
         events->fireEvent(NAVIGATION_ONLINE_GAME, transitionData());
         hide();
+    }
+
+    void roomWaitingScreen::updateStatingCardsCount()
+    {
+        auto button = dynamic_cast<elements::card*>(rdr->getElement(buttons[0].id));
+        std::stringstream ss;
+        ss << "Number of starting cards [" << handSize << "]";
+        button->setCenterText(ss.str());
+    }
+
+    void roomWaitingScreen::decreaseStartingCards()
+    {
+        handSize = max(4, handSize-1);
+    }
+
+    void roomWaitingScreen::increaseStartingCards()
+    {
+        handSize = min(12, handSize+1);
     }
 
     void roomWaitingScreen::selectButton(int index) const

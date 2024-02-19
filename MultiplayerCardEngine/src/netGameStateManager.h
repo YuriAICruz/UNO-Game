@@ -27,18 +27,28 @@ public:
     netGameStateManager(std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<netcode::client> cl,
                         std::shared_ptr<netcode::server> sv);
     netGameStateManager(std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<netcode::server> sv);
+
+    void setupGame(
+        netcode::room* room,
+        int handSize,
+        std::string deckConfigFilePath,
+        size_t seed);
+
     void setupGame(
         std::vector<std::string>& players,
         int handSize,
         std::string deckConfigFilePath,
         size_t seed) override;
+
     void setupGame(
-        std::vector<std::string>& players,
-        std::vector<size_t>& playersIds,
+        std::vector<std::string> players,
+        std::vector<uint16_t> playersIds,
         int handSize,
         std::string deckConfigFilePath,
         size_t seed) override;
+
     void sendGameSettings(std::string path);
+    void decryptGameSettingsAndSetup(const std::string& msg);
     void trySetGameSettings(const std::string& msg, SOCKET cs);
     void gameSettingsCallback(const std::string& msg);
     void startGame() override;

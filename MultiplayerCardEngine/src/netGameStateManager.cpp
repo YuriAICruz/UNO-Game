@@ -39,23 +39,34 @@ netGameStateManager::netGameStateManager(
     createServerCustomCommands();
 }
 
+void netGameStateManager::setupGame(netcode::room* room, int handSize, std::string deckConfigFilePath,
+                                    size_t seed)
+{
+    if (isServer && !isHost)
+    {
+        throw std::exception("client method called in the server");
+    }
+    gameStateManager::setupGame(room->getClientsNames(), room->getClientsIds(), handSize, deckConfigFilePath, seed);
+    sendGameSettings(deckConfigFilePath);
+}
+
 void netGameStateManager::setupGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath,
                                     size_t seed)
 {
-    if(isServer && !isHost)
+    if (isServer && !isHost)
     {
-        return;
+        throw std::exception("client method called in the server");
     }
     gameStateManager::setupGame(players, handSize, deckConfigFilePath, seed);
     sendGameSettings(deckConfigFilePath);
 }
 
-void netGameStateManager::setupGame(std::vector<std::string>& players, std::vector<size_t>& playersIds, int handSize,
+void netGameStateManager::setupGame(std::vector<std::string> players, std::vector<uint16_t> playersIds, int handSize,
                                     std::string deckConfigFilePath, size_t seed)
 {
-    if(isServer && !isHost)
+    if (isServer && !isHost)
     {
-        return;
+        throw std::exception("client method called in the server");
     }
     gameStateManager::setupGame(players, playersIds, handSize, deckConfigFilePath, seed);
     sendGameSettings(deckConfigFilePath);
@@ -93,7 +104,7 @@ void netGameStateManager::sendGameSettings(std::string path)
     }
 }
 
-void netGameStateManager::trySetGameSettings(const std::string& msg, SOCKET cs)
+void netGameStateManager::decryptGameSettingsAndSetup(const std::string& msg)
 {
     auto data = stringUtils::splitString(msg);
 
@@ -101,22 +112,43 @@ void netGameStateManager::trySetGameSettings(const std::string& msg, SOCKET cs)
     std::string path = data[2];
     size_t seed = std::stoull(data[3]);
     int size = std::stoi(data[4]);
-    std::vector<size_t> ids;
+    std::vector<uint16_t> ids;
     std::vector<std::string> names;
     ids.resize(size);
     names.resize(size);
+
     for (int i = 0; i < size; ++i)
     {
-        ids[i] = std::stoi(data[5+i]);
-        names[i] = std::to_string(ids[i]);
-    }
-    gameStateManager::setupGame(names, ids, hand, path, seed);
+        ids[i] = std::stoi(data[5 + i]);
 
-    send(cs, CORE_NC_GAME_SETTINGS, strlen(CORE_NC_GAME_SETTINGS), 0);
+        if (!isServer || isHost)
+        {
+            auto room = netClient->getRoom();
+            names[i] = room->getClientName(ids[i]);
+        }
+        else
+        {
+            names[i] = std::to_string(ids[i]);
+        }
+    }
+
+
+    gameStateManager::setupGame(names, ids, hand, path, seed);
+}
+
+void netGameStateManager::trySetGameSettings(const std::string& msg, SOCKET cs)
+{
+    logger::print("SERVER: Updating Game Settings");
+    decryptGameSettingsAndSetup(msg);
+    logger::print("SERVER: Game Settings Updated");
+
+    netServer->broadcastToRoom(msg, cs);
 }
 
 void netGameStateManager::gameSettingsCallback(const std::string& msg)
 {
+    decryptGameSettingsAndSetup(msg);
+
     if (trySetGameSettingsCallback != nullptr)
     {
         trySetGameSettingsCallback->set_value(true);

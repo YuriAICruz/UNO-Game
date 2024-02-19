@@ -2,6 +2,7 @@
 #include "buttons.h"
 #include "IScreen.h"
 #include "netGameStateManager.h"
+#include "popupWindow.h"
 #include "transitionData.h"
 #include "client/client.h"
 
@@ -12,9 +13,13 @@ namespace screens
     private:
         int titleId;
         int currentButton = 0;
+        int handSize = 7;
         button buttons[3];
+        popupWindow popup;
         std::shared_ptr<netcode::client> netClient;
         netGameStateManager* netGameManager;
+        std::string cardsPath;
+        size_t seed;
 
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
@@ -59,7 +64,7 @@ namespace screens
         roomWaitingScreen(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events,
                           std::shared_ptr<netcode::client> cl
                           )
-            : IScreen(rdr, events), netClient(cl)
+            : IScreen(rdr, events), netClient(cl), popup(popupWindow(rdr.get()))
         {
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
             {
@@ -95,10 +100,17 @@ namespace screens
         void accept(input::inputData data) override;
         void cancel(input::inputData data) override;
         void setGameManager(netGameStateManager* gameManager);
+        void setGameSettings(std::string cardsPath, size_t seed);
 
     private:
         void updateStartButton(netcode::room* room);
+        void tryExitRoom();
+        void exitRoomAndReturnToMainScreen();
+        void startRoomGame();
         void goToGameScreen();
+        void updateStatingCardsCount();
+        void decreaseStartingCards();
+        void increaseStartingCards();
         void selectButton(int index) const;
         void deselectButton(int index) const;
     };

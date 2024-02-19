@@ -34,7 +34,7 @@ namespace netcode
         std::atomic<bool> isListening{false};
         room currentRoom;
         int seed = 1234;
-        size_t id = 0;
+        int id = 0;
         std::string lastResponse;
         struct addrinfo* addr_info;
         std::vector<room> lastRoomsList;
@@ -110,12 +110,15 @@ namespace netcode
         void enterRoom(int id);
         bool hasRoom();
         room* getRoom();
+        room* getUpdatedRoom();
         int getSeed();
         std::vector<room> getRooms();
         std::string& getRoomName();
+        int getRoomCount();
         int getRoomId();
 
-        size_t getId()
+
+        int getId() const
         {
             return id;
         }

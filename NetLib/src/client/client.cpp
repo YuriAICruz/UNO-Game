@@ -206,7 +206,12 @@ namespace netcode
 
     void client::exitRoom()
     {
+        std::promise<room*> promise;
+        roomCallback = &promise;
+        auto future = promise.get_future();
         sendMessage(NC_EXIT_ROOM);
+        future.wait();
+        roomCallback = nullptr;
     }
 
     void client::enterRoom(int id)
@@ -227,6 +232,10 @@ namespace netcode
     }
 
     room* client::getRoom()
+    {
+        return &currentRoom;
+    }
+    room* client::getUpdatedRoom()
     {
         std::promise<room*> promise;
         roomCallback = &promise;
@@ -268,6 +277,11 @@ namespace netcode
     std::string& client::getRoomName()
     {
         return currentRoom.getName();
+    }
+
+    int client::getRoomCount()
+    {
+        return currentRoom.count();
     }
 
     int client::getRoomId()
@@ -452,5 +466,15 @@ namespace netcode
     void client::exitRoomCallback(const std::string& message)
     {
         currentRoom = room();
+
+        if (onRoomUpdate != nullptr)
+        {
+            onRoomUpdate(&currentRoom);
+        }
+
+        if (roomCallback != nullptr)
+        {
+            roomCallback->set_value(&currentRoom);
+        }
     }
 }

@@ -44,7 +44,7 @@ namespace turnSystem
         }
     }
 
-    turnSystem::turnSystem(std::vector<std::string> playersNames, std::vector<size_t> playersId)
+    turnSystem::turnSystem(std::vector<std::string> playersNames, std::vector<uint16_t> playersId)
     {
         events = std::make_shared<eventBus::eventBus>();
         events->bindEvent<Events::endTurnEventData&>(0);

@@ -28,7 +28,7 @@ namespace turnSystem
     public:
         turnSystem(int numberOfPlayers);
         turnSystem(std::vector<std::string> numberOfPlayers);
-        turnSystem(std::vector<std::string> players, std::vector<size_t> playersId);
+        turnSystem(std::vector<std::string> players, std::vector<uint16_t> playersId);
         IPlayer* getCurrentPlayer() const override;
         IPlayer* getNextPlayer() const;
         IPlayer* getPlayer(int i) const;

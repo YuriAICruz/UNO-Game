@@ -19,5 +19,6 @@ namespace netcode
         void enterRoom(int id, const std::shared_ptr<clientInfo>& client);
         std::string listRooms() const;
         std::string getRoomSerialized(int id);
+        void clientDisconnected(clientInfo* client);
     };
 }

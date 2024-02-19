@@ -32,7 +32,7 @@ public:
     void makePlayerDraw(turnSystem::IPlayer* player, int count);
     virtual void setupGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath,
                            size_t seed);
-    virtual void setupGame(std::vector<std::string>& players, std::vector<size_t>& playersIds,
+    virtual void setupGame(std::vector<std::string> players, std::vector<uint16_t> playersIds,
                            int handSize, std::string deckConfigFilePath, size_t seed);
     virtual void startGame();
     virtual turnSystem::IPlayer* getCurrentPlayer() const;

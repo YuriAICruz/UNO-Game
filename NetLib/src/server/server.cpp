@@ -84,7 +84,7 @@ namespace netcode
     void server::broadcastToRoom(std::string msg, SOCKET cs)
     {
         auto room = roomManager.getRoom(getClient(cs).get());
-        for (auto pair : room->clients())
+        for (clientInfo* pair : room->clients())
         {
             auto responseData = msg.c_str();
             sendMessage(*pair->connection, responseData, strlen(responseData), 0);
@@ -174,6 +174,19 @@ namespace netcode
         isListening = false;
     }
 
+    void server::disconnectClient(SOCKET clientSocket)
+    {
+        auto client = getClient(clientSocket);
+        roomManager.clientDisconnected(client.get());
+
+        closesocket(clientSocket);
+        auto it = clients.find(client->id);
+        if (it != clients.end())
+        {
+            clients.erase(it);
+        }
+    }
+
     void server::clientHandler(SOCKET clientSocket)
     {
         connectionsCount++;
@@ -185,7 +198,7 @@ namespace netcode
             logger::printError(
                 (logger::getPrinter() << "SERVER: closing client connection [" << clientSocket << "] invalid Key").
                 str());
-            closesocket(clientSocket);
+            disconnectClient(clientSocket);
             return;
         }
 
@@ -239,13 +252,7 @@ namespace netcode
         }
 
         logger::print((logger::getPrinter() << "SERVER: closing client connection [" << clientSocket << "]").str());
-        closesocket(clientSocket);
-
-        auto it = clients.find(connectionsCount);
-        if (it != clients.end())
-        {
-            clients.erase(it);
-        }
+        disconnectClient(clientSocket);
     }
 
     bool server::containsCommand(const std::string& command)

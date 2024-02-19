@@ -154,15 +154,14 @@ TEST(ClientTests, ListRooms)
     }
 
     running = true;
-    cl->getRooms([this,roomsCount](std::vector<netcode::room> rooms)
+    std::vector<netcode::room> rooms = cl->getRooms();
+    
+    for (netcode::room r : rooms)
     {
-        for (netcode::room r : rooms)
-        {
-            std::cout << "Room Name: " << r.getName() << "\n";
-        }
-        running = false;
-        EXPECT_EQ(roomsCount, rooms.size());
-    });
+        std::cout << "Room Name: " << r.getName() << "\n";
+    }
+    running = false;
+    EXPECT_EQ(roomsCount, rooms.size());
 
     while (running)
     {

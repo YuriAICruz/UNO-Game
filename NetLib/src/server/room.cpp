@@ -99,6 +99,31 @@ namespace netcode
         return ss.str();
     }
 
+    std::string room::getClientName(uint16_t id) const
+    {
+        return getClient(id)->name;
+    }
+
+    std::vector<std::string> room::getClientsNames()
+    {
+        std::vector<std::string> names;
+        for (auto& client : clients())
+        {
+            names.emplace_back(client->name);
+        }
+        return names;
+    }
+
+    std::vector<uint16_t> room::getClientsIds()
+    {
+        std::vector<std::uint16_t> ids;
+        for (auto& client : clients())
+        {
+            ids.emplace_back(client->id);
+        }
+        return ids;
+    }
+
     room room::constructRoom(std::string data)
     {
         auto splitData = stringUtils::splitString(data);

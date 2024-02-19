@@ -42,6 +42,9 @@ namespace netcode
         bool hasClient(clientInfo* client) const;
 
         std::string getRoomSerialized(int id);
+        std::string getClientName(uint16_t id) const;
+        std::vector<std::string> getClientsNames();
+        std::vector<uint16_t> getClientsIds();
         static room constructRoom(std::string data);
 
         std::string& getName()

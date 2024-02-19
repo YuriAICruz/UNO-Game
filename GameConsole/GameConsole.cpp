@@ -99,9 +99,10 @@ int main()
             gameManager->startGame();
         });
     events->subscribe<screens::transitionData>(
-        NAVIGATION_NETWORK_WAIT_ROOM, [roomWaiting, netGameManager](screens::transitionData data)
+        NAVIGATION_NETWORK_WAIT_ROOM, [roomWaiting, settingsMenu, netGameManager](screens::transitionData data)
         {
             roomWaiting->setGameManager(netGameManager.get());
+            roomWaiting->setGameSettings(settingsMenu->getConfigFilePath(), settingsMenu->getSeed());
             roomWaiting->show();
         });
     events->subscribe<screens::transitionData>(

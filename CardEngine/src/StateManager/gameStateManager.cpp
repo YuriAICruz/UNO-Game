@@ -79,7 +79,7 @@ void gameStateManager::setupGame(std::vector<std::string>& players, int handSize
     events->fireEvent(GAME_SETUP, gameEventData());
 }
 
-void gameStateManager::setupGame(std::vector<std::string>& players, std::vector<size_t>& playersIds, int handSize,
+void gameStateManager::setupGame(std::vector<std::string> players, std::vector<uint16_t> playersIds, int handSize,
                                  std::string deckConfigFilePath, size_t seed)
 {
     running = false;

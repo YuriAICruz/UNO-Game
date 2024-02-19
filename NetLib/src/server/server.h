@@ -130,6 +130,7 @@ namespace netcode
 
     private:
         void listening();
+        void disconnectClient(SOCKET clientSocket);
         void clientHandler(SOCKET clientSocket);
         bool containsCommand(const std::string& command);
         bool containsCustomCommand(const std::string& command);
