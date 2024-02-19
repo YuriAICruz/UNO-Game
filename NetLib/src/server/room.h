@@ -13,6 +13,7 @@ namespace netcode
     private:
         std::string name;
         int id;
+        bool locked = false;
         std::vector<std::shared_ptr<clientInfo>> connectedClients;
 
     public:
@@ -36,6 +37,9 @@ namespace netcode
         int count();
         void addClient(const std::shared_ptr<clientInfo>& client);
         void removeClient(clientInfo* client);
+        void lock();
+        void unlock();
+        bool isLocked() const;
         std::vector<clientInfo*> clients();
         clientInfo* getClientByIndex(int index) const;
         clientInfo* getClient(int clientId) const;

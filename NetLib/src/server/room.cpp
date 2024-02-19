@@ -15,11 +15,20 @@ namespace netcode
 
     void room::addClient(const std::shared_ptr<clientInfo>& client)
     {
+        if (locked)
+        {
+            throw std::exception("can't add new clients, room is locked");
+        }
         connectedClients.push_back(client);
     }
 
     void room::removeClient(clientInfo* client)
     {
+        if (locked)
+        {
+            throw std::exception("can't remove clients, room is locked");
+        }
+
         int i = 0;
         for (int n = connectedClients.size(); i < n; ++i)
         {
@@ -35,6 +44,21 @@ namespace netcode
         }
 
         connectedClients.erase(connectedClients.begin() + i);
+    }
+
+    void room::lock()
+    {
+        locked = true;
+    }
+
+    void room::unlock()
+    {
+        locked = false;
+    }
+
+    bool room::isLocked() const
+    {
+        return locked;
     }
 
     std::vector<clientInfo*> room::clients()

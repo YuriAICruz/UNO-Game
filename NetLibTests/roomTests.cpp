@@ -4,7 +4,7 @@
 
 TEST(RoomTests, AddAndRemove)
 {
-    auto r = netcode::room(0,"MyRoom");
+    auto r = netcode::room(0, "MyRoom");
 
     auto client = std::make_shared<netcode::clientInfo>(0);
     r.addClient(client);
@@ -27,11 +27,24 @@ TEST(RoomTests, AddAndRemove)
     EXPECT_EQ(0, r.count());
 }
 
+TEST(RoomTests, EnteringOnLockedRoom)
+{
+    std::string roomName = "BlockedRoom";
+    int clientId = 12;
+    auto r = netcode::room(0, roomName);
+
+    EXPECT_FALSE(r.isLocked());
+    r.lock();
+    EXPECT_TRUE(r.isLocked());
+    r.unlock();
+    EXPECT_FALSE(r.isLocked());
+}
+
 TEST(RoomTests, Serialization)
 {
     std::string roomName = "MyRoom";
     int clientId = 12;
-    auto r = netcode::room(0,roomName);
+    auto r = netcode::room(0, roomName);
     auto client = std::make_shared<netcode::clientInfo>(clientId);
     std::string clientName = "MyClient";
     client->setName(clientName);
