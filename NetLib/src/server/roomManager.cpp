@@ -43,14 +43,14 @@ namespace netcode
         room->removeClient(client);
     }
 
-    void roomManager::enterRoom(int id, const std::shared_ptr<clientInfo>& client)
+    bool roomManager::enterRoom(int id, const std::shared_ptr<clientInfo>& client)
     {
         room* c = getRoom(client.get());
         if (c != nullptr)
         {
             exitRoom(client.get());
         }
-        rooms[id].addClient(client);
+        return rooms[id].addClient(client);
     }
 
     std::string roomManager::listRooms() const

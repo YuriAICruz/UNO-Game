@@ -14,21 +14,23 @@ namespace netcode
         return connectedClients.size();
     }
 
-    void room::addClient(const std::shared_ptr<clientInfo>& client)
+    bool room::addClient(const std::shared_ptr<clientInfo>& client)
     {
         if (locked)
         {
             auto cl = getClient(client->id);
-            if (!cl->isConnected)
+            if (cl != nullptr && !cl->isConnected)
             {
                 cl->reconnect();
             }
             else
             {
-                throw std::exception("can't add new clients, room is locked");
+                logger::printError("can't add new clients, room is locked");
+                return false;
             }
         }
         connectedClients.push_back(client);
+        return true;
     }
 
     void room::removeClient(clientInfo* client)
@@ -51,7 +53,7 @@ namespace netcode
 
         if (i >= connectedClients.size())
         {
-            throw std::exception("client not fount");
+            throw std::exception("client not found");
         }
 
         connectedClients.erase(connectedClients.begin() + i);

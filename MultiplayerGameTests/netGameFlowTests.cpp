@@ -170,6 +170,7 @@ std::shared_ptr<netGameStateManager> createClientGameManager(std::shared_ptr<net
 TEST(NetGameFlowTests, Begin)
 {
     auto sv = startServer();
+    ASSERT_TRUE(sv->isRunning());
 
     std::shared_ptr<netcode::client> clA = startClient("Player A");
     std::shared_ptr<netcode::client> clB = startClient("Player B");
@@ -193,6 +194,7 @@ TEST(NetGameFlowTests, Begin)
 TEST(NetGameFlowTests, PlayRightCard)
 {
     auto sv = startServer();
+    ASSERT_TRUE(sv->isRunning());
 
     auto clA = startClient("Player A");
     auto clB = startClient("Player B");
@@ -279,6 +281,7 @@ TEST(NetGameFlowTests, PlayRightCard)
 TEST(NetGameFlowTests, PlayCardFromManager)
 {
     auto sv = startServer();
+    ASSERT_TRUE(sv->isRunning());
 
     auto clA = startClient("Player A");
     auto clB = startClient("Player B");
@@ -334,6 +337,7 @@ TEST(NetGameFlowTests, PlayCardFromManager)
 TEST(NetGameFlowTests, PlayCardFromManagerDedicatedServer)
 {
     auto sv = startServer();
+    ASSERT_TRUE(sv->isRunning());
 
     auto clA = startClient("Player A");
     auto clB = startClient("Player B");
@@ -397,6 +401,7 @@ TEST(NetGameFlowTests, PlayCardFromManagerDedicatedServer)
 TEST(NetGameFlowTests, StartSessionWithDedicatedServer)
 {
     auto sv = startServer();
+    ASSERT_TRUE(sv->isRunning());
 
     auto clA = startClient("Player A");
     auto clB = startClient("Player B");
@@ -468,9 +473,11 @@ TEST(NetGameFlowTests, StartSessionWithDedicatedServer)
 TEST(NetGameFlowTests, EnteringOnLockedRoom)
 {
     auto sv = startServer();
+    ASSERT_TRUE(sv->isRunning());
 
     auto clA = startClient("Player A");
     auto clB = startClient("Player B");
+    auto clC = startClient("Player C");
 
     clA->createRoom("TestRoom");
     clB->enterRoom(clA->getRoomId());
@@ -485,7 +492,11 @@ TEST(NetGameFlowTests, EnteringOnLockedRoom)
     clientManagerA->setupGame(clA->getRoom(), handSize, "Data\\deck_setup.json", 12345);
 
     clientManagerA->startGame();
-    
+
+    clC->enterRoom(clA->getRoomId());
+
+    EXPECT_NE(clC->getRoom()->getName(), clA->getRoom()->getName());
+
     closeClient(clA.get());
     closeClient(clB.get());
     closeServer(sv.get());
@@ -511,14 +522,14 @@ TEST(NetGameFlowTests, ReconnectToRunningGame)
 
     clientManagerA->setupGame(clA->getRoom(), handSize, "Data\\deck_setup.json", 12345);
 
-    auto startingPlayer = serverManager->getCurrentPlayer(); 
+    auto startingPlayer = serverManager->getCurrentPlayer();
     clientManagerA->startGame();
 
     clB->close();
 
     EXPECT_TRUE(clientManagerA->makePlayerDraw(clientManagerA->getCurrentPlayer(), 1));
     EXPECT_TRUE(clientManagerA->skipTurn());
-    
+
     clB->start();
     clB->connectToServer();
     clientManagerB->waitForStateSync();

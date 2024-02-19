@@ -16,7 +16,7 @@ namespace netcode
         room* getRoom(int id);
         room* getRoom(clientInfo* client);
         void exitRoom(clientInfo* client);
-        void enterRoom(int id, const std::shared_ptr<clientInfo>& client);
+        bool enterRoom(int id, const std::shared_ptr<clientInfo>& client);
         std::string listRooms() const;
         std::string getRoomSerialized(int id);
         void clientDisconnected(clientInfo* client);

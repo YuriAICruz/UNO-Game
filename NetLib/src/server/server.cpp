@@ -362,7 +362,7 @@ namespace netcode
     {
         for (auto pair : clients)
         {
-            if (pair.second->connection!= nullptr && *pair.second->connection == clientSocket)
+            if (pair.second->connection != nullptr && *pair.second->connection == clientSocket)
             {
                 return clients[pair.first];
             }
@@ -432,16 +432,21 @@ namespace netcode
         std::vector<std::string> data = stringUtils::splitString(message);
         logger::print((logger::printer() << "SERVER: client entering room [" << data[1] << "]").str());
         int id = stoi(data[1]);
-        roomManager.enterRoom(id, getClient(clientSocket));
+        if (roomManager.enterRoom(id, getClient(clientSocket)))
+        {
+            std::stringstream ss;
+            ss << NC_ENTER_ROOM << NC_SEPARATOR;
+            ss << roomManager.getRoomSerialized(id);
+            std::string str = ss.str();
+            const char* responseData = str.c_str();
 
-        std::stringstream ss;
-        ss << NC_ENTER_ROOM << NC_SEPARATOR;
-        ss << roomManager.getRoomSerialized(id);
-        std::string str = ss.str();
-        const char* responseData = str.c_str();
-
-        broadcastToRoom(responseData, strlen(responseData), clientSocket);
-        logger::print((logger::getPrinter() << "SERVER: added client to room with id [" << id << "]").str());
+            broadcastToRoom(responseData, strlen(responseData), clientSocket);
+            logger::print((logger::getPrinter() << "SERVER: added client to room with id [" << id << "]").str());
+            return;
+        }
+        
+        logger::print((logger::getPrinter() << "SERVER: Could not add client to room [" << id << "]").str());
+        sendMessage(clientSocket, NC_EXIT_ROOM, strlen(NC_EXIT_ROOM), 0);
     }
 
     void server::exitRoom(const std::string& message, SOCKET clientSocket)

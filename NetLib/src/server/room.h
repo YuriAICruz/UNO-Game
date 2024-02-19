@@ -35,7 +35,7 @@ namespace netcode
         }
 
         int count();
-        void addClient(const std::shared_ptr<clientInfo>& client);
+        bool addClient(const std::shared_ptr<clientInfo>& client);
         void removeClient(clientInfo* client);
         void lock();
         void unlock();
