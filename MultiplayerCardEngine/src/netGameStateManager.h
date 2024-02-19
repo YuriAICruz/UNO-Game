@@ -63,11 +63,12 @@ public:
     void checkIsServer() const;
     bool tryExecutePlayerAction(int index);
     void netPlayerActionCallback(const std::string& msg);
-    void encryptStateData(std::tuple<const char*, size_t>& data, size_t& bufferSize, char*& buffer);
     void broadcastServerStateData(SOCKET cs);
+    void encryptStateBuffer(std::tuple<const char*, size_t> data, char* ptr);
     void sendToClientServerStateData(SOCKET cs);
     void tryExecuteNetPlayerAction(const std::string& msg, SOCKET cs);
     void setStateNet(char* buffer, size_t size);
+    void waitForStateSync();
     void cheatWin() override;
     bool skipTurn() override;
     void yellUno() override;

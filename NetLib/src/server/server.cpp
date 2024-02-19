@@ -131,6 +131,16 @@ namespace netcode
         return roomManager.getRoom(id);
     }
 
+    void server::lockRoom(SOCKET cs)
+    {
+        roomManager.getRoom(getClient(cs).get())->lock();
+    }
+
+    void server::unlockRoom(SOCKET cs)
+    {
+        roomManager.getRoom(getClient(cs).get())->unlock();
+    }
+
     void server::listening()
     {
         if (!running)
@@ -186,7 +196,8 @@ namespace netcode
     void server::disconnectClient(SOCKET clientSocket)
     {
         auto client = getClient(clientSocket);
-        bool locked = roomManager.getRoom(client.get())->isLocked();
+        auto room = roomManager.getRoom(client.get());
+        bool locked = room == nullptr ? false : room->isLocked();
         roomManager.clientDisconnected(client.get());
 
         closesocket(clientSocket);
@@ -351,7 +362,7 @@ namespace netcode
     {
         for (auto pair : clients)
         {
-            if (*pair.second->connection == clientSocket)
+            if (pair.second->connection!= nullptr && *pair.second->connection == clientSocket)
             {
                 return clients[pair.first];
             }

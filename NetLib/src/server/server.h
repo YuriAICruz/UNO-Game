@@ -131,6 +131,9 @@ namespace netcode
             customCommands = cmds;
         }
 
+        void lockRoom(SOCKET cs);
+        void unlockRoom(SOCKET cs);
+
     private:
         void listening();
         void disconnectClient(SOCKET clientSocket);

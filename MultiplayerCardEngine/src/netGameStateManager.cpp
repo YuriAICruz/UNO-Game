@@ -28,7 +28,7 @@ netGameStateManager::netGameStateManager(
 {
     createClientCustomCommands();
     createServerCustomCommands();
-    
+
     sv->onClientReconnected = [this](netcode::clientInfo* client)
     {
         onClientReconnected(client);
@@ -42,7 +42,7 @@ netGameStateManager::netGameStateManager(
     netServer(sv), isHost(false), isServer(true)
 {
     createServerCustomCommands();
-    
+
     sv->onClientReconnected = [this](netcode::clientInfo* client)
     {
         onClientReconnected(client);
@@ -189,6 +189,7 @@ void netGameStateManager::tryStartGame(const std::string& msg, SOCKET cs)
     {
         gameStateManager::startGame();
     }
+    netServer->lockRoom(cs);
     netServer->broadcastToRoom(CORE_NC_GAME_START, cs);
     broadcastServerStateData(cs);
 }
@@ -370,10 +371,18 @@ void netGameStateManager::broadcastServerStateData(SOCKET cs)
     {
         return;
     }
-    std::tuple<const char*, size_t> data;
-    size_t bufferSize;
-    char* buffer;
-    encryptStateData(data, bufferSize, buffer);
+
+    std::tuple<const char*, size_t> data = getState();
+    size_t bufferSize = strlen(CORE_NC_UPDATE_STATE) * sizeof(char) +
+        sizeof(char) +
+        sizeof(size_t) +
+        sizeof(char) +
+        std::get<1>(data);
+
+    char* buffer = new char[bufferSize];
+    char* ptr = buffer;
+
+    encryptStateBuffer(data, ptr);
 
     netServer->broadcastToRoom(buffer, bufferSize, cs);
     delete std::get<0>(data);
@@ -385,27 +394,25 @@ void netGameStateManager::sendToClientServerStateData(SOCKET cs)
     {
         return;
     }
-    std::tuple<const char*, size_t> data;
-    size_t bufferSize;
-    char* buffer;
-    encryptStateData(data, bufferSize, buffer);
 
-    netServer->sendMessage(cs, buffer, bufferSize, 0);
-    delete std::get<0>(data);
-}
-
-void netGameStateManager::encryptStateData(std::tuple<const char*, size_t>& data, size_t& bufferSize, char*& buffer)
-{
-    data = getState();
-    bufferSize = strlen(CORE_NC_UPDATE_STATE) * sizeof(char) +
+    std::tuple<const char*, size_t> data = getState();
+    size_t bufferSize = strlen(CORE_NC_UPDATE_STATE) * sizeof(char) +
         sizeof(char) +
         sizeof(size_t) +
         sizeof(char) +
         std::get<1>(data);
 
-    buffer = new char[bufferSize];
+    char* buffer = new char[bufferSize];
     char* ptr = buffer;
 
+    encryptStateBuffer(data, ptr);
+
+    netServer->sendMessage(cs, buffer, bufferSize, 0);
+    delete std::get<0>(data);
+}
+
+void netGameStateManager::encryptStateBuffer(std::tuple<const char*, size_t> data, char* ptr)
+{
     char separator = NC_SEPARATOR;
 
     std::cout << "\nSENT\n";
@@ -470,6 +477,25 @@ void netGameStateManager::setStateNet(char* buffer, size_t size)
     if (gameStateUpdatedCallback != nullptr)
     {
         gameStateUpdatedCallback->set_value(true);
+    }
+}
+
+void netGameStateManager::waitForStateSync()
+{
+    bool dispose = false;
+    if (gameStateUpdatedCallback == nullptr)
+    {
+        dispose = true;
+        auto promise = std::promise<bool>();
+        gameStateUpdatedCallback = &promise;
+    }
+
+    auto future = gameStateUpdatedCallback->get_future();
+    future.wait();
+
+    if (dispose)
+    {
+        gameStateUpdatedCallback = nullptr;
     }
 }
 
@@ -572,7 +598,7 @@ bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
 
 void netGameStateManager::onClientReconnected(netcode::clientInfo* client)
 {
-    if(running)
+    if (running)
     {
         sendToClientServerStateData(*client->connection);
     }

@@ -59,6 +59,7 @@ namespace netcode
         void disconnect()
         {
             isConnected = false;
+            connection = nullptr;
         }
     };
 }

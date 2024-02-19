@@ -516,6 +516,7 @@ TEST(NetGameFlowTests, ReconnectToRunningGame)
     
     clB->start();
     clB->connectToServer();
+    clientManagerB->waitForStateSync();
 
     EXPECT_NE(serverManager->getCurrentPlayer()->Id(), startingPlayer->Id());
     EXPECT_EQ(serverManager->getCurrentPlayer()->Id(), clientManagerB->getCurrentPlayer()->Id());
