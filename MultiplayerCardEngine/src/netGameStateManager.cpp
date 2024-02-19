@@ -28,6 +28,11 @@ netGameStateManager::netGameStateManager(
 {
     createClientCustomCommands();
     createServerCustomCommands();
+    
+    sv->onClientReconnected = [this](netcode::clientInfo* client)
+    {
+        onClientReconnected(client);
+    };
 }
 
 netGameStateManager::netGameStateManager(
@@ -37,15 +42,17 @@ netGameStateManager::netGameStateManager(
     netServer(sv), isHost(false), isServer(true)
 {
     createServerCustomCommands();
+    
+    sv->onClientReconnected = [this](netcode::clientInfo* client)
+    {
+        onClientReconnected(client);
+    };
 }
 
 void netGameStateManager::setupGame(netcode::room* room, int handSize, std::string deckConfigFilePath,
                                     size_t seed)
 {
-    if (isServer && !isHost)
-    {
-        throw std::exception("client method called in the server");
-    }
+    checkIsServer();
     gameStateManager::setupGame(room->getClientsNames(), room->getClientsIds(), handSize, deckConfigFilePath, seed);
     sendGameSettings(deckConfigFilePath);
 }
@@ -53,10 +60,7 @@ void netGameStateManager::setupGame(netcode::room* room, int handSize, std::stri
 void netGameStateManager::setupGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath,
                                     size_t seed)
 {
-    if (isServer && !isHost)
-    {
-        throw std::exception("client method called in the server");
-    }
+    checkIsServer();
     gameStateManager::setupGame(players, handSize, deckConfigFilePath, seed);
     sendGameSettings(deckConfigFilePath);
 }
@@ -64,10 +68,7 @@ void netGameStateManager::setupGame(std::vector<std::string>& players, int handS
 void netGameStateManager::setupGame(std::vector<std::string> players, std::vector<uint16_t> playersIds, int handSize,
                                     std::string deckConfigFilePath, size_t seed)
 {
-    if (isServer && !isHost)
-    {
-        throw std::exception("client method called in the server");
-    }
+    checkIsServer();
     gameStateManager::setupGame(players, playersIds, handSize, deckConfigFilePath, seed);
     sendGameSettings(deckConfigFilePath);
 }
@@ -80,28 +81,33 @@ void netGameStateManager::sendGameSettings(std::string path)
         trySetGameSettingsCallback = &promise;
         auto future = promise.get_future();
 
-        std::stringstream ss;
-        int size = turner->playersCount();
-        ss << CORE_NC_GAME_SETTINGS << NC_SEPARATOR;
-        ss << static_cast<int>(handSize) << NC_SEPARATOR;
-        ss << path << NC_SEPARATOR;
-        ss << std::to_string(seed) << NC_SEPARATOR;
-        ss << size << NC_SEPARATOR;
-        int i = 0;
-        for (uint16_t id : turner->getPlayersIds())
-        {
-            if (i > 0)
-            {
-                ss << NC_SEPARATOR;
-            }
-            ss << id;
-            i++;
-        }
-        std::string str = ss.str();
+        std::string str = encryptGameSettings(path);
         netClient->sendMessage(str.c_str());
         future.wait();
         trySetGameSettingsCallback = nullptr;
     }
+}
+
+std::string netGameStateManager::encryptGameSettings(std::string path) const
+{
+    std::stringstream ss;
+    int size = turner->playersCount();
+    ss << CORE_NC_GAME_SETTINGS << NC_SEPARATOR;
+    ss << static_cast<int>(handSize) << NC_SEPARATOR;
+    ss << path << NC_SEPARATOR;
+    ss << std::to_string(seed) << NC_SEPARATOR;
+    ss << size << NC_SEPARATOR;
+    int i = 0;
+    for (uint16_t id : turner->getPlayersIds())
+    {
+        if (i > 0)
+        {
+            ss << NC_SEPARATOR;
+        }
+        ss << id;
+        i++;
+    }
+    return ss.str();
 }
 
 void netGameStateManager::decryptGameSettingsAndSetup(const std::string& msg)
@@ -184,7 +190,7 @@ void netGameStateManager::tryStartGame(const std::string& msg, SOCKET cs)
         gameStateManager::startGame();
     }
     netServer->broadcastToRoom(CORE_NC_GAME_START, cs);
-    sendServerStateData(cs);
+    broadcastServerStateData(cs);
 }
 
 void netGameStateManager::gameStartCallback(const std::string& msg)
@@ -224,6 +230,24 @@ void netGameStateManager::createClientCustomCommands()
             {
                 gameSettingsCallback(msg);
             },
+        },
+        {
+            CORE_NC_SKIP_TURN, [this](std::string& msg)
+            {
+                skipTurnCallback(msg);
+            },
+        },
+        {
+            CORE_NC_YELL_UNO, [this](std::string& msg)
+            {
+                unoYellCallback(msg);
+            },
+        },
+        {
+            CORE_NC_DRAW_CARDS, [this](std::string& msg)
+            {
+                drawCardsCallback(msg);
+            },
         }
     };
     std::map<std::string, std::function<void (char*, size_t)>> rawCommands = {
@@ -259,6 +283,24 @@ void netGameStateManager::createServerCustomCommands()
             {
                 trySetGameSettings(msg, cs);
             }
+        },
+        {
+            CORE_NC_SKIP_TURN, [this](std::string& msg, SOCKET cs)
+            {
+                trySkipTurn(msg, cs);
+            }
+        },
+        {
+            CORE_NC_YELL_UNO, [this](std::string& msg, SOCKET cs)
+            {
+                tryYellUno(msg, cs);
+            }
+        },
+        {
+            CORE_NC_DRAW_CARDS, [this](std::string& msg, SOCKET cs)
+            {
+                tryDrawCards(msg, cs);
+            }
         }
     };
 
@@ -279,12 +321,17 @@ bool netGameStateManager::tryExecutePlayerAction(cards::ICard* card)
     throw std::exception("passing card unsupported, pass index instead");
 }
 
-bool netGameStateManager::tryExecutePlayerAction(int index)
+void netGameStateManager::checkIsServer() const
 {
     if (isServer && !isHost)
     {
-        throw std::exception("invalid action, pure server can't execute this");
+        throw std::exception("invalid action, server can't execute this");
     }
+}
+
+bool netGameStateManager::tryExecutePlayerAction(int index)
+{
+    checkIsServer();
 
     if (!isCurrentPlayer())
     {
@@ -317,21 +364,46 @@ void netGameStateManager::netPlayerActionCallback(const std::string& msg)
     }
 }
 
-void netGameStateManager::sendServerStateData(SOCKET cs)
+void netGameStateManager::broadcastServerStateData(SOCKET cs)
 {
     if (!isServer)
     {
         return;
     }
-    auto data = getState();
-    size_t bufferSize =
-        strlen(CORE_NC_UPDATE_STATE) * sizeof(char) +
+    std::tuple<const char*, size_t> data;
+    size_t bufferSize;
+    char* buffer;
+    encryptStateData(data, bufferSize, buffer);
+
+    netServer->broadcastToRoom(buffer, bufferSize, cs);
+    delete std::get<0>(data);
+}
+
+void netGameStateManager::sendToClientServerStateData(SOCKET cs)
+{
+    if (!isServer)
+    {
+        return;
+    }
+    std::tuple<const char*, size_t> data;
+    size_t bufferSize;
+    char* buffer;
+    encryptStateData(data, bufferSize, buffer);
+
+    netServer->sendMessage(cs, buffer, bufferSize, 0);
+    delete std::get<0>(data);
+}
+
+void netGameStateManager::encryptStateData(std::tuple<const char*, size_t>& data, size_t& bufferSize, char*& buffer)
+{
+    data = getState();
+    bufferSize = strlen(CORE_NC_UPDATE_STATE) * sizeof(char) +
         sizeof(char) +
         sizeof(size_t) +
         sizeof(char) +
         std::get<1>(data);
 
-    char* buffer = new char[bufferSize];
+    buffer = new char[bufferSize];
     char* ptr = buffer;
 
     char separator = NC_SEPARATOR;
@@ -350,9 +422,6 @@ void netGameStateManager::sendServerStateData(SOCKET cs)
     ptr += sizeof(char);
     std::memcpy(ptr, std::get<0>(data), std::get<1>(data));
     ptr += std::get<1>(data);
-
-    netServer->broadcastToRoom(buffer, bufferSize, cs);
-    delete std::get<0>(data);
 }
 
 void netGameStateManager::tryExecuteNetPlayerAction(const std::string& msg, SOCKET cs)
@@ -366,7 +435,7 @@ void netGameStateManager::tryExecuteNetPlayerAction(const std::string& msg, SOCK
 
     if (gameStateManager::tryExecutePlayerAction(currentPlayer->pickCard(index)))
     {
-        sendServerStateData(cs);
+        broadcastServerStateData(cs);
         ss << 1;
     }
     else
@@ -401,5 +470,146 @@ void netGameStateManager::setStateNet(char* buffer, size_t size)
     if (gameStateUpdatedCallback != nullptr)
     {
         gameStateUpdatedCallback->set_value(true);
+    }
+}
+
+void netGameStateManager::cheatWin()
+{
+    if (!isServer)
+    {
+        throw std::exception("cheat not enabled in clients");
+    }
+    gameStateManager::cheatWin();
+}
+
+bool netGameStateManager::skipTurn()
+{
+    checkIsServer();
+
+    auto promise = std::promise<bool>();
+    auto promiseCmd = std::promise<bool>();
+    gameStateUpdatedCallback = &promise;
+    executeCommandCallback = &promiseCmd;
+    auto future = promise.get_future();
+    auto futureCmd = promiseCmd.get_future();
+    netClient->sendMessage(CORE_NC_SKIP_TURN);
+    futureCmd.wait();
+    future.wait();
+
+    return futureCmd.get();
+}
+
+void netGameStateManager::trySkipTurn(const std::string& msg, SOCKET cs)
+{
+    if (!isServer)
+    {
+        return;
+    }
+
+    bool canSkip = canSkipTurn();
+    if (canSkip)
+    {
+        gameStateManager::skipTurn();
+    }
+
+    std::stringstream ss;
+    ss << CORE_NC_SKIP_TURN << NC_SEPARATOR << (canSkip ? 1 : 0);
+    std::string str = ss.str();
+    const char* resonse = str.c_str();
+    send(cs, resonse, strlen(resonse), 0);
+
+    broadcastServerStateData(cs);
+}
+
+void netGameStateManager::skipTurnCallback(const std::string& msg)
+{
+    commandCallbackResponse(msg);
+}
+
+void netGameStateManager::yellUno()
+{
+    if (isServer)
+    {
+        gameStateManager::yellUno();
+        return;
+    }
+}
+
+void netGameStateManager::tryYellUno(const std::string& msg, SOCKET cs)
+{
+}
+
+void netGameStateManager::unoYellCallback(const std::string& msg)
+{
+}
+
+bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
+{
+    if (isServer)
+    {
+        gameStateManager::makePlayerDraw(player, count);
+        return true;
+    }
+
+    auto promise = std::promise<bool>();
+    auto promiseCmd = std::promise<bool>();
+
+    gameStateUpdatedCallback = &promise;
+    executeCommandCallback = &promiseCmd;
+
+    auto future = promise.get_future();
+    auto futureCmd = promiseCmd.get_future();
+
+    std::stringstream ss;
+    ss << CORE_NC_DRAW_CARDS << NC_SEPARATOR << player->Id() << NC_SEPARATOR << count;
+    netClient->sendMessage(ss.str().c_str());
+
+    futureCmd.wait();
+    future.wait();
+
+    return futureCmd.get();
+}
+
+void netGameStateManager::onClientReconnected(netcode::clientInfo* client)
+{
+    if(running)
+    {
+        sendToClientServerStateData(*client->connection);
+    }
+}
+
+void netGameStateManager::tryDrawCards(const std::string& msg, SOCKET cs)
+{
+    auto data = stringUtils::splitString(msg);
+
+    bool canDraw = canDrawCard();
+    if (canDraw)
+    {
+        auto id = stoi(data[1]);
+        auto amount = stoi(data[2]);
+
+        gameStateManager::makePlayerDraw(getPlayer(id), amount);
+    }
+
+    std::stringstream ss;
+    ss << CORE_NC_SKIP_TURN << NC_SEPARATOR << (canDraw ? 1 : 0);
+    std::string str = ss.str();
+    const char* resonse = str.c_str();
+    send(cs, resonse, strlen(resonse), 0);
+
+    broadcastServerStateData(cs);
+}
+
+void netGameStateManager::drawCardsCallback(const std::string& msg) const
+{
+    commandCallbackResponse(msg);
+}
+
+void netGameStateManager::commandCallbackResponse(const std::string& msg) const
+{
+    if (executeCommandCallback != nullptr)
+    {
+        auto data = stringUtils::splitString(msg);
+        executeCommandCallback->set_value(data[1] == "1");
     }
 }

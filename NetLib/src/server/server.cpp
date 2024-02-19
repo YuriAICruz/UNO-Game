@@ -76,8 +76,11 @@ namespace netcode
     {
         for (auto pair : clients)
         {
-            auto responseData = msg.c_str();
-            sendMessage(*pair.second->connection, responseData, strlen(responseData), 0);
+            if (pair.second->isConnected)
+            {
+                auto responseData = msg.c_str();
+                sendMessage(*pair.second->connection, responseData, strlen(responseData), 0);
+            }
         }
     }
 
@@ -86,8 +89,11 @@ namespace netcode
         auto room = roomManager.getRoom(getClient(cs).get());
         for (clientInfo* pair : room->clients())
         {
-            auto responseData = msg.c_str();
-            sendMessage(*pair->connection, responseData, strlen(responseData), 0);
+            if (pair->isConnected)
+            {
+                auto responseData = msg.c_str();
+                sendMessage(*pair->connection, responseData, strlen(responseData), 0);
+            }
         }
     }
 
@@ -96,7 +102,10 @@ namespace netcode
         auto room = roomManager.getRoom(getClient(cs).get());
         for (auto pair : room->clients())
         {
-            sendMessage(*pair->connection, responseData, size, 0);
+            if (pair->isConnected)
+            {
+                sendMessage(*pair->connection, responseData, size, 0);
+            }
         }
     }
 
@@ -177,23 +186,40 @@ namespace netcode
     void server::disconnectClient(SOCKET clientSocket)
     {
         auto client = getClient(clientSocket);
+        bool locked = roomManager.getRoom(client.get())->isLocked();
         roomManager.clientDisconnected(client.get());
 
         closesocket(clientSocket);
         auto it = clients.find(client->id);
         if (it != clients.end())
         {
-            clients.erase(it);
+            if (locked)
+            {
+                it->second->disconnect();
+            }
+            else
+            {
+                clients.erase(it);
+            }
+        }
+    }
+
+    void server::clientReconnected(const std::shared_ptr<clientInfo>& client, SOCKET uint)
+    {
+        client->connection = &uint;
+        client->reconnect();
+
+        if (onClientReconnected != nullptr)
+        {
+            onClientReconnected(client.get());
         }
     }
 
     void server::clientHandler(SOCKET clientSocket)
     {
         connectionsCount++;
-        std::shared_ptr<clientInfo> client = std::make_shared<clientInfo>(connectionsCount);
-        client->connection = &clientSocket;
-
-        if (!validateKey(clientSocket))
+        int id = connectionsCount;
+        if (!validateKey(clientSocket, id))
         {
             logger::printError(
                 (logger::getPrinter() << "SERVER: closing client connection [" << clientSocket << "] invalid Key").
@@ -202,7 +228,17 @@ namespace netcode
             return;
         }
 
-        clients.insert(std::make_pair(connectionsCount, client));
+        auto cl = getClientFromId(id);
+        if (cl != nullptr)
+        {
+            clientReconnected(cl, clientSocket);
+        }
+        else
+        {
+            std::shared_ptr<clientInfo> client = std::make_shared<clientInfo>(connectionsCount);
+            client->connection = &clientSocket;
+            clients.insert(std::make_pair(id, client));
+        }
 
         if (!running)
         {
@@ -269,7 +305,7 @@ namespace netcode
         return it != customCommands.end();
     }
 
-    bool server::validateKey(SOCKET clientSocket) const
+    bool server::validateKey(SOCKET clientSocket, int& id) const
     {
         if (!running)
         {
@@ -278,7 +314,7 @@ namespace netcode
         }
 
         logger::print("SERVER: validating key . . .");
-        char keyBuffer[13];
+        char keyBuffer[20];
         int keySize = recv(clientSocket, keyBuffer, sizeof(keyBuffer), 0);
         if (keySize <= 0)
         {
@@ -286,24 +322,25 @@ namespace netcode
             return false;
         }
 
-        if (keySize != sizeof(keyBuffer) - 1)
-        {
-            logger::printError("SERVER: Invalid key");
-            return false;
-        }
-
         keyBuffer[keySize] = '\0';
 
         std::string keyReceived(keyBuffer);
-        if (validKeys.find(keyReceived) == validKeys.end())
+        auto data = stringUtils::splitString(keyReceived);
+
+        if (validKeys.find(data[0]) == validKeys.end())
         {
             logger::printError("SERVER: Invalid key");
             sendMessage(clientSocket, NC_INVALID_KEY, strlen(NC_INVALID_KEY), 0);
             return false;
         }
 
+        if (data.size() > 1)
+        {
+            id = stoi(data[1]);
+        }
+
         std::stringstream ss;
-        ss << NC_VALID_KEY << NC_SEPARATOR << connectionsCount;
+        ss << NC_VALID_KEY << NC_SEPARATOR << id;
         std::string str = ss.str();
         const char* response = str.c_str();
         sendMessage(clientSocket, response, strlen(response), 0);
@@ -317,6 +354,19 @@ namespace netcode
             if (*pair.second->connection == clientSocket)
             {
                 return clients[pair.first];
+            }
+        }
+
+        return nullptr;
+    }
+
+    std::shared_ptr<clientInfo> server::getClientFromId(size_t id) const
+    {
+        for (auto pair : clients)
+        {
+            if (pair.first == id)
+            {
+                return clients.at(pair.first);
             }
         }
 

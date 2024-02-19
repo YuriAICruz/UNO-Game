@@ -17,8 +17,10 @@ namespace netcode
         int id;
         std::string name = "John Doe";
         SOCKET* connection;
+        bool isConnected = true;
 
         clientInfo() = default;
+
 
         clientInfo(int id) : id(id)
         {
@@ -42,6 +44,21 @@ namespace netcode
         void setName(const std::string& newName)
         {
             name = newName;
+        }
+
+        void reconnect()
+        {
+            if(isConnected)
+            {
+               throw std::exception("Client is already connected");
+            }
+
+            isConnected = true;
+        }
+
+        void disconnect()
+        {
+            isConnected = false;
         }
     };
 }

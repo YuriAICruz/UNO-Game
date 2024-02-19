@@ -29,7 +29,6 @@ public:
     }
 
     bool isGameRunning();
-    void makePlayerDraw(turnSystem::IPlayer* player, int count);
     virtual void setupGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath,
                            size_t seed);
     virtual void setupGame(std::vector<std::string> players, std::vector<uint16_t> playersIds,
@@ -39,17 +38,18 @@ public:
     virtual turnSystem::IPlayer* getNextPlayer() const;
     virtual turnSystem::IPlayer* getPlayer(int i) const;
     virtual cards::ICard* getTopCard() const;
+    virtual bool makePlayerDraw(turnSystem::IPlayer* player, int count);
     virtual bool tryExecutePlayerAction(cards::ICard* card);
     virtual bool playerHasValidCardOnHand(turnSystem::IPlayer* player);
     int getStartHandSize();
     bool canYellUno();
     bool canSkipTurn() const;
     bool canDrawCard() const;
-    void skipTurn();
-    void cheatWin();
-    void endGame();
-    void endTurn();
-    void yellUno();
+    virtual bool skipTurn();
+    virtual void cheatWin();
+    virtual void endGame();
+    virtual void endTurn();
+    virtual void yellUno();
     std::tuple<const char*, size_t> getState() override;
     void setState(const char* data, size_t size) override;
     void print(const char* buffer, size_t size);

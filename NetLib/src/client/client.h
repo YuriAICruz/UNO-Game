@@ -35,6 +35,7 @@ namespace netcode
         room currentRoom;
         int seed = 1234;
         int id = 0;
+        bool hasId = false;
         std::string lastResponse;
         struct addrinfo* addr_info;
         std::vector<room> lastRoomsList;

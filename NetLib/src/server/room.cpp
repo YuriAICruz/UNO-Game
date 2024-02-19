@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 
+#include "../logger.h"
 #include "../serverCommands.h"
 #include "../stringUtils.h"
 
@@ -17,7 +18,15 @@ namespace netcode
     {
         if (locked)
         {
-            throw std::exception("can't add new clients, room is locked");
+            auto cl = getClient(client->id);
+            if (!cl->isConnected)
+            {
+                cl->reconnect();
+            }
+            else
+            {
+                throw std::exception("can't add new clients, room is locked");
+            }
         }
         connectedClients.push_back(client);
     }
@@ -26,7 +35,9 @@ namespace netcode
     {
         if (locked)
         {
-            throw std::exception("can't remove clients, room is locked");
+            logger::printError("locked Room, can't remove client, it will be flagged as disconnected.");
+            getClient(client->id)->disconnect();
+            return;
         }
 
         int i = 0;

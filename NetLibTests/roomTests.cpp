@@ -40,6 +40,29 @@ TEST(RoomTests, EnteringOnLockedRoom)
     EXPECT_FALSE(r.isLocked());
 }
 
+TEST(RoomTests, ReconnectingToLockedRoom)
+{
+    std::string roomName = "BlockedRoom";
+    int clientId = 12;
+    auto r = netcode::room(0, roomName);
+    auto ca = std::make_shared<netcode::clientInfo>(0, "A");
+    auto cb = std::make_shared<netcode::clientInfo>(1, "B");
+
+    r.addClient(ca);
+    r.addClient(cb);
+
+    EXPECT_FALSE(r.isLocked());
+    r.lock();
+    EXPECT_TRUE(r.isLocked());
+
+    r.removeClient(cb.get());
+    
+    r.addClient(cb);
+    
+    r.unlock();
+    EXPECT_FALSE(r.isLocked());
+}
+
 TEST(RoomTests, Serialization)
 {
     std::string roomName = "MyRoom";

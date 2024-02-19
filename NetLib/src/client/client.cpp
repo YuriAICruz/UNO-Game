@@ -131,7 +131,18 @@ namespace netcode
         });
         clientThread.detach();
 
-        int result = sendMessage(CLIENT_KEY);
+        int result = 0;
+        if (hasId)
+        {
+            std::stringstream ss ;
+            ss << CLIENT_KEY << NC_SEPARATOR << id;
+            std::string str = ss.str();
+            result = sendMessage(str.c_str());
+        }
+        else
+        {
+            result = sendMessage(CLIENT_KEY);
+        }
 
         return result;
     }
@@ -235,6 +246,7 @@ namespace netcode
     {
         return &currentRoom;
     }
+
     room* client::getUpdatedRoom()
     {
         std::promise<room*> promise;
@@ -375,6 +387,7 @@ namespace netcode
     {
         auto data = stringUtils::splitString(message);
         connected = true;
+        hasId = true;
         id = std::stoul(data[1]);
     }
 

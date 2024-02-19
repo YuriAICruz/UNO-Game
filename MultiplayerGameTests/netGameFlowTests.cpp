@@ -464,3 +464,59 @@ TEST(NetGameFlowTests, StartSessionWithDedicatedServer)
     closeClient(clB.get());
     closeServer(sv.get());
 }
+
+TEST(NetGameFlowTests, EnteringOnLockedRoom)
+{
+    auto sv = startServer();
+
+    auto clA = startClient("Player A");
+    auto clB = startClient("Player B");
+
+    clA->createRoom("TestRoom");
+    clB->enterRoom(clA->getRoomId());
+
+    int handSize = 7;
+    std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
+    auto serverManager = std::make_shared<netGameStateManager>(events, sv);
+    auto clientManagerA = std::make_shared<netGameStateManager>(events, clA);
+    auto clientManagerB = std::make_shared<netGameStateManager>(events, clB);
+    serverManager->bindGameEvents();
+
+    clientManagerA->setupGame(clA->getRoom(), handSize, "Data\\deck_setup.json", 12345);
+
+    clientManagerA->startGame();
+}
+
+TEST(NetGameFlowTests, ReconnectToRunningGame)
+{
+    auto sv = startServer();
+
+    auto clA = startClient("Player A");
+    auto clB = startClient("Player B");
+
+    clA->createRoom("TestRoom");
+    clB->enterRoom(clA->getRoomId());
+
+    int handSize = 7;
+    std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
+    auto serverManager = std::make_shared<netGameStateManager>(events, sv);
+    auto clientManagerA = std::make_shared<netGameStateManager>(events, clA);
+    auto clientManagerB = std::make_shared<netGameStateManager>(events, clB);
+    serverManager->bindGameEvents();
+
+    clientManagerA->setupGame(clA->getRoom(), handSize, "Data\\deck_setup.json", 12345);
+
+    auto startingPlayer = serverManager->getCurrentPlayer(); 
+    clientManagerA->startGame();
+
+    clB->close();
+
+    EXPECT_TRUE(clientManagerA->makePlayerDraw(clientManagerA->getCurrentPlayer(), 1));
+    EXPECT_TRUE(clientManagerA->skipTurn());
+    
+    clB->start();
+    clB->connectToServer();
+
+    EXPECT_NE(serverManager->getCurrentPlayer()->Id(), startingPlayer->Id());
+    EXPECT_EQ(serverManager->getCurrentPlayer()->Id(), clientManagerB->getCurrentPlayer()->Id());
+}

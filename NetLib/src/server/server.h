@@ -95,6 +95,8 @@ namespace netcode
         };
 
     public:
+        std::function<void(clientInfo*)> onClientReconnected;
+
         server() = default;
         int start(int port = 8080);
         int close();
@@ -102,6 +104,7 @@ namespace netcode
         void broadcast(std::string msg);
         void broadcastToRoom(std::string msg, SOCKET cs);
         void broadcastToRoom(const char* responseData, size_t size, SOCKET cs);
+        void sendMessage(SOCKET clientSocket, const char* responseData, int len, int flags) const;
 
         int getSeed() const
         {
@@ -131,11 +134,13 @@ namespace netcode
     private:
         void listening();
         void disconnectClient(SOCKET clientSocket);
+        void clientReconnected(const std::shared_ptr<clientInfo>& client, SOCKET uint);
         void clientHandler(SOCKET clientSocket);
         bool containsCommand(const std::string& command);
         bool containsCustomCommand(const std::string& command);
-        bool validateKey(SOCKET clientSocket) const;
+        bool validateKey(SOCKET clientSocket, int& id) const;
         std::shared_ptr<clientInfo> getClient(SOCKET uint);
+        std::shared_ptr<clientInfo> getClientFromId(size_t id) const;
 
         void createRoom(const std::string& message, SOCKET clientSocket);
         void listRoom(const std::string& message, SOCKET clientSocket);
@@ -146,6 +151,5 @@ namespace netcode
         void updateClientName(const std::string& message, SOCKET clientSocket);
         void getSeed(const std::string& message, SOCKET clientSocket);
         void setSeed(const std::string& message, SOCKET clientSocket);
-        void sendMessage(SOCKET clientSocket, const char* responseData, int len, int flags) const;
     };
 }

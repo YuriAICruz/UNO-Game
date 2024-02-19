@@ -15,6 +15,7 @@ private:
     std::promise<bool>* tryStartGameCallback = nullptr;
     std::promise<bool>* trySetGameSettingsCallback = nullptr;
     std::promise<bool>* gameStateUpdatedCallback = nullptr;
+    std::promise<bool>* executeCommandCallback = nullptr;
     bool isHost = false;
     bool isServer = false;
 
@@ -23,10 +24,11 @@ public:
 
 public:
     netGameStateManager(std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<netcode::client> cl);
-    void createServerCustomCommands();
     netGameStateManager(std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<netcode::client> cl,
                         std::shared_ptr<netcode::server> sv);
     netGameStateManager(std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<netcode::server> sv);
+
+    void createServerCustomCommands();
 
     void setupGame(
         netcode::room* room,
@@ -46,6 +48,7 @@ public:
         int handSize,
         std::string deckConfigFilePath,
         size_t seed) override;
+    std::string encryptGameSettings(std::string path) const;
 
     void sendGameSettings(std::string path);
     void decryptGameSettingsAndSetup(const std::string& msg);
@@ -57,9 +60,29 @@ public:
     void createClientCustomCommands();
     bool isCurrentPlayer();
     bool tryExecutePlayerAction(cards::ICard* card) override;
+    void checkIsServer() const;
     bool tryExecutePlayerAction(int index);
     void netPlayerActionCallback(const std::string& msg);
-    void sendServerStateData(SOCKET cs);
+    void encryptStateData(std::tuple<const char*, size_t>& data, size_t& bufferSize, char*& buffer);
+    void broadcastServerStateData(SOCKET cs);
+    void sendToClientServerStateData(SOCKET cs);
     void tryExecuteNetPlayerAction(const std::string& msg, SOCKET cs);
     void setStateNet(char* buffer, size_t size);
+    void cheatWin() override;
+    bool skipTurn() override;
+    void yellUno() override;
+    bool makePlayerDraw(turnSystem::IPlayer* player, int count) override;
+
+private:
+    void onClientReconnected(netcode::clientInfo* client);
+
+    void trySkipTurn(const std::string& msg, SOCKET cs);
+    void commandCallbackResponse(const std::string& msg) const;
+    void skipTurnCallback(const std::string& msg);
+
+    void tryYellUno(const std::string& msg, SOCKET cs);
+    void unoYellCallback(const std::string& msg);
+
+    void tryDrawCards(const std::string& msg, SOCKET cs);
+    void drawCardsCallback(const std::string& msg) const;
 };

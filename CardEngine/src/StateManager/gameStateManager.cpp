@@ -45,7 +45,7 @@ void gameStateManager::beginTurn()
     if (player->getHand().size() < 2 && !player->isInUnoMode())
     {
         events->fireEvent(GAME_NO_UNO_PENALTY, gameEventData());
-        makePlayerDraw(player, 2);
+        gameStateManager::makePlayerDraw(player, 2);
     }
     else if (player->isInUnoMode())
     {
@@ -55,13 +55,15 @@ void gameStateManager::beginTurn()
     events->fireEvent(TURN_BEGIN, turnEventData());
 }
 
-void gameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
+bool gameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
 {
     for (int j = 0; j < count; ++j)
     {
         currentPlayerCardsDraw++;
         player->receiveCard(mainDeck->dequeue());
     }
+
+    return true;
 }
 
 void gameStateManager::setupGame(std::vector<std::string>& players, int handSize,
@@ -100,7 +102,7 @@ void gameStateManager::startGame()
     for (int i = 0, n = turner->playersCount(); i < n; ++i)
     {
         auto player = turner->getPlayer(i);
-        makePlayerDraw(player, handSize);
+        gameStateManager::makePlayerDraw(player, handSize);
     }
 
     auto card = mainDeck->dequeue();
@@ -323,9 +325,10 @@ bool gameStateManager::canDrawCard() const
     return currentPlayerCardsDraw == 0;
 }
 
-void gameStateManager::skipTurn()
+bool gameStateManager::skipTurn()
 {
     endTurn();
+    return true;
 }
 
 void gameStateManager::cheatWin()
