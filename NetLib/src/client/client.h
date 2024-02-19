@@ -39,6 +39,7 @@ namespace netcode
         std::string lastResponse;
         struct addrinfo* addr_info;
         std::vector<room> lastRoomsList;
+        std::promise<int>* connectingCallback;
         std::promise<std::vector<room>>* roomsCallback;
         std::promise<room*>* roomCallback;
         std::promise<int>* seedCallback;

@@ -113,6 +113,7 @@ namespace netcode
         }
 
         logger::print("CLIENT: connecting to server . . .");
+
         if (connect(clientSocket, addr_info->ai_addr, static_cast<int>(addr_info->ai_addrlen)) == SOCKET_ERROR)
         {
             logger::printError("CLIENT: Connection failed");
@@ -131,10 +132,14 @@ namespace netcode
         });
         clientThread.detach();
 
+        std::promise<int> promise;
+        connectingCallback = &promise;
+        auto future = promise.get_future();
+
         int result = 0;
         if (hasId)
         {
-            std::stringstream ss ;
+            std::stringstream ss;
             ss << CLIENT_KEY << NC_SEPARATOR << id;
             std::string str = ss.str();
             result = sendMessage(str.c_str());
@@ -143,6 +148,16 @@ namespace netcode
         {
             result = sendMessage(CLIENT_KEY);
         }
+
+        if (result != 0)
+        {
+            connectingCallback = nullptr;
+            return result;
+        }
+
+        future.wait();
+        connectingCallback = nullptr;
+        result = future.get();
 
         return result;
     }
@@ -380,6 +395,10 @@ namespace netcode
     void client::invalidKeyCallback(const std::string& message)
     {
         connected = false;
+        if (connectingCallback != nullptr)
+        {
+            connectingCallback->set_value(1);
+        }
         close();
     }
 
@@ -389,6 +408,11 @@ namespace netcode
         connected = true;
         hasId = true;
         id = std::stoul(data[1]);
+
+        if (connectingCallback != nullptr)
+        {
+            connectingCallback->set_value(0);
+        }
     }
 
     void client::updateRoom(const std::string& message)

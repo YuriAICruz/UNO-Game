@@ -485,11 +485,16 @@ TEST(NetGameFlowTests, EnteringOnLockedRoom)
     clientManagerA->setupGame(clA->getRoom(), handSize, "Data\\deck_setup.json", 12345);
 
     clientManagerA->startGame();
+    
+    closeClient(clA.get());
+    closeClient(clB.get());
+    closeServer(sv.get());
 }
 
 TEST(NetGameFlowTests, ReconnectToRunningGame)
 {
     auto sv = startServer();
+    ASSERT_TRUE(sv->isRunning());
 
     auto clA = startClient("Player A");
     auto clB = startClient("Player B");

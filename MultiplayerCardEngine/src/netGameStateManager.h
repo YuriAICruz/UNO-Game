@@ -28,6 +28,8 @@ public:
                         std::shared_ptr<netcode::server> sv);
     netGameStateManager(std::shared_ptr<eventBus::eventBus> events, std::shared_ptr<netcode::server> sv);
 
+    ~netGameStateManager() override;
+    
     void createServerCustomCommands();
 
     void setupGame(
