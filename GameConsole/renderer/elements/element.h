@@ -43,9 +43,14 @@ namespace elements
             this->position = pos;
         }
 
-        COORD getSize()
+        COORD getSize() const
         {
             return size;
+        }
+
+        COORD getPosition() const
+        {
+            return position;
         }
 
         virtual void setSize(COORD s)
