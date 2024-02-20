@@ -164,12 +164,17 @@ namespace netcode
 
     void client::setName(const std::string& name)
     {
+        clientName = name;
         std::stringstream ss;
         ss << NC_SET_NAME << NC_SEPARATOR << name;
         std::string str = ss.str();
         sendMessage(str.c_str());
     }
 
+    std::string& client::getPlayerName()
+    {
+        return clientName;
+    }
 
     int client::sendMessage(const char* str)
     {
@@ -408,6 +413,8 @@ namespace netcode
         connected = true;
         hasId = true;
         id = std::stoul(data[1]);
+
+        setName(clientName);
 
         if (connectingCallback != nullptr)
         {

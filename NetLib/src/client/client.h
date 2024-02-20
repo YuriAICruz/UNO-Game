@@ -32,6 +32,7 @@ namespace netcode
         std::atomic<bool> connected{false};
         std::atomic<bool> error{false};
         std::atomic<bool> isListening{false};
+        std::string clientName = "Player";
         room currentRoom;
         int seed = 1234;
         int id = 0;
@@ -104,6 +105,7 @@ namespace netcode
         int start(std::string addr = "ftp://127.0.0.1:8080");
         int connectToServer();
         void setName(const std::string& name);
+        std::string& getPlayerName();
         int sendMessage(const char* str);
         int close();
 
