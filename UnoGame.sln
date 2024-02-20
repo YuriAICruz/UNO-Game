@@ -19,6 +19,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MultiplayerGameTests", "Mul
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MultiplayerCardEngine", "MultiplayerCardEngine\MultiplayerCardEngine.vcxproj", "{B0F171FF-8A38-47B2-BC48-63052C938A4A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameServer", "GameServer\GameServer.vcxproj", "{15FBBAE3-744F-4D92-84CD-853A39DC5FF3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -125,6 +127,18 @@ Global
 		{B0F171FF-8A38-47B2-BC48-63052C938A4A}.Release|x86.Build.0 = Release|Win32
 		{B0F171FF-8A38-47B2-BC48-63052C938A4A}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{B0F171FF-8A38-47B2-BC48-63052C938A4A}.Debug|Any CPU.Build.0 = Debug|x64
+		{15FBBAE3-744F-4D92-84CD-853A39DC5FF3}.Debug|x64.ActiveCfg = Debug|x64
+		{15FBBAE3-744F-4D92-84CD-853A39DC5FF3}.Debug|x64.Build.0 = Debug|x64
+		{15FBBAE3-744F-4D92-84CD-853A39DC5FF3}.Debug|x86.ActiveCfg = Debug|Win32
+		{15FBBAE3-744F-4D92-84CD-853A39DC5FF3}.Debug|x86.Build.0 = Debug|Win32
+		{15FBBAE3-744F-4D92-84CD-853A39DC5FF3}.Release|Any CPU.ActiveCfg = Release|Win32
+		{15FBBAE3-744F-4D92-84CD-853A39DC5FF3}.Release|Any CPU.Build.0 = Release|Win32
+		{15FBBAE3-744F-4D92-84CD-853A39DC5FF3}.Release|x64.ActiveCfg = Release|x64
+		{15FBBAE3-744F-4D92-84CD-853A39DC5FF3}.Release|x64.Build.0 = Release|x64
+		{15FBBAE3-744F-4D92-84CD-853A39DC5FF3}.Release|x86.ActiveCfg = Release|Win32
+		{15FBBAE3-744F-4D92-84CD-853A39DC5FF3}.Release|x86.Build.0 = Release|Win32
+		{15FBBAE3-744F-4D92-84CD-853A39DC5FF3}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{15FBBAE3-744F-4D92-84CD-853A39DC5FF3}.Debug|Any CPU.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

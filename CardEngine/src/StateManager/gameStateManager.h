@@ -22,39 +22,39 @@ protected:
 
 public:
     gameStateManager(std::shared_ptr<eventBus::eventBus> events);
+    void bindGameEvents();
 
     ~gameStateManager() override
     {
     }
 
     bool isGameRunning();
-    void makePlayerDraw(turnSystem::IPlayer* player, int count);
     virtual void setupGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath,
                            size_t seed);
-    virtual void setupGame(std::vector<std::string>& players, std::vector<size_t>& playersIds,
+    virtual void setupGame(std::vector<std::string> players, std::vector<uint16_t> playersIds,
                            int handSize, std::string deckConfigFilePath, size_t seed);
     virtual void startGame();
     virtual turnSystem::IPlayer* getCurrentPlayer() const;
     virtual turnSystem::IPlayer* getNextPlayer() const;
     virtual turnSystem::IPlayer* getPlayer(int i) const;
     virtual cards::ICard* getTopCard() const;
+    virtual bool makePlayerDraw(turnSystem::IPlayer* player, int count);
     virtual bool tryExecutePlayerAction(cards::ICard* card);
     virtual bool playerHasValidCardOnHand(turnSystem::IPlayer* player);
     int getStartHandSize();
     bool canYellUno();
-    bool canSkipTurn();
-    bool canDrawCard();
-    void skipTurn();
-    void cheatWin();
-    void endGame();
-    void endTurn();
-    void yellUno();
+    bool canSkipTurn() const;
+    bool canDrawCard() const;
+    virtual bool skipTurn();
+    virtual void cheatWin();
+    virtual void endGame();
+    virtual void endTurn();
+    virtual void yellUno();
     std::tuple<const char*, size_t> getState() override;
     void setState(const char* data, size_t size) override;
     void print(const char* buffer, size_t size);
 
 protected:
-    void bindGameEvents();
     void beginTurn();
     void finishAction(cards::ICard* card);
     bool isActionCardValid(cards::ICard* card, cards::ICard* topCard) const;

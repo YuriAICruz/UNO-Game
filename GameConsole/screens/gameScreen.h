@@ -4,6 +4,7 @@
 #include "transitionData.h"
 #include "StateManager/gameStateManager.h"
 #include "coreEventIds.h"
+#include "popupWindow.h"
 #include "StateManager/gameEventData.h"
 #include "../renderer/elements/card.h"
 
@@ -12,13 +13,12 @@ namespace screens
     class gameScreen : public IScreen
     {
     private:
-        std::shared_ptr<gameStateManager> gameManager;
+        gameStateManager* gameManager;
         size_t currentPlayerInfoId;
         size_t handCardsPoolId;
         std::vector<button> cardListButtons;
         button optionButtons[3];
-        button popupButton;
-        bool isPopupOpen = false;
+        popupWindow popup;
         bool selectingCards = false;
         bool selectingOptions = false;
         int currentCardButton = 0;
@@ -29,6 +29,7 @@ namespace screens
         int cardSizeY = 6;
         bool unoPopup = false;
         bool cardsAreHidden = false;
+        int isOnline = false;
 
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
@@ -40,15 +41,19 @@ namespace screens
                 eventBus::delegate<transitionData>{std::bind(&gameScreen::onHide, this, std::placeholders::_1)}
             },
             {
-                NAVIGATION_GAME,
-                eventBus::delegate<transitionData>{std::bind(&gameScreen::onShow, this, std::placeholders::_1)}
-            },
-            {
                 NAVIGATION_GAME_OVER,
                 eventBus::delegate<transitionData>{std::bind(&gameScreen::onHide, this, std::placeholders::_1)}
             },
             {
                 NAVIGATION_NETWORK_CONNECT,
+                eventBus::delegate<transitionData>{std::bind(&gameScreen::onHide, this, std::placeholders::_1)}
+            },
+            {
+                NAVIGATION_NETWORK_ROOMS,
+                eventBus::delegate<transitionData>{std::bind(&gameScreen::onHide, this, std::placeholders::_1)}
+            },
+            {
+                NAVIGATION_NETWORK_WAIT_ROOM,
                 eventBus::delegate<transitionData>{std::bind(&gameScreen::onHide, this, std::placeholders::_1)}
             },
         };
@@ -68,9 +73,8 @@ namespace screens
         };
 
     public:
-        gameScreen(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events,
-                   std::shared_ptr<gameStateManager> gameManager)
-            : IScreen(rdr, events), gameManager(gameManager)
+        gameScreen(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events)
+            : IScreen(rdr, events), popup(popupWindow(rdr.get()))
         {
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
             {
@@ -104,6 +108,7 @@ namespace screens
 
         void show() override;
         void hide() override;
+        void setGameManager(gameStateManager* gm);
         void moveUp(input::inputData data) override;
         void moveDown(input::inputData data) override;
         void moveLeft(input::inputData data) override;
@@ -136,8 +141,6 @@ namespace screens
         void setCardData(elements::card* cardElement, cards::ICard* card, bool hidden);
         void updateTopCard();
         void updateCurrentPlayerName() const;
-        void hidePopup();
-        void openWarningPopup(std::string bodyText);
         void selectCard(int index);
         void switchToCards();
         void switchToOptions();

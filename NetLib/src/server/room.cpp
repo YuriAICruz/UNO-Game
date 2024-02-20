@@ -3,112 +3,177 @@
 #include <sstream>
 #include <string>
 
+#include "../logger.h"
 #include "../serverCommands.h"
 #include "../stringUtils.h"
 
-int room::count()
+namespace netcode
 {
-    return connectedClients.size();
-}
-
-void room::addClient(const std::shared_ptr<clientInfo>& client)
-{
-    connectedClients.push_back(client);
-}
-
-void room::removeClient(clientInfo* client)
-{
-    int i = 0;
-    for (int n = connectedClients.size(); i < n; ++i)
+    int room::count()
     {
-        if (connectedClients.at(i).get() == client)
+        return connectedClients.size();
+    }
+
+    bool room::addClient(const std::shared_ptr<clientInfo>& client)
+    {
+        if (locked)
         {
-            break;
+            auto cl = getClient(client->id);
+            if (cl != nullptr && !cl->isConnected)
+            {
+                cl->reconnect();
+            }
+            else
+            {
+                logger::printError("can't add new clients, room is locked");
+                return false;
+            }
         }
+        connectedClients.push_back(client);
+        return true;
     }
 
-    if (i >= connectedClients.size())
+    void room::removeClient(clientInfo* client)
     {
-        throw std::exception("client not fount");
-    }
-
-    connectedClients.erase(connectedClients.begin() + i);
-}
-
-std::vector<clientInfo*> room::clients()
-{
-    std::vector<clientInfo*> list;
-    list.resize(connectedClients.size());
-    for (int i = 0, n = connectedClients.size(); i < n; ++i)
-    {
-        list[i] = connectedClients[i].get();
-    }
-
-    return list;
-}
-
-clientInfo* room::getClientByIndex(int index) const
-{
-    return connectedClients.at(index).get();
-}
-
-clientInfo* room::getClient(int clientId) const
-{
-    for (auto client : connectedClients)
-    {
-        if (client->getId() == clientId)
+        if (locked)
         {
-            return client.get();
+            logger::printError("locked Room, can't remove client, it will be flagged as disconnected.");
+            getClient(client->id)->disconnect();
+            return;
         }
-    }
 
-    return nullptr;
-}
-
-bool room::hasClient(clientInfo* client) const
-{
-    for (auto connectedClient : connectedClients)
-    {
-        if (connectedClient->id == client->id)
+        int i = 0;
+        for (int n = connectedClients.size(); i < n; ++i)
         {
-            return true;
+            if (connectedClients.at(i).get() == client)
+            {
+                break;
+            }
         }
+
+        if (i >= connectedClients.size())
+        {
+            throw std::exception("client not found");
+        }
+
+        connectedClients.erase(connectedClients.begin() + i);
     }
 
-    return false;
-}
-
-std::string room::getRoomSerialized(int id)
-{
-    std::stringstream ss;
-    ss << id << NC_SEPARATOR << getName() << NC_SEPARATOR;
-    int i = 0;
-    for (auto client : connectedClients)
+    void room::lock()
     {
-        if (i > 0)
+        locked = true;
+    }
+
+    void room::unlock()
+    {
+        locked = false;
+    }
+
+    bool room::isLocked() const
+    {
+        return locked;
+    }
+
+    std::vector<clientInfo*> room::clients()
+    {
+        std::vector<clientInfo*> list;
+        list.resize(connectedClients.size());
+        for (int i = 0, n = connectedClients.size(); i < n; ++i)
         {
+            list[i] = connectedClients[i].get();
+        }
+
+        return list;
+    }
+
+    clientInfo* room::getClientByIndex(int index) const
+    {
+        return connectedClients.at(index).get();
+    }
+
+    clientInfo* room::getClient(int clientId) const
+    {
+        for (auto client : connectedClients)
+        {
+            if (client->getId() == clientId)
+            {
+                return client.get();
+            }
+        }
+
+        return nullptr;
+    }
+
+    bool room::hasClient(clientInfo* client) const
+    {
+        for (auto connectedClient : connectedClients)
+        {
+            if (connectedClient->id == client->id)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    std::string room::getRoomSerialized(int id)
+    {
+        std::stringstream ss;
+        ss << id << NC_SEPARATOR << getName() << NC_SEPARATOR;
+        int i = 0;
+        for (auto client : connectedClients)
+        {
+            if (i > 0)
+            {
+                ss << NC_SEPARATOR;
+            }
+            ss << client->getId();
             ss << NC_SEPARATOR;
+            ss << client->getName();
+            i++;
         }
-        ss << client->getId();
-        ss << NC_SEPARATOR;
-        ss << client->getName();
-        i++;
+        return ss.str();
     }
-    return ss.str();
-}
 
-room room::constructRoom(std::string data)
-{
-    auto splitData = stringUtils::splitString(data);
-    int id = std::stoi(splitData[0]);
-    std::string name = splitData[1];
-    std::vector<clientInfo> clients;
-    for (int i = 2, n = splitData.size(); i < n; i += 2)
+    std::string room::getClientName(uint16_t id) const
     {
-        int clientId = std::stoi(splitData[i]);
-        std::string clientName = splitData[i + 1];
-        clients.emplace_back(clientInfo{clientId, clientName});
+        return getClient(id)->name;
     }
 
-    return room(id, name, clients);
+    std::vector<std::string> room::getClientsNames()
+    {
+        std::vector<std::string> names;
+        for (auto& client : clients())
+        {
+            names.emplace_back(client->name);
+        }
+        return names;
+    }
+
+    std::vector<uint16_t> room::getClientsIds()
+    {
+        std::vector<std::uint16_t> ids;
+        for (auto& client : clients())
+        {
+            ids.emplace_back(client->id);
+        }
+        return ids;
+    }
+
+    room room::constructRoom(std::string data)
+    {
+        auto splitData = stringUtils::splitString(data);
+        int id = std::stoi(splitData[0]);
+        std::string name = splitData[1];
+        std::vector<clientInfo> clients;
+        for (int i = 2, n = splitData.size(); i < n; i += 2)
+        {
+            int clientId = std::stoi(splitData[i]);
+            std::string clientName = splitData[i + 1];
+            clients.emplace_back(clientInfo{clientId, clientName});
+        }
+
+        return room(id, name, clients);
+    }
 }

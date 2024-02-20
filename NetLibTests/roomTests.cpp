@@ -4,14 +4,14 @@
 
 TEST(RoomTests, AddAndRemove)
 {
-    auto r = room(0,"MyRoom");
+    auto r = netcode::room(0, "MyRoom");
 
-    auto client = std::make_shared<clientInfo>(0);
+    auto client = std::make_shared<netcode::clientInfo>(0);
     r.addClient(client);
 
     EXPECT_EQ(1, r.count());
 
-    auto clientB = std::make_shared<clientInfo>(1);
+    auto clientB = std::make_shared<netcode::clientInfo>(1);
     r.addClient(clientB);
 
     EXPECT_EQ(2, r.count());
@@ -27,12 +27,48 @@ TEST(RoomTests, AddAndRemove)
     EXPECT_EQ(0, r.count());
 }
 
+TEST(RoomTests, EnteringOnLockedRoom)
+{
+    std::string roomName = "BlockedRoom";
+    int clientId = 12;
+    auto r = netcode::room(0, roomName);
+
+    EXPECT_FALSE(r.isLocked());
+    r.lock();
+    EXPECT_TRUE(r.isLocked());
+    r.unlock();
+    EXPECT_FALSE(r.isLocked());
+}
+
+TEST(RoomTests, ReconnectingToLockedRoom)
+{
+    std::string roomName = "BlockedRoom";
+    int clientId = 12;
+    auto r = netcode::room(0, roomName);
+    auto ca = std::make_shared<netcode::clientInfo>(0, "A");
+    auto cb = std::make_shared<netcode::clientInfo>(1, "B");
+
+    r.addClient(ca);
+    r.addClient(cb);
+
+    EXPECT_FALSE(r.isLocked());
+    r.lock();
+    EXPECT_TRUE(r.isLocked());
+
+    r.removeClient(cb.get());
+    
+    r.addClient(cb);
+    
+    r.unlock();
+    EXPECT_FALSE(r.isLocked());
+}
+
 TEST(RoomTests, Serialization)
 {
     std::string roomName = "MyRoom";
     int clientId = 12;
-    auto r = room(0,roomName);
-    auto client = std::make_shared<clientInfo>(clientId);
+    auto r = netcode::room(0, roomName);
+    auto client = std::make_shared<netcode::clientInfo>(clientId);
     std::string clientName = "MyClient";
     client->setName(clientName);
     r.addClient(client);

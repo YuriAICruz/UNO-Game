@@ -28,10 +28,11 @@ namespace turnSystem
     public:
         turnSystem(int numberOfPlayers);
         turnSystem(std::vector<std::string> numberOfPlayers);
-        turnSystem(std::vector<std::string> players, std::vector<size_t> playersId);
+        turnSystem(std::vector<std::string> players, std::vector<uint16_t> playersId);
         IPlayer* getCurrentPlayer() const override;
         IPlayer* getNextPlayer() const;
         IPlayer* getPlayer(int i) const;
+        std::vector<uint16_t> getPlayersIds();
         void shuffle() override;
         void shuffle(size_t seed) override;
         void turnEnded(Events::endTurnEventData& data);
@@ -42,7 +43,6 @@ namespace turnSystem
         std::tuple<const char*, size_t> getState() override;
         void setState(const char* data, decks::IDeck* deck) override;
         void print(const char* buffer, size_t size) override;
-
 
     private:
         int nextTurnIndex() const;

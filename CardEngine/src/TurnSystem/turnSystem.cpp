@@ -44,7 +44,7 @@ namespace turnSystem
         }
     }
 
-    turnSystem::turnSystem(std::vector<std::string> playersNames, std::vector<size_t> playersId)
+    turnSystem::turnSystem(std::vector<std::string> playersNames, std::vector<uint16_t> playersId)
     {
         events = std::make_shared<eventBus::eventBus>();
         events->bindEvent<Events::endTurnEventData&>(0);
@@ -71,6 +71,19 @@ namespace turnSystem
     IPlayer* turnSystem::getPlayer(int i) const
     {
         return players[i].get();
+    }
+
+    std::vector<uint16_t> turnSystem::getPlayersIds()
+    {
+        std::vector<uint16_t> list;
+        list.resize(playersCount());
+
+        for (int i = 0, n = playersCount(); i < n; ++i)
+        {
+            list[i] = players[i]->Id();
+        }
+
+        return list;
     }
 
     void turnSystem::shuffle()

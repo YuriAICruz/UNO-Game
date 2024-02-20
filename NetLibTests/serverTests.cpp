@@ -3,7 +3,7 @@
 
 TEST(ServerTests, OpenAndClose)
 {
-    auto sv = std::make_unique<server>();
+    auto sv = std::make_unique<netcode::server>();
 
     sv->start();
     while (!sv->isRunning() && !sv->hasError())

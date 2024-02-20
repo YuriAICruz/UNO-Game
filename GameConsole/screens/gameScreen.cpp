@@ -1,5 +1,6 @@
 ﻿#include "gameScreen.h"
 
+#include "netGameStateManager.h"
 #include "../renderer/elements/card.h"
 #include "../renderer/elements/horizontalLayoutGroup.h"
 #include "../renderer/elements/text.h"
@@ -48,18 +49,6 @@ namespace screens
             ' ',
             'g',
             "Current Player",
-            ""
-        );
-
-        popupButton.id = rdr->addElement<elements::card>(
-            COORD{
-                static_cast<SHORT>(windowSize.X / 4),
-                static_cast<SHORT>(windowSize.Y / 2 - 5)
-            },
-            COORD{0, 0},
-            ' ',
-            'r',
-            "",
             ""
         );
 
@@ -154,13 +143,7 @@ namespace screens
         int baseCardPoolSize = gameManager->getStartHandSize();
         expandCardsPool(baseCardPoolSize);
 
-        if (gameManager->isGameRunning())
-        {
-            showCurrentPlayerCards(true);
-        }
-
-        switchToCards();
-
+        popup.show();
 
         unoYell[0].id = rdr->addElement<elements::frame>(
             COORD{
@@ -173,6 +156,13 @@ namespace screens
                 static_cast<SHORT>(windowSize.Y + 100)
             }, 'b', "Data\\UNO.txt");
 
+
+        if (gameManager->isGameRunning())
+        {
+            switchToCards();
+            showCurrentPlayerCards(true);
+        }
+
         rdr->setDirty();
     }
 
@@ -180,6 +170,13 @@ namespace screens
     {
         cardListButtons.resize(0);
         IScreen::hide();
+        popup.hide();
+    }
+
+    void gameScreen::setGameManager(gameStateManager* gm)
+    {
+        isOnline = dynamic_cast<netGameStateManager*>(gm) != nullptr;
+        gameManager = gm;
     }
 
     void gameScreen::moveUp(input::inputData data)
@@ -192,13 +189,14 @@ namespace screens
         {
             hideUnoPopup();
         }
-        if (isPopupOpen)
+        if (cardsAreHidden)
         {
-            hidePopup();
-            if (popupButton.actionLeft != nullptr)
-            {
-                popupButton.actionLeft();
-            }
+            showCurrentPlayerCards(false);
+        }
+        if (popup.isOpen())
+        {
+            popup.hidePopup();
+            popup.executeActionCancel();
             return;
         }
         if (selectingCards)
@@ -226,13 +224,14 @@ namespace screens
         {
             hideUnoPopup();
         }
-        if (isPopupOpen)
+        if (cardsAreHidden)
         {
-            hidePopup();
-            if (popupButton.actionLeft != nullptr)
-            {
-                popupButton.actionLeft();
-            }
+            showCurrentPlayerCards(false);
+        }
+        if (popup.isOpen())
+        {
+            popup.hidePopup();
+            popup.executeActionCancel();
             return;
         }
         if (selectingOptions)
@@ -261,13 +260,14 @@ namespace screens
         {
             hideUnoPopup();
         }
-        if (isPopupOpen)
+        if (cardsAreHidden)
         {
-            hidePopup();
-            if (popupButton.actionLeft != nullptr)
-            {
-                popupButton.actionLeft();
-            }
+            showCurrentPlayerCards(false);
+        }
+        if (popup.isOpen())
+        {
+            popup.hidePopup();
+            popup.executeActionCancel();
             return;
         }
         if (selectingCards)
@@ -295,6 +295,16 @@ namespace screens
         {
             hideUnoPopup();
         }
+        if (cardsAreHidden)
+        {
+            showCurrentPlayerCards(false);
+        }
+        if (popup.isOpen())
+        {
+            popup.hidePopup();
+            popup.executeActionCancel();
+            return;
+        }
         if (selectingCards)
         {
             int handSize = gameManager->getCurrentPlayer()->getHand().size();
@@ -317,17 +327,19 @@ namespace screens
             hideUnoPopup();
             return;
         }
+        if (popup.isOpen())
+        {
+            if (cardsAreHidden)
+            {
+                showCurrentPlayerCards(false);
+            }
+            popup.hidePopup();
+            popup.executeActionAccept();
+            return;
+        }
         if (cardsAreHidden)
         {
             showCurrentPlayerCards(false);
-        }
-        if (isPopupOpen)
-        {
-            hidePopup();
-            if (popupButton.action != nullptr)
-            {
-                popupButton.action();
-            }
             return;
         }
         if (selectingCards)
@@ -355,24 +367,24 @@ namespace screens
         {
             hideUnoPopup();
         }
-        if (isPopupOpen)
+        if (cardsAreHidden)
         {
-            hidePopup();
-            if (popupButton.actionLeft != nullptr)
-            {
-                popupButton.actionLeft();
-            }
+            showCurrentPlayerCards(false);
+        }
+        if (popup.isOpen())
+        {
+            popup.hidePopup();
+            popup.executeActionCancel();
             return;
         }
 
-        popupButton.actionLeft = nullptr;
-        popupButton.actionRight = nullptr;
-        popupButton.action = [this]
+        popup.clearActions();
+        popup.assignActionAccept([this]
         {
             events->fireEvent(NAVIGATION_MAIN_MENU, transitionData());
             hide();
-        };
-        openWarningPopup(
+        });
+        popup.openWarningPopup(
             "Returning will end the game. Are You Sure?"
         );
     }
@@ -420,18 +432,19 @@ namespace screens
             showUnoPopup();
             return;
         }
-        popupButton.action = nullptr;
-        popupButton.actionLeft = nullptr;
-        popupButton.actionRight = nullptr;
-        openWarningPopup("You can only yell UNO with two cards");
+
+        popup.clearActions();
+        popup.openWarningPopup(
+            "You can only yell UNO with two cards"
+        );
     }
 
     void gameScreen::onUnoPenalty(gameEventData data)
     {
-        popupButton.action = nullptr;
-        popupButton.actionLeft = nullptr;
-        popupButton.actionRight = nullptr;
-        openWarningPopup("You forgot to yell UNO, received two cards");
+        popup.clearActions();
+        popup.openWarningPopup(
+            "You forgot to yell UNO, received two cards"
+        );
     }
 
     void gameScreen::onGameEnded(gameEventData data)
@@ -448,38 +461,40 @@ namespace screens
             showCurrentPlayerCards(true);
             return;
         }
-        popupButton.action = nullptr;
-        popupButton.actionLeft = nullptr;
-        popupButton.actionRight = nullptr;
-        openWarningPopup("You can only skip if you already draw a card");
+        popup.clearActions();
+        popup.openWarningPopup(
+            "You can only skip if you already draw a card"
+        );
     }
 
     void gameScreen::tryDrawMoreCards()
     {
         if (gameManager->playerHasValidCardOnHand(gameManager->getCurrentPlayer()))
         {
-            popupButton.action = [this]
-            {
-                drawOneCard();
-            };
-            popupButton.actionLeft = nullptr;
-            popupButton.actionRight = nullptr;
-            openWarningPopup("You have playable cards, are you sure?");
+            popup.clearActions();
+            popup.assignActionAccept([this]
+                {
+                    drawOneCard();
+                }
+            );
+            popup.openWarningPopup(
+                "You have playable cards, are you sure?"
+            );
             return;
         }
-        if (gameManager->canDrawCard())
-        {
-            drawOneCard();
-            return;
-        }
-        popupButton.action = nullptr;
-        popupButton.actionLeft = nullptr;
-        popupButton.actionRight = nullptr;
-        openWarningPopup("You can only draw on card per turn, you can skip now");
+        drawOneCard();
     }
 
     void gameScreen::drawOneCard()
     {
+        if (!gameManager->canDrawCard())
+        {
+            popup.clearActions();
+            popup.openWarningPopup(
+                "You can only draw on card per turn, you can skip now"
+            );
+            return;
+        }
         gameManager->makePlayerDraw(gameManager->getCurrentPlayer(), 1);
         showCurrentPlayerCards(false);
     }
@@ -559,10 +574,10 @@ namespace screens
 
         if (hidden)
         {
-            popupButton.action = nullptr;
-            popupButton.actionLeft = nullptr;
-            popupButton.actionRight = nullptr;
-            openWarningPopup("Cards are hidden waiting for the next player, Enter to start");
+            popup.clearActions();
+            popup.openWarningPopup(
+                "Cards are hidden waiting for the next player, Enter to start"
+            );
         }
 
         rdr->setDirty();
@@ -619,39 +634,13 @@ namespace screens
         rdr->setDirty();
     }
 
-    void gameScreen::hidePopup()
-    {
-        isPopupOpen = false;
-        auto popup = dynamic_cast<elements::card*>(rdr->getElement(popupButton.id));
-        popup->setSize(COORD{0, 0});
-        popup->setTitleText("");
-        popup->setCenterText("");
-        rdr->setDirty();
-    }
-
-    void gameScreen::openWarningPopup(std::string bodyText)
-    {
-        isPopupOpen = true;
-        COORD windowSize = rdr->getWindowSize();
-        auto popup = dynamic_cast<elements::card*>(rdr->getElement(popupButton.id));
-        popup->setSize(
-            COORD{
-                static_cast<SHORT>(windowSize.X / 2),
-                static_cast<SHORT>(5)
-            }
-        );
-        popup->setTitleText("Warning");
-        popup->setCenterText(bodyText);
-        rdr->setDirty();
-    }
-
     void gameScreen::selectCard(int index)
     {
         turnSystem::IPlayer* player = gameManager->getCurrentPlayer();
         auto card = player->pickCard(index);
         if (gameManager->tryExecutePlayerAction(card))
         {
-            if(gameManager->isGameRunning())
+            if (gameManager->isGameRunning())
             {
                 showCurrentPlayerCards(
                     *player != *gameManager->getCurrentPlayer()
@@ -665,6 +654,11 @@ namespace screens
 
     void gameScreen::switchToCards()
     {
+        if(blockInputs)
+        {
+            return;
+        }
+        
         selectingCards = true;
         selectingOptions = false;
         selectCardButton(currentCardButton);

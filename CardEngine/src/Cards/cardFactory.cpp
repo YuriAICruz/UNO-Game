@@ -15,6 +15,13 @@ namespace cards
     template <typename Type>
     ICard* createAndAddInstance(std::vector<std::unique_ptr<ICard>>& instances, uint8_t id, int n, char c)
     {
+        for (auto& c : instances)
+        {
+            if(c->Id() == id)
+            {
+                return c.get();
+            }
+        }
         instances.emplace_back(std::make_unique<Type>(id, n, c));
         return instances.back().get();
     }

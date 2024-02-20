@@ -5,6 +5,9 @@
 
 class NETCODE_API logger
 {
+private:
+    static bool canPrintCout;
+
 public:
     struct printer
     {
@@ -37,6 +40,7 @@ public:
 
     static void printError(const std::string& msg);
     static void printError(const char* msg);
+    static void printCout(bool canPrint);
 
 private:
     static std::wstring toWString(std::string value);
