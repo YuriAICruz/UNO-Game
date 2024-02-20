@@ -87,6 +87,10 @@ namespace netcode
     void server::broadcastToRoom(std::string msg, SOCKET cs)
     {
         auto room = roomManager.getRoom(getClient(cs).get());
+        if(room == nullptr)
+        {
+            throw std::exception("Room Not found");
+        }
         for (clientInfo* pair : room->clients())
         {
             if (pair->isConnected)
@@ -403,6 +407,11 @@ namespace netcode
 
         sendMessage(clientSocket, responseData, strlen(responseData), 0);
         logger::print((logger::getPrinter() << "SERVER: created room with id" << id << "").str());
+
+        if(onRoomCreated!= nullptr)
+        {
+            onRoomCreated(roomManager.getRoom(id));
+        }
     }
 
     void server::listRoom(const std::string& message, SOCKET clientSocket)

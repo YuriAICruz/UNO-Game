@@ -12,6 +12,7 @@ namespace screens
         int returnCount;
         turnSystem::IPlayer* winnerPlayer = nullptr;
         size_t winnerPlayerNameId;
+        bool isOnline;
 
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
@@ -82,16 +83,16 @@ namespace screens
             }
         }
 
-
         void show() override;
         void moveUp(input::inputData data) override;
         void moveDown(input::inputData data) override;
         void moveLeft(input::inputData data) override;
         void moveRight(input::inputData data) override;
         void accept(input::inputData data) override;
+        void exitScreen();
         void cancel(input::inputData data) override;
-    private:
 
+    private:
         void onHide(transitionData data)
         {
             hide();
@@ -105,6 +106,7 @@ namespace screens
         void onGameEnded(gameEventData data)
         {
             winnerPlayer = data.player;
+            isOnline = data.isOnline;
             updateWinningPlayerName();
         }
         void updateWinningPlayerName();

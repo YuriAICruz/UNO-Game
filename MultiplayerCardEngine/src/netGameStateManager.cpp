@@ -4,9 +4,11 @@
 #include <sstream>
 #include <tuple>
 
+#include "coreEventIds.h"
 #include "logger.h"
 #include "netCommands.h"
 #include "stringUtils.h"
+#include "StateManager/gameEventData.h"
 
 netGameStateManager::netGameStateManager(
     std::shared_ptr<eventBus::eventBus> events,
@@ -255,6 +257,12 @@ void netGameStateManager::createClientCustomCommands()
             CORE_NC_DRAW_CARDS, [this](std::string& msg)
             {
                 drawCardsCallback(msg);
+            },
+        },
+        {
+            CORE_NC_GAME_END, [this](std::string& msg)
+            {
+                showClientEndGame(msg);
             },
         }
     };
@@ -523,12 +531,36 @@ void netGameStateManager::cheatWin()
     gameStateManager::cheatWin();
 }
 
+void netGameStateManager::endGame()
+{
+    if (!isServer)
+    {
+        return;
+    }
+
+    gameStateManager::endGame();
+
+    SOCKET sc = *serverRoom->clients()[0]->connection;
+    netServer->broadcastToRoom(CORE_NC_GAME_END, sc);
+    broadcastServerStateData(sc);
+}
+
 void netGameStateManager::onClientReconnected(netcode::clientInfo* client)
 {
     if (running)
     {
         sendToClientServerStateData(*client->connection);
     }
+}
+
+void netGameStateManager::showClientEndGame(const std::string& msg)
+{
+    checkIsServer();
+
+    waitForStateSync();
+
+    running = false;
+    events->fireEvent(GAME_END, gameEventData(getCurrentPlayer(), true));
 }
 
 bool netGameStateManager::skipTurn()
@@ -602,9 +634,7 @@ void netGameStateManager::tryYellUno(const std::string& msg, SOCKET cs)
     }
     std::stringstream ss;
     ss << CORE_NC_YELL_UNO << NC_SEPARATOR << (canYell ? "1" : "0");
-    std::string str = ss.str();
-    const char* response = str.c_str();
-    netServer->sendMessage(cs, response, strlen(response), 0);
+    netServer->broadcastToRoom(ss.str(), cs);
 }
 
 void netGameStateManager::unoYellCallback(const std::string& msg)
@@ -651,6 +681,11 @@ bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
     executeCommandCallback = nullptr;
 
     return futureCmd.get();
+}
+
+void netGameStateManager::setRoom(netcode::room* room)
+{
+    serverRoom = room;
 }
 
 void netGameStateManager::tryDrawCards(const std::string& msg, SOCKET cs)

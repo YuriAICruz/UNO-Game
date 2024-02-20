@@ -353,7 +353,7 @@ void gameStateManager::cheatWin()
 void gameStateManager::endGame()
 {
     running = false;
-    events->fireEvent(GAME_END, gameEventData(getCurrentPlayer()));
+    events->fireEvent(GAME_END, gameEventData(getCurrentPlayer(), false));
 }
 
 void gameStateManager::finishAction(cards::ICard* card)

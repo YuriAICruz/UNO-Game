@@ -18,6 +18,7 @@ private:
     std::promise<bool>* executeCommandCallback = nullptr;
     bool isHost = false;
     bool isServer = false;
+    netcode::room* serverRoom;
 
 public:
     std::function<void()> onRoomGameStarted;
@@ -73,12 +74,15 @@ public:
     void setStateNet(char* buffer, size_t size);
     void waitForStateSync();
     void cheatWin() override;
+    void endGame() override;
     bool skipTurn() override;
     bool yellUno() override;
     bool makePlayerDraw(turnSystem::IPlayer* player, int count) override;
+    void setRoom(netcode::room* room);
 
 private:
     void onClientReconnected(netcode::clientInfo* client);
+    void showClientEndGame(const std::string& msg);
 
     void trySkipTurn(const std::string& msg, SOCKET cs);
     void commandCallbackResponse(const std::string& msg) const;

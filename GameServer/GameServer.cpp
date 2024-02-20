@@ -60,20 +60,44 @@ int tryReconnect(std::string input, std::string addr, netcode::client* clientins
     return 0;
 }
 
+std::shared_ptr<bootstrapper> strapper;
+std::vector<std::shared_ptr<netGameStateManager>> managers;
+    bool gameEventsBind = false;
+
 int main(int argc, char* argv[])
 {
-    std::unique_ptr<bootstrapper> strapper = std::make_unique<bootstrapper>();
+    strapper = std::make_unique<bootstrapper>();
     strapper->bind<eventBus::eventBus>()->to<eventBus::eventBus>()->asSingleton();
     strapper->bind<netcode::server>()->to<netcode::server>()->asSingleton();
-    strapper->bind<netGameStateManager, std::shared_ptr<eventBus::eventBus>, std::shared_ptr<netcode::server>>()->to<
-        netGameStateManager>()->asSingleton();
+    strapper->bind<netGameStateManager,
+                   std::shared_ptr<eventBus::eventBus>, std::shared_ptr<netcode::server>>()->to<netGameStateManager>();
 
     auto serverInstance = strapper->create<netcode::server>();
-    auto serverGameManager = strapper->create<netGameStateManager>(
-        strapper->create<eventBus::eventBus>(),
-        strapper->create<netcode::server>()
-    );
-    serverGameManager->bindGameEvents();
+
+    serverInstance->onRoomCreated = [](netcode::room* room) mutable
+    {
+        logger::print(
+            (logger::getPrinter() <<
+                "Creating a new manager for the room [" <<
+                room->getId() <<
+                ":\t" <<
+                room->getName() <<
+                "]"
+            ).str()
+        );
+        managers.emplace_back(
+            strapper->create<netGameStateManager>(strapper->create<eventBus::eventBus>(),
+                                                  strapper->create<netcode::server>())
+        );
+
+        managers.back()->setRoom(room);
+        if (!gameEventsBind)
+        {
+            managers.back()->bindGameEvents();
+            gameEventsBind = true;
+        }
+        logger::print("manager created");
+    };
 
     logger::printCout(true);
     int portValue;
@@ -98,8 +122,19 @@ int main(int argc, char* argv[])
 
     auto ngrokPID = std::system(cmd.c_str());
 
+    std::cout << "server is running you can now type extra commands:\n";
     while (serverInstance->isRunning())
     {
+        std::string cmd;
+        std::cout << ":\n";
+        std::cin >> cmd;
+        if (cmd == "win")
+        {
+            for (auto serverGameManager : managers)
+            {
+                serverGameManager->cheatWin();
+            }
+        }
     }
 
     if (ngrokPID > 0)

@@ -63,8 +63,7 @@ namespace screens
         returnCount++;
         if (returnCount > 1)
         {
-            events->fireEvent(NAVIGATION_MAIN_MENU, transitionData());
-            hide();
+            exitScreen();
         }
     }
 
@@ -77,9 +76,21 @@ namespace screens
         returnCount++;
         if (returnCount > 1)
         {
-            events->fireEvent(NAVIGATION_MAIN_MENU, transitionData());
-            hide();
+            exitScreen();
         }
+    }
+
+    void gameOverScreen::exitScreen()
+    {
+        if (isOnline)
+        {
+            events->fireEvent(NAVIGATION_NETWORK_WAIT_ROOM, transitionData());
+        }
+        else
+        {
+            events->fireEvent(NAVIGATION_MAIN_MENU, transitionData());
+        }
+        hide();
     }
 
     void gameOverScreen::updateWinningPlayerName()

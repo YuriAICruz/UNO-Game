@@ -96,6 +96,7 @@ namespace netcode
 
     public:
         std::function<void(clientInfo*)> onClientReconnected;
+        std::function<void (room* room)> onRoomCreated;
 
         server() = default;
         int start(int port = 8080);
