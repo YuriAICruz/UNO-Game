@@ -19,6 +19,7 @@ namespace screens
         size_t handCardsPoolId;
         std::vector<button> cardListButtons;
         button optionButtons[3];
+        button playersInfo;
         popupWindow popup;
         bool selectingCards = false;
         bool selectingOptions = false;
@@ -142,9 +143,11 @@ namespace screens
             showCurrentPlayerCards(true);
         }
 
+
         void onUnoPenalty(gameEventData data);
         void onGameEnded(gameEventData data);
         void updateScreen(gameEventData data);
+        void updatePlayersInfo() const;
 
         void tryYellUno();
         void tryToPass();

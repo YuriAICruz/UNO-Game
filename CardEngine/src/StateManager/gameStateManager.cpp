@@ -134,6 +134,11 @@ turnSystem::IPlayer* gameStateManager::getPlayerFromId(int id) const
     return turner->getPlayerFromId(id);
 }
 
+int gameStateManager::playersCount() const
+{
+    return turner->playersCount();
+}
+
 cards::ICard* gameStateManager::getTopCard() const
 {
     return discardDeck->peek();

@@ -38,6 +38,7 @@ public:
     virtual turnSystem::IPlayer* getNextPlayer() const;
     virtual turnSystem::IPlayer* getPlayer(int i) const;
     virtual turnSystem::IPlayer* getPlayerFromId(int id) const;
+    virtual int playersCount() const;
     virtual cards::ICard* getTopCard() const;
     virtual bool makePlayerDraw(turnSystem::IPlayer* player, int count);
     virtual bool tryExecutePlayerAction(cards::ICard* card);

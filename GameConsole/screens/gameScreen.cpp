@@ -2,11 +2,17 @@
 
 #include "netGameStateManager.h"
 #include "../renderer/elements/card.h"
+#include "../renderer/elements/frameList.h"
 #include "../renderer/elements/horizontalLayoutGroup.h"
 #include "../renderer/elements/text.h"
 #include "Cards/ActionTypes/base.h"
 #include "Cards/ActionTypes/draw.h"
 #include "../renderer/elements/fileRead.h"
+
+namespace elements
+{
+    class frameList;
+}
 
 namespace screens
 {
@@ -34,8 +40,9 @@ namespace screens
         lastY += offset;
         int border = 5;
         int sideMenuWidth = 15;
+        int playersInfoWidth = 15;
 
-        lastX = border;
+        lastX = border + playersInfoWidth;
 
         currentPlayerInfoId = rdr->addElement<elements::card>(
             COORD{
@@ -43,7 +50,7 @@ namespace screens
                 static_cast<SHORT>(lastY)
             },
             COORD{
-                static_cast<SHORT>(windowSize.X - border * 2 - sideMenuWidth),
+                static_cast<SHORT>(windowSize.X - border * 2 - sideMenuWidth - playersInfoWidth),
                 static_cast<SHORT>(5)
             },
             ' ',
@@ -51,6 +58,20 @@ namespace screens
             "Current Player",
             ""
         );
+
+        playersInfo.id = rdr->addElement<elements::frameList>(
+            COORD{
+                static_cast<SHORT>(offset),
+                static_cast<SHORT>(lastY)
+            },
+            COORD{
+                static_cast<SHORT>(playersInfoWidth),
+                static_cast<SHORT>(windowSize.Y - cardSizeY - offset * 2)
+            },
+            ' ',
+            'y'
+        );
+        updatePlayersInfo();
 
         int buttonWidth = sideMenuWidth;
         int buttonHeight = 3;
@@ -471,6 +492,41 @@ namespace screens
         showCurrentPlayerCards(false);
     }
 
+    void gameScreen::updatePlayersInfo() const
+    {
+        auto button = dynamic_cast<elements::frameList*>(rdr->getElement(playersInfo.id));
+        std::stringstream ss;
+        ss << "Players:";
+        if (button->linesCount() <= 0)
+        {
+            button->addText(ss.str());
+        }
+        else
+        {
+            button->setText(0, ss.str());
+        }
+        for (int i = 0, n = gameManager->playersCount(); i < n; ++i)
+        {
+            auto player = gameManager->getPlayer(i);
+
+            ss.str("");
+            ss << player->getName();
+            ss << ":[";
+            ss << player->getHand().size();
+            ss << "]";
+            if (button->linesCount() <= i)
+            {
+                button->addText(ss.str());
+            }
+            else
+            {
+                button->setText(i, ss.str());
+            }
+        }
+
+        rdr->setDirty();
+    }
+
     void gameScreen::tryToPass()
     {
         if (gameManager->canSkipTurn())
@@ -611,6 +667,8 @@ namespace screens
                 "Cards are hidden waiting for the next player, Enter to start"
             );
         }
+
+        updatePlayersInfo();
 
         rdr->setDirty();
     }
