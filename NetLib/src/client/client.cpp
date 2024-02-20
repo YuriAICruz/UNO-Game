@@ -477,7 +477,8 @@ namespace netcode
                 ss << data[pos];
                 first = false;
             }
-            lastRoomsList[i] = room::constructRoom(ss.str());
+            std::string str = ss.str();
+            lastRoomsList[i] = room::constructRoom(str);
         }
 
         if (roomsCallback != nullptr)

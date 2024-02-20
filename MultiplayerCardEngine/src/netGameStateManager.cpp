@@ -567,6 +567,11 @@ bool netGameStateManager::skipTurn()
 {
     checkIsServer();
 
+    if(!isCurrentPlayer())
+    {
+        return false;
+    }
+
     std::promise<bool> promise;
     std::promise<bool> promiseCmd;
     gameStateUpdatedCallback = &promise;
@@ -616,6 +621,11 @@ bool netGameStateManager::yellUno()
         return true;
     }
 
+    if(!isCurrentPlayer())
+    {
+        return false;
+    }
+
     std::promise<bool> promiseCmd;
     executeCommandCallback = &promiseCmd;
     auto futureCmd = promiseCmd.get_future();
@@ -634,7 +644,8 @@ void netGameStateManager::tryYellUno(const std::string& msg, SOCKET cs)
     }
     std::stringstream ss;
     ss << CORE_NC_YELL_UNO << NC_SEPARATOR << (canYell ? "1" : "0");
-    netServer->broadcastToRoom(ss.str(), cs);
+    std::string str = ss.str();
+    netServer->broadcastToRoom(str, cs);
 }
 
 void netGameStateManager::unoYellCallback(const std::string& msg)
@@ -659,6 +670,11 @@ bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
     {
         gameStateManager::makePlayerDraw(player, count);
         return true;
+    }
+
+    if(!isCurrentPlayer())
+    {
+        return false;
     }
 
     std::promise<bool> promise;

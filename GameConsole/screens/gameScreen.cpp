@@ -453,8 +453,6 @@ namespace screens
         if (gameManager->canYellUno())
         {
             gameManager->yellUno();
-
-            showUnoPopup();
             return;
         }
 

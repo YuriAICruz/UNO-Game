@@ -31,7 +31,7 @@ void gameStateManager::bindGameEvents()
     events->bindEvent<gameEventData>(GAME_WON);
     events->bindEvent<gameEventData>(GAME_LOST);
     events->bindEvent<gameEventData>(GAME_UNO);
-    events->bindEvent<gameEventData>(GAME_NO_UNO_PENALTY);
+    events->bindEvent<gameEventData>(GAME_ON_UNO_PENALTY);
     events->bindEvent<gameEventData>(GAME_STATE_UPDATED);
 
     events->bindEvent<turnEventData>(TURN_BEGIN);
@@ -45,7 +45,7 @@ void gameStateManager::beginTurn()
     auto player = getCurrentPlayer();
     if (player->getHand().size() < 2 && !player->isInUnoMode())
     {
-        events->fireEvent(GAME_NO_UNO_PENALTY, gameEventData());
+        events->fireEvent(GAME_ON_UNO_PENALTY, gameEventData());
         gameStateManager::makePlayerDraw(player, 2);
     }
     else if (player->isInUnoMode())

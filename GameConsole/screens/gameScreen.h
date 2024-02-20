@@ -66,12 +66,16 @@ namespace screens
                 eventBus::delegate<gameEventData>{std::bind(&gameScreen::onGameStart, this, std::placeholders::_1)}
             },
             {
-                GAME_NO_UNO_PENALTY,
+                GAME_ON_UNO_PENALTY,
                 eventBus::delegate<gameEventData>{std::bind(&gameScreen::onUnoPenalty, this, std::placeholders::_1)}
             },
             {
                 GAME_END,
                 eventBus::delegate<gameEventData>{std::bind(&gameScreen::onGameEnded, this, std::placeholders::_1)}
+            },
+            {
+                GAME_UNO,
+                eventBus::delegate<gameEventData>{std::bind(&gameScreen::showUno, this, std::placeholders::_1)}
             },
             {
                 GAME_STATE_UPDATED,
@@ -143,10 +147,18 @@ namespace screens
             showCurrentPlayerCards(true);
         }
 
+        void showUno(gameEventData data)
+        {
+            showUnoPopup();
+        }
+
 
         void onUnoPenalty(gameEventData data);
+
         void onGameEnded(gameEventData data);
+
         void updateScreen(gameEventData data);
+
         void updatePlayersInfo() const;
 
         void tryYellUno();

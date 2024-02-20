@@ -7,7 +7,7 @@
 #define GAME_WON                9104
 #define GAME_LOST               9105
 #define GAME_UNO                9106
-#define GAME_NO_UNO_PENALTY     9107
+#define GAME_ON_UNO_PENALTY     9107
 #define GAME_STATE_UPDATED      9108
 
 #define TURN_BEGIN              9201
