@@ -7,52 +7,76 @@ bool logger::canPrintCout = false;
 
 void logger::print(std::string msg)
 {
-#ifdef _DEBUG
+#ifndef _DEBUG
+    if(!canPrintCout)
+    {
+        return;;
+    }
+#endif // _DEBUG
     std::stringstream ss;
     ss << "LOG: " << msg << "\n";
-    if(canPrintCout)
+    if (canPrintCout)
     {
         std::cout << ss.str();
     }
+#ifdef _DEBUG
     OutputDebugString(toWString(ss.str()).c_str());
 #endif // _DEBUG
 }
 
 void logger::print(const char* msg)
 {
-#ifdef _DEBUG
+#ifndef _DEBUG
+    if(!canPrintCout)
+    {
+        return;;
+    }
+#endif // _DEBUG
     std::stringstream ss;
     ss << "LOG: " << msg << "\n";
-    if(canPrintCout)
+    if (canPrintCout)
     {
         std::cout << ss.str();
     }
+#ifdef _DEBUG
     OutputDebugString(toWString(ss.str()).c_str());
 #endif // _DEBUG
 }
 
 void logger::printError(const std::string& msg)
 {
-#ifdef _DEBUG
+#ifndef _DEBUG
+    if(!canPrintCout)
+    {
+        return;;
+    }
+#endif // _DEBUG
     std::stringstream ss;
     ss << "ERROR: " << msg << "\n";
-    if(canPrintCout)
+    if (canPrintCout)
     {
         std::cout << ss.str();
     }
+#ifdef _DEBUG
     OutputDebugString(toWString(ss.str()).c_str());
 #endif // _DEBUG
 }
 
 void logger::printError(const char* msg)
 {
-#ifdef _DEBUG
+#ifndef _DEBUG
+    if(!canPrintCout)
+    {
+        return;;
+    }
+#endif // _DEBUG
     std::stringstream ss;
     ss << "ERROR: " << msg << "\n";
-    if(canPrintCout)
+    if (canPrintCout)
     {
         std::cout << ss.str();
     }
+#ifdef _DEBUG
     OutputDebugString(toWString(ss.str()).c_str());
 #endif // _DEBUG
 }
