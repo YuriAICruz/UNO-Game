@@ -518,6 +518,14 @@ void netGameStateManager::cheatWin()
     gameStateManager::cheatWin();
 }
 
+void netGameStateManager::onClientReconnected(netcode::clientInfo* client)
+{
+    if (running)
+    {
+        sendToClientServerStateData(*client->connection);
+    }
+}
+
 bool netGameStateManager::skipTurn()
 {
     checkIsServer();
@@ -562,21 +570,50 @@ void netGameStateManager::skipTurnCallback(const std::string& msg)
     commandCallbackResponse(msg);
 }
 
-void netGameStateManager::yellUno()
+bool netGameStateManager::yellUno()
 {
     if (isServer)
     {
         gameStateManager::yellUno();
-        return;
+        return true;
     }
+
+    std::promise<bool> promiseCmd;
+    executeCommandCallback = &promiseCmd;
+    auto futureCmd = promiseCmd.get_future();
+    netClient->sendMessage(CORE_NC_YELL_UNO);
+    futureCmd.wait();
+    return futureCmd.get();
 }
 
 void netGameStateManager::tryYellUno(const std::string& msg, SOCKET cs)
 {
+    bool canYell = canYellUno();
+    if (canYell)
+    {
+        gameStateManager::yellUno();
+    }
+    std::stringstream ss;
+    ss << CORE_NC_YELL_UNO << NC_SEPARATOR << (canYell ? "1" : "0");
+    std::string str = ss.str();
+    const char* response = str.c_str();
+    netServer->sendMessage(cs, response, strlen(response), 0);
 }
 
 void netGameStateManager::unoYellCallback(const std::string& msg)
 {
+    auto data = stringUtils::splitString(msg);
+
+    bool canYell = data[1] == "1";
+    if (executeCommandCallback != nullptr)
+    {
+        executeCommandCallback->set_value(canYell);
+    }
+
+    if (canYell)
+    {
+        gameStateManager::yellUno();
+    }
 }
 
 bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
@@ -604,14 +641,6 @@ bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
     future.wait();
 
     return futureCmd.get();
-}
-
-void netGameStateManager::onClientReconnected(netcode::clientInfo* client)
-{
-    if (running)
-    {
-        sendToClientServerStateData(*client->connection);
-    }
 }
 
 void netGameStateManager::tryDrawCards(const std::string& msg, SOCKET cs)

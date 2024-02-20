@@ -73,7 +73,7 @@ public:
     void waitForStateSync();
     void cheatWin() override;
     bool skipTurn() override;
-    void yellUno() override;
+    bool yellUno() override;
     bool makePlayerDraw(turnSystem::IPlayer* player, int count) override;
 
 private:

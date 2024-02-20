@@ -198,10 +198,11 @@ bool gameStateManager::canYellUno()
     return getCurrentPlayer()->getHand().size() == 2 && !getCurrentPlayer()->isInUnoMode();
 }
 
-void gameStateManager::yellUno()
+bool gameStateManager::yellUno()
 {
     events->fireEvent(GAME_UNO, gameEventData());
     getCurrentPlayer()->setUnoMode();
+    return true;
 }
 
 std::tuple<const char*, size_t> gameStateManager::getState()

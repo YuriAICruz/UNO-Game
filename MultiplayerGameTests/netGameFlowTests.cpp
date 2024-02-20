@@ -536,4 +536,35 @@ TEST(NetGameFlowTests, ReconnectToRunningGame)
 
     EXPECT_NE(serverManager->getCurrentPlayer()->Id(), startingPlayer->Id());
     EXPECT_EQ(serverManager->getCurrentPlayer()->Id(), clientManagerB->getCurrentPlayer()->Id());
+
+    closeClient(clA.get());
+    closeClient(clB.get());
+    closeServer(sv.get());
+}
+
+TEST(NetGameFlowTests, CallUno)
+{
+    auto sv = startServer();
+    ASSERT_TRUE(sv->isRunning());
+
+    auto clA = startClient("Player A");
+    auto clB = startClient("Player B");
+
+    clA->createRoom("TestRoom");
+    clB->enterRoom(clA->getRoomId());
+
+    int handSize = 7;
+    std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
+    auto serverManager = std::make_shared<netGameStateManager>(events, sv);
+    auto clientManagerA = std::make_shared<netGameStateManager>(events, clA);
+    auto clientManagerB = std::make_shared<netGameStateManager>(events, clB);
+    serverManager->bindGameEvents();
+
+    clientManagerA->setupGame(clA->getRoom(), handSize, "Data\\deck_setup.json", 12345);
+    clientManagerA->startGame();
+    EXPECT_FALSE(clientManagerA->yellUno());
+
+    closeClient(clA.get());
+    closeClient(clB.get());
+    closeServer(sv.get());
 }

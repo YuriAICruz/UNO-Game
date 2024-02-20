@@ -50,7 +50,7 @@ public:
     virtual void cheatWin();
     virtual void endGame();
     virtual void endTurn();
-    virtual void yellUno();
+    virtual bool yellUno();
     std::tuple<const char*, size_t> getState() override;
     void setState(const char* data, size_t size) override;
     void print(const char* buffer, size_t size);
