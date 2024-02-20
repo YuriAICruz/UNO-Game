@@ -81,6 +81,7 @@ public:
     void setRoom(netcode::room* room);
 
 private:
+    bool isInRoom(SOCKET sc) const;
     void onClientReconnected(netcode::clientInfo* client);
     void showClientEndGame(const std::string& msg);
 

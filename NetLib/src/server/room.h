@@ -44,6 +44,7 @@ namespace netcode
         clientInfo* getClientByIndex(int index) const;
         clientInfo* getClient(int clientId) const;
         bool hasClient(clientInfo* client) const;
+        bool hasClientConnection(SOCKET clientSocket) const;
 
         std::string getRoomSerialized(int id);
         std::string getClientName(uint16_t id) const;

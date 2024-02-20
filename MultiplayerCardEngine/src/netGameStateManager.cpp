@@ -475,13 +475,15 @@ void netGameStateManager::tryExecuteNetPlayerAction(const std::string& msg, SOCK
     std::stringstream ss;
     ss << CORE_NC_PLAYCARD << NC_SEPARATOR;
 
-    if (gameStateManager::tryExecutePlayerAction(currentPlayer->pickCard(index)))
+    auto card = currentPlayer->pickCard(index);
+    if (gameStateManager::tryExecutePlayerAction(card))
     {
         broadcastServerStateData(cs);
         ss << 1;
     }
     else
     {
+        currentPlayer->receiveCard(card);
         ss << 0;
     }
     std::string str = ss.str();
@@ -541,6 +543,11 @@ void netGameStateManager::endGame()
     gameStateManager::endGame();
 
     SOCKET sc = *serverRoom->clients()[0]->connection;
+
+    if (!isInRoom(sc))
+    {
+        return;
+    }
     netServer->broadcastToRoom(CORE_NC_GAME_END, sc);
     broadcastServerStateData(sc);
 }
@@ -557,8 +564,6 @@ void netGameStateManager::showClientEndGame(const std::string& msg)
 {
     checkIsServer();
 
-    waitForStateSync();
-
     running = false;
     events->fireEvent(GAME_END, gameEventData(getCurrentPlayer(), true));
 }
@@ -567,7 +572,7 @@ bool netGameStateManager::skipTurn()
 {
     checkIsServer();
 
-    if(!isCurrentPlayer())
+    if (!isCurrentPlayer())
     {
         return false;
     }
@@ -621,7 +626,7 @@ bool netGameStateManager::yellUno()
         return true;
     }
 
-    if(!isCurrentPlayer())
+    if (!isCurrentPlayer())
     {
         return false;
     }
@@ -672,7 +677,7 @@ bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
         return true;
     }
 
-    if(!isCurrentPlayer())
+    if (!isCurrentPlayer())
     {
         return false;
     }
@@ -702,6 +707,16 @@ bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
 void netGameStateManager::setRoom(netcode::room* room)
 {
     serverRoom = room;
+}
+
+bool netGameStateManager::isInRoom(SOCKET sc) const
+{
+    if (!isServer)
+    {
+        return false;
+    }
+
+    return serverRoom->hasClientConnection(sc);
 }
 
 void netGameStateManager::tryDrawCards(const std::string& msg, SOCKET cs)
