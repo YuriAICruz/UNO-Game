@@ -612,23 +612,33 @@ namespace screens
 
     void gameScreen::showCurrentPlayerCards(bool hidden)
     {
+        std::list<cards::ICard*> hand;
         if (isOnline)
         {
             auto netMan = dynamic_cast<netGameStateManager*>(gameManager);
-            cardsAreHidden = !netMan->isCurrentPlayer();
+            cardsAreHidden = false;
 
-            if (!cardsAreHidden)
+            if (netMan->isCurrentPlayer())
             {
                 popup.hidePopup();
             }
+            else
+            {
+                std::stringstream ss;
+                ss << "Waiting fot the player [" << netMan->getCurrentPlayer()->getName() << "] action.";
+                popup.clearActions();
+                popup.openWarningPopup(ss.str());
+            }
+
+            hand = netMan->getLocalPlayer()->getHand();
         }
         else
         {
             cardsAreHidden = showTurnWarning && hidden;
+            hand = gameManager->getCurrentPlayer()->getHand();
         }
 
         auto pool = dynamic_cast<elements::horizontalLayoutGroup*>(rdr->getElement(handCardsPoolId));
-        std::list<cards::ICard*> hand = gameManager->getCurrentPlayer()->getHand();
         int handSize = hand.size();
         if (handSize > cardListButtons.size())
         {

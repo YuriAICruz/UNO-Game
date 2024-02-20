@@ -324,6 +324,11 @@ bool netGameStateManager::isCurrentPlayer()
     return getCurrentPlayer()->Id() == netClient->getId();
 }
 
+turnSystem::IPlayer* netGameStateManager::getLocalPlayer() const
+{
+    return turner->getPlayerFromId(netClient->getId());
+}
+
 bool netGameStateManager::tryExecutePlayerAction(cards::ICard* card)
 {
     throw std::exception("passing card unsupported, pass index instead");

@@ -61,6 +61,7 @@ public:
     void gameStartCallback(const std::string& msg);
     void createClientCustomCommands();
     bool isCurrentPlayer();
+    turnSystem::IPlayer* getLocalPlayer() const;
     bool tryExecutePlayerAction(cards::ICard* card) override;
     void checkIsServer() const;
     bool tryExecutePlayerAction(int index);
