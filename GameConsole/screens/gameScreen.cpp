@@ -538,7 +538,7 @@ namespace screens
 
     void gameScreen::showCurrentPlayerCards(bool hidden)
     {
-        cardsAreHidden = hidden;
+        cardsAreHidden = showTurnWarning && hidden;
         auto pool = dynamic_cast<elements::horizontalLayoutGroup*>(rdr->getElement(handCardsPoolId));
         std::list<cards::ICard*> hand = gameManager->getCurrentPlayer()->getHand();
         int handSize = hand.size();
@@ -550,7 +550,7 @@ namespace screens
         for (auto card : hand)
         {
             auto cardElement = dynamic_cast<elements::card*>(pool->getElement(cardListButtons[i].id));
-            setCardData(cardElement, card, hidden);
+            setCardData(cardElement, card, cardsAreHidden);
             i++;
         }
         for (int n = cardListButtons.size(); i < n; ++i)
@@ -572,7 +572,7 @@ namespace screens
             }
         }
 
-        if (hidden)
+        if (cardsAreHidden)
         {
             popup.clearActions();
             popup.openWarningPopup(
@@ -701,5 +701,10 @@ namespace screens
     {
         auto button = static_cast<elements::card*>(rdr->getElement(optionButtons[index].id));
         button->deselect();
+    }
+
+    void gameScreen::showWarnings(bool canShow)
+    {
+        showTurnWarning = canShow;
     }
 }

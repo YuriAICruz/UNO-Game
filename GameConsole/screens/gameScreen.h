@@ -5,6 +5,7 @@
 #include "StateManager/gameStateManager.h"
 #include "coreEventIds.h"
 #include "popupWindow.h"
+#include "settingsMenuScreen.h"
 #include "StateManager/gameEventData.h"
 #include "../renderer/elements/card.h"
 
@@ -30,6 +31,7 @@ namespace screens
         bool unoPopup = false;
         bool cardsAreHidden = false;
         int isOnline = false;
+        bool showTurnWarning;
 
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
@@ -106,6 +108,7 @@ namespace screens
         }
 
 
+        void showWarnings(bool canShow);
         void show() override;
         void hide() override;
         void setGameManager(gameStateManager* gm);

@@ -92,9 +92,10 @@ int main()
             );
         });
     events->subscribe<screens::transitionData>(
-        NAVIGATION_GAME, [game, gameManager](screens::transitionData data)
+        NAVIGATION_GAME, [game, settingsMenu, gameManager](screens::transitionData data)
         {
             game->setGameManager(gameManager.get());
+            game->showWarnings(settingsMenu->canShowWarnings());
             game->show();
             gameManager->startGame();
         });

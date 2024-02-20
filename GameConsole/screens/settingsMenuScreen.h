@@ -20,6 +20,7 @@ namespace screens
         std::vector<std::string> players;
         std::string configFilePath = "Data\\deck_setup.json";
         int handCount = 7;
+        bool showWarningEachTurn = false;
         size_t seed = 12341234;
         bool editingPlayers = false;
 
@@ -129,6 +130,11 @@ namespace screens
         size_t getSeed() const
         {
             return seed;
+        }
+
+        bool canShowWarnings() const
+        {
+            return showWarningEachTurn;
         }
 
     private:
