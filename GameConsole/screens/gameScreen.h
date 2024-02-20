@@ -24,7 +24,7 @@ namespace screens
         bool selectingOptions = false;
         int currentCardButton = 0;
         int currentOptionButton = 0;
-        button unoYell[2];        
+        button unoYell[2];
         size_t topCardId;
         int cardSizeX = 8;
         int cardSizeY = 6;
@@ -71,6 +71,10 @@ namespace screens
             {
                 GAME_END,
                 eventBus::delegate<gameEventData>{std::bind(&gameScreen::onGameEnded, this, std::placeholders::_1)}
+            },
+            {
+                GAME_STATE_UPDATED,
+                eventBus::delegate<gameEventData>{std::bind(&gameScreen::updateScreen, this, std::placeholders::_1)}
             },
         };
 
@@ -126,14 +130,22 @@ namespace screens
         {
             show();
         }
+
         void onGameStart(gameEventData data)
         {
+            if (blockInputs)
+            {
+                return;
+            }
+
             switchToCards();
             showCurrentPlayerCards(true);
         }
+
         void onUnoPenalty(gameEventData data);
         void onGameEnded(gameEventData data);
-        
+        void updateScreen(gameEventData data);
+
         void tryYellUno();
         void tryToPass();
         void tryDrawMoreCards();

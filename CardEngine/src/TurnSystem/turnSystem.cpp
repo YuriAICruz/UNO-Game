@@ -73,6 +73,19 @@ namespace turnSystem
         return players[i].get();
     }
 
+    IPlayer* turnSystem::getPlayerFromId(int id) const
+    {
+        for (auto player : players)
+        {
+            if (player->Id() == id)
+            {
+                return player.get();
+            }
+        }
+
+        return nullptr;
+    }
+
     std::vector<uint16_t> turnSystem::getPlayersIds()
     {
         std::vector<uint16_t> list;

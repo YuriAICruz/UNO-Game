@@ -8,6 +8,9 @@ namespace screens
         if (editBoxSetup(title, data, newValue))
         {
             data = newValue;
+        }else
+        {
+            newValue = data;
         }
         editBoxTearDown(newValue, callback);
     }
@@ -45,7 +48,7 @@ namespace screens
         std::cout << "Enter a new value for " << title << ", you can cancel by typing 'quit'" << "\n";
         std::cout << "Current value is: " << data << "\n";
         std::getline(std::cin, newValue);
-        if (newValue != "quit")
+        if (newValue != "quit" && !newValue.empty())
         {
             return true;
         }

@@ -32,6 +32,7 @@ void gameStateManager::bindGameEvents()
     events->bindEvent<gameEventData>(GAME_LOST);
     events->bindEvent<gameEventData>(GAME_UNO);
     events->bindEvent<gameEventData>(GAME_NO_UNO_PENALTY);
+    events->bindEvent<gameEventData>(GAME_STATE_UPDATED);
 
     events->bindEvent<turnEventData>(TURN_BEGIN);
     events->bindEvent<turnEventData>(TURN_END);
@@ -126,6 +127,11 @@ turnSystem::IPlayer* gameStateManager::getNextPlayer() const
 turnSystem::IPlayer* gameStateManager::getPlayer(int i) const
 {
     return turner->getPlayer(i);
+}
+
+turnSystem::IPlayer* gameStateManager::getPlayerFromId(int id) const
+{
+    return turner->getPlayerFromId(id);
 }
 
 cards::ICard* gameStateManager::getTopCard() const
@@ -268,6 +274,8 @@ void gameStateManager::setState(const char* data, size_t size)
     ptr += sizeof(size_t);
     turner->setState(ptr, mainDeck.get());
     ptr += tSize;
+
+    events->fireEvent(GAME_STATE_UPDATED, gameEventData());
 }
 
 void gameStateManager::print(const char* buffer, size_t size)

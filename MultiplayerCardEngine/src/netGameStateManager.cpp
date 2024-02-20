@@ -487,13 +487,6 @@ void netGameStateManager::setStateNet(char* buffer, size_t size)
     ptr += sizeof(size_t);
     ptr += sizeof(char);
 
-    if (netClient->getId() == 1)
-    {
-        std::cout << "\nRECEIVED\n";
-        print(ptr, bufferSize);
-        std::cout << "\n----\n";
-    }
-
     setState(ptr, bufferSize);
 
     if (gameStateUpdatedCallback != nullptr)
@@ -631,7 +624,7 @@ void netGameStateManager::tryDrawCards(const std::string& msg, SOCKET cs)
         auto id = stoi(data[1]);
         auto amount = stoi(data[2]);
 
-        gameStateManager::makePlayerDraw(getPlayer(id), amount);
+        gameStateManager::makePlayerDraw(getPlayerFromId(id), amount);
     }
 
     std::stringstream ss;

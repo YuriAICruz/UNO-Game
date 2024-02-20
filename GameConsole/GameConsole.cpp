@@ -110,6 +110,7 @@ int main()
         NAVIGATION_ONLINE_GAME, [game, settingsMenu, netGameManager](screens::transitionData data)
         {
             game->setGameManager(netGameManager.get());
+            game->showWarnings(false);
             game->show();
             if(!netGameManager->isGameRunning())
             {
