@@ -544,7 +544,8 @@ bool netGameStateManager::skipTurn()
     netClient->sendMessage(CORE_NC_SKIP_TURN);
     futureCmd.wait();
     future.wait();
-
+    gameStateUpdatedCallback = nullptr;
+    executeCommandCallback = nullptr;
     return futureCmd.get();
 }
 
@@ -588,6 +589,7 @@ bool netGameStateManager::yellUno()
     auto futureCmd = promiseCmd.get_future();
     netClient->sendMessage(CORE_NC_YELL_UNO);
     futureCmd.wait();
+    executeCommandCallback = nullptr;
     return futureCmd.get();
 }
 
@@ -644,6 +646,9 @@ bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
 
     futureCmd.wait();
     future.wait();
+
+    gameStateUpdatedCallback = nullptr;
+    executeCommandCallback = nullptr;
 
     return futureCmd.get();
 }

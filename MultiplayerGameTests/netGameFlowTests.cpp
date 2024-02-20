@@ -536,6 +536,9 @@ TEST(NetGameFlowTests, ReconnectToRunningGame)
 
     EXPECT_NE(serverManager->getCurrentPlayer()->Id(), startingPlayer->Id());
     EXPECT_EQ(serverManager->getCurrentPlayer()->Id(), clientManagerB->getCurrentPlayer()->Id());
+    
+    EXPECT_TRUE(clientManagerB->makePlayerDraw(clientManagerB->getCurrentPlayer(), 1));
+    EXPECT_TRUE(clientManagerB->skipTurn());
 
     closeClient(clA.get());
     closeClient(clB.get());
