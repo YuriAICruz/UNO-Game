@@ -184,6 +184,7 @@ namespace screens
             showCurrentPlayerCards(true);
         }
 
+        setButtonsSelectionColor();
         rdr->setDirty();
     }
 
@@ -700,11 +701,13 @@ namespace screens
 
         if (hidden)
         {
+            cardElement->setSelectionColor('c');
             cardElement->setColor('w');
             cardElement->setTitleText("");
         }
         else
         {
+            cardElement->setSelectionColor(card->Color());
             cardElement->setColor(card->Color());
         }
 
@@ -829,5 +832,14 @@ namespace screens
     void gameScreen::showWarnings(bool canShow)
     {
         showTurnWarning = canShow;
+    }
+
+    void gameScreen::setButtonsSelectionColor()
+    {
+        char color = 'c';
+        for (auto button : optionButtons)
+        {
+            (dynamic_cast<elements::card*>(rdr->getElement(button.id)))->setSelectionColor(color);
+        }
     }
 }
