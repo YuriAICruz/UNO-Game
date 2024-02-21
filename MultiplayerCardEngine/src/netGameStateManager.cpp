@@ -10,6 +10,8 @@
 #include "stringUtils.h"
 #include "StateManager/gameEventData.h"
 
+#define STATE_SYNC_DELAY 20
+
 netGameStateManager::netGameStateManager(
     std::shared_ptr<eventBus::eventBus> events,
     std::shared_ptr<netcode::client> cl
@@ -175,15 +177,10 @@ void netGameStateManager::startGame()
     if (!isServer && !running)
     {
         std::promise<bool> promise;
-        std::promise<bool> promiseState;
         tryStartGameCallback = &promise;
-        gameStateUpdatedCallback = &promiseState;
         auto future = promise.get_future();
-        auto stateFuture = promiseState.get_future();
         netClient->sendMessage(CORE_NC_GAME_START);
         future.wait();
-        stateFuture.wait();
-        gameStateUpdatedCallback = nullptr;
         tryStartGameCallback = nullptr;
     }
 }
@@ -375,7 +372,7 @@ bool netGameStateManager::tryExecutePlayerAction(int index)
     return future.get();
 }
 
-void netGameStateManager::netPlayerActionCallback(const std::string& msg)
+void netGameStateManager::netPlayerActionCallback(const std::string& msg) const
 {
     std::vector<std::string> data = stringUtils::splitString(msg);
     if (tryExecuteActionCallback != nullptr)
@@ -402,25 +399,12 @@ void netGameStateManager::broadcastServerStateData(SOCKET cs)
     char* buffer = new char[bufferSize];
     char* ptr = buffer;
 
-    char separator = NC_SEPARATOR;
-
-    std::cout << "\nSENT\n";
-    print(std::get<0>(data), std::get<1>(data));
-    std::cout << "\n----\n";
-
-    std::memcpy(ptr, &CORE_NC_UPDATE_STATE, strlen(CORE_NC_UPDATE_STATE) * sizeof(char));
-    ptr += strlen(CORE_NC_UPDATE_STATE) * sizeof(char);
-    std::memcpy(ptr, &separator, sizeof(char));
-    ptr += sizeof(char);
-    std::memcpy(ptr, &std::get<1>(data), sizeof(size_t));
-    ptr += sizeof(size_t);
-    std::memcpy(ptr, &separator, sizeof(char));
-    ptr += sizeof(char);
-    std::memcpy(ptr, std::get<0>(data), std::get<1>(data));
-    ptr += std::get<1>(data);
+    encryptStateBuffer(data, ptr);
 
     netServer->broadcastToRoom(buffer, bufferSize, cs);
     delete std::get<0>(data);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(STATE_SYNC_DELAY));
 }
 
 void netGameStateManager::encryptStateBuffer(std::tuple<const char*, size_t> data, char* ptr)
@@ -464,10 +448,13 @@ void netGameStateManager::sendToClientServerStateData(SOCKET cs)
 
     netServer->sendMessage(cs, buffer, bufferSize, 0);
     delete std::get<0>(data);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(STATE_SYNC_DELAY));
 }
 
 void netGameStateManager::tryExecuteNetPlayerAction(const std::string& msg, SOCKET cs)
 {
+    logger::print("received player action");
     std::vector<std::string> data = stringUtils::splitString(msg);
     int index = std::stoi(data[1]);
     turnSystem::IPlayer* currentPlayer = getCurrentPlayer();
@@ -478,11 +465,13 @@ void netGameStateManager::tryExecuteNetPlayerAction(const std::string& msg, SOCK
     auto card = currentPlayer->pickCard(index);
     if (gameStateManager::tryExecutePlayerAction(card))
     {
+        logger::print("player action executed successful");
         broadcastServerStateData(cs);
         ss << 1;
     }
     else
     {
+        logger::print("player action not executed");
         currentPlayer->receiveCard(card);
         ss << 0;
     }
@@ -577,16 +566,11 @@ bool netGameStateManager::skipTurn()
         return false;
     }
 
-    std::promise<bool> promise;
     std::promise<bool> promiseCmd;
-    gameStateUpdatedCallback = &promise;
     executeCommandCallback = &promiseCmd;
-    auto future = promise.get_future();
     auto futureCmd = promiseCmd.get_future();
     netClient->sendMessage(CORE_NC_SKIP_TURN);
     futureCmd.wait();
-    future.wait();
-    gameStateUpdatedCallback = nullptr;
     executeCommandCallback = nullptr;
     return futureCmd.get();
 }
@@ -682,13 +666,10 @@ bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
         return false;
     }
 
-    std::promise<bool> promise;
     std::promise<bool> promiseCmd;
 
-    gameStateUpdatedCallback = &promise;
     executeCommandCallback = &promiseCmd;
 
-    auto future = promise.get_future();
     auto futureCmd = promiseCmd.get_future();
 
     std::stringstream ss;
@@ -696,9 +677,7 @@ bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
     netClient->sendMessage(ss.str().c_str());
 
     futureCmd.wait();
-    future.wait();
 
-    gameStateUpdatedCallback = nullptr;
     executeCommandCallback = nullptr;
 
     return futureCmd.get();

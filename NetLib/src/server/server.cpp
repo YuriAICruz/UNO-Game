@@ -264,7 +264,7 @@ namespace netcode
         logger::print((logger::getPrinter() << "SERVER: Connection accepted from " << clientSocket << "").str());
 
 
-        char recvData[1024];
+        char recvData[NC_PACKET_SIZE];
         int recvSize;
 
         while (running && (recvSize = recv(clientSocket, recvData, sizeof(recvData), 0)) > 0)

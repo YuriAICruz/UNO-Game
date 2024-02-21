@@ -324,7 +324,7 @@ namespace netcode
     void client::listenToServer()
     {
         isListening = true;
-        const int recvDataSize = 1024;
+        const int recvDataSize = NC_PACKET_SIZE;
         char recvData[recvDataSize];
         while (running)
         {
