@@ -190,6 +190,7 @@ namespace screens
 
     void gameScreen::hide()
     {
+        currentCardButton = 0;
         cardListButtons.resize(0);
         IScreen::hide();
         popup.hide();
