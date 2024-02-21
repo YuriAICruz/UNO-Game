@@ -159,6 +159,7 @@ namespace screens
             std::function<void()> actionLeft,
             std::function<void()> actionRight
         );
+        void setButtonsSelectionColor();
         template <class T>
         void configurePlayerButton(int index, int buttonWidth, int buttonHeight, int positionX, int positionY, T value,
                                    std::string prefix, std::string suffix, std::stringstream& ss,
