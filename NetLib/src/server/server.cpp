@@ -441,6 +441,20 @@ namespace netcode
         logger::print((logger::getPrinter() << "SERVER: sent to client room updated data [" << id << "]").str());
     }
 
+    void server::broadcastUpdatedRoom(SOCKET clientSocket)
+    {
+        auto room = roomManager.getRoom(getClient(clientSocket).get());
+        logger::print((logger::printer() << "SERVER: broadcasting updated room data to all clients [" << room->getId() << "]").str());
+        int id = room->getId();
+
+        std::stringstream ss;
+        ss << NC_GET_ROOM << NC_SEPARATOR;
+        ss << roomManager.getRoomSerialized(id);
+        broadcastToRoom(ss.str(), clientSocket);
+
+        logger::print((logger::getPrinter() << "SERVER: sent to all clients in room [" << id << "]").str());
+    }
+
     void server::enterRoom(const std::string& message, SOCKET clientSocket)
     {
         std::vector<std::string> data = stringUtils::splitString(message);

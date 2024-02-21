@@ -159,6 +159,7 @@ void netGameStateManager::trySetGameSettings(const std::string& msg, SOCKET cs)
     decryptGameSettingsAndSetup(msg);
     logger::print("SERVER: Game Settings Updated");
 
+    netServer->broadcastUpdatedRoom(cs);
     netServer->broadcastToRoom(msg, cs);
 }
 
@@ -390,7 +391,7 @@ void netGameStateManager::broadcastServerStateData(SOCKET cs)
     }
 
     std::tuple<const char*, size_t> data = getState();
-    size_t bufferSize = 
+    size_t bufferSize =
         strlen(CORE_NC_UPDATE_STATE) * sizeof(char) +
         sizeof(char) + //NC_SEPARATOR
         sizeof(size_t) + //state Size
@@ -693,7 +694,7 @@ void netGameStateManager::setRoom(netcode::room* room)
 
 netcode::room* netGameStateManager::getRoom() const
 {
-    if(isServer)
+    if (isServer)
     {
         return serverRoom;
     }

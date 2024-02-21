@@ -102,6 +102,7 @@ namespace netcode
         int start(int port = 8080);
         int close();
         room* getRoom(int id);
+        void broadcastUpdatedRoom(SOCKET clientSocket);
         void broadcast(std::string msg);
         void broadcastToRoom(std::string msg, SOCKET cs);
         void broadcastToRoomRaw(const char* responseData, size_t size, SOCKET cs);
