@@ -18,6 +18,7 @@ private:
     std::promise<bool>* executeCommandCallback = nullptr;
     bool isHost = false;
     bool isServer = false;
+    netcode::room* serverRoom;
 
 public:
     std::function<void()> onRoomGameStarted;
@@ -61,10 +62,11 @@ public:
     void gameStartCallback(const std::string& msg);
     void createClientCustomCommands();
     bool isCurrentPlayer();
+    turnSystem::IPlayer* getLocalPlayer() const;
     bool tryExecutePlayerAction(cards::ICard* card) override;
     void checkIsServer() const;
     bool tryExecutePlayerAction(int index);
-    void netPlayerActionCallback(const std::string& msg);
+    void netPlayerActionCallback(const std::string& msg) const;
     void broadcastServerStateData(SOCKET cs);
     void encryptStateBuffer(std::tuple<const char*, size_t> data, char* ptr);
     void sendToClientServerStateData(SOCKET cs);
@@ -72,12 +74,16 @@ public:
     void setStateNet(char* buffer, size_t size);
     void waitForStateSync();
     void cheatWin() override;
+    void endGame() override;
     bool skipTurn() override;
-    void yellUno() override;
+    bool yellUno() override;
     bool makePlayerDraw(turnSystem::IPlayer* player, int count) override;
+    void setRoom(netcode::room* room);
 
 private:
+    bool isInRoom(SOCKET sc) const;
     void onClientReconnected(netcode::clientInfo* client);
+    void showClientEndGame(const std::string& msg);
 
     void trySkipTurn(const std::string& msg, SOCKET cs);
     void commandCallbackResponse(const std::string& msg) const;

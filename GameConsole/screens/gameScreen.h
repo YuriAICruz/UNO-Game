@@ -5,6 +5,7 @@
 #include "StateManager/gameStateManager.h"
 #include "coreEventIds.h"
 #include "popupWindow.h"
+#include "settingsMenuScreen.h"
 #include "StateManager/gameEventData.h"
 #include "../renderer/elements/card.h"
 
@@ -18,18 +19,20 @@ namespace screens
         size_t handCardsPoolId;
         std::vector<button> cardListButtons;
         button optionButtons[3];
+        button playersInfo;
         popupWindow popup;
         bool selectingCards = false;
         bool selectingOptions = false;
         int currentCardButton = 0;
         int currentOptionButton = 0;
-        button unoYell[2];        
+        button unoYell[2];
         size_t topCardId;
         int cardSizeX = 8;
         int cardSizeY = 6;
         bool unoPopup = false;
         bool cardsAreHidden = false;
         int isOnline = false;
+        bool showTurnWarning;
 
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
             {
@@ -63,12 +66,20 @@ namespace screens
                 eventBus::delegate<gameEventData>{std::bind(&gameScreen::onGameStart, this, std::placeholders::_1)}
             },
             {
-                GAME_NO_UNO_PENALTY,
+                GAME_ON_UNO_PENALTY,
                 eventBus::delegate<gameEventData>{std::bind(&gameScreen::onUnoPenalty, this, std::placeholders::_1)}
             },
             {
                 GAME_END,
                 eventBus::delegate<gameEventData>{std::bind(&gameScreen::onGameEnded, this, std::placeholders::_1)}
+            },
+            {
+                GAME_UNO,
+                eventBus::delegate<gameEventData>{std::bind(&gameScreen::showUno, this, std::placeholders::_1)}
+            },
+            {
+                GAME_STATE_UPDATED,
+                eventBus::delegate<gameEventData>{std::bind(&gameScreen::updateScreen, this, std::placeholders::_1)}
             },
         };
 
@@ -106,6 +117,7 @@ namespace screens
         }
 
 
+        void showWarnings(bool canShow);
         void show() override;
         void hide() override;
         void setGameManager(gameStateManager* gm);
@@ -123,14 +135,32 @@ namespace screens
         {
             show();
         }
+
         void onGameStart(gameEventData data)
         {
+            if (blockInputs)
+            {
+                return;
+            }
+
             switchToCards();
             showCurrentPlayerCards(true);
         }
+
+        void showUno(gameEventData data)
+        {
+            showUnoPopup();
+        }
+
+
         void onUnoPenalty(gameEventData data);
+
         void onGameEnded(gameEventData data);
-        
+
+        void updateScreen(gameEventData data);
+
+        void updatePlayersInfo() const;
+
         void tryYellUno();
         void tryToPass();
         void tryDrawMoreCards();

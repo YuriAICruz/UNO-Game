@@ -92,9 +92,10 @@ int main()
             );
         });
     events->subscribe<screens::transitionData>(
-        NAVIGATION_GAME, [game, gameManager](screens::transitionData data)
+        NAVIGATION_GAME, [game, settingsMenu, gameManager](screens::transitionData data)
         {
             game->setGameManager(gameManager.get());
+            game->showWarnings(settingsMenu->canShowWarnings());
             game->show();
             gameManager->startGame();
         });
@@ -109,6 +110,7 @@ int main()
         NAVIGATION_ONLINE_GAME, [game, settingsMenu, netGameManager](screens::transitionData data)
         {
             game->setGameManager(netGameManager.get());
+            game->showWarnings(false);
             game->show();
             if(!netGameManager->isGameRunning())
             {

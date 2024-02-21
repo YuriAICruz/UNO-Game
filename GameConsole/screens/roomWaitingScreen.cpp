@@ -48,20 +48,41 @@ namespace screens
             ' ',
             'g',
             "",
+            "SetName:"
+        );
+        buttons[0].action = [this]
+        {
+            setPlayerName();
+        };
+        updatePlayerName();
+
+        lastY += buttonHeight + offset;
+        buttons[1].id = rdr->addElement<elements::card>(
+            COORD{
+                static_cast<SHORT>(lastX),
+                static_cast<SHORT>(lastY)
+            },
+            COORD{
+                static_cast<SHORT>(buttonWidth),
+                static_cast<SHORT>(buttonHeight)
+            },
+            ' ',
+            'g',
+            "",
             "Number of Starting Cards []"
         );
-        buttons[0].actionLeft = [this]
+        buttons[1].actionLeft = [this]
         {
             decreaseStartingCards();
         };
-        buttons[0].actionRight = [this]
+        buttons[1].actionRight = [this]
         {
             increaseStartingCards();
         };
         updateStatingCardsCount();
 
         lastY += (buttonHeight + offset) * 2;
-        buttons[1].id = rdr->addElement<elements::card>(
+        buttons[2].id = rdr->addElement<elements::card>(
             COORD{
                 static_cast<SHORT>(lastX),
                 static_cast<SHORT>(lastY)
@@ -75,13 +96,13 @@ namespace screens
             "",
             "Start"
         );
-        buttons[1].action = [this]
+        buttons[2].action = [this]
         {
             startRoomGame();
         };
 
         lastY += buttonHeight + offset;
-        buttons[2].id = rdr->addElement<elements::card>(
+        buttons[3].id = rdr->addElement<elements::card>(
             COORD{
                 static_cast<SHORT>(lastX),
                 static_cast<SHORT>(lastY)
@@ -95,7 +116,7 @@ namespace screens
             "",
             "Return"
         );
-        buttons[2].action = [this]
+        buttons[3].action = [this]
         {
             tryExitRoom();
         };
@@ -125,7 +146,7 @@ namespace screens
 
     void roomWaitingScreen::moveUp(input::inputData data)
     {
-        if (blockInputs)
+        if (blockInputs || box.isBlocking())
         {
             return;
         }
@@ -147,7 +168,7 @@ namespace screens
 
     void roomWaitingScreen::moveDown(input::inputData data)
     {
-        if (blockInputs)
+        if (blockInputs || box.isBlocking())
         {
             return;
         }
@@ -165,7 +186,7 @@ namespace screens
 
     void roomWaitingScreen::moveLeft(input::inputData data)
     {
-        if (blockInputs)
+        if (blockInputs || box.isBlocking())
         {
             return;
         }
@@ -184,7 +205,7 @@ namespace screens
 
     void roomWaitingScreen::moveRight(input::inputData data)
     {
-        if (blockInputs)
+        if (blockInputs || box.isBlocking())
         {
             return;
         }
@@ -203,7 +224,7 @@ namespace screens
 
     void roomWaitingScreen::accept(input::inputData data)
     {
-        if (blockInputs)
+        if (blockInputs || box.isBlocking())
         {
             return;
         }
@@ -222,7 +243,7 @@ namespace screens
 
     void roomWaitingScreen::cancel(input::inputData data)
     {
-        if (blockInputs)
+        if (blockInputs || box.isBlocking())
         {
             return;
         }
@@ -249,12 +270,12 @@ namespace screens
 
     void roomWaitingScreen::updateStartButton(netcode::room* room)
     {
-        if (blockInputs)
+        if (blockInputs || box.isBlocking())
         {
             return;
         }
 
-        auto button = dynamic_cast<elements::card*>(rdr->getElement(buttons[1].id));
+        auto button = dynamic_cast<elements::card*>(rdr->getElement(buttons[2].id));
 
         std::stringstream ss;
         ss << "[" << room->count() << "] players in room, Start?";
@@ -280,7 +301,7 @@ namespace screens
 
     void roomWaitingScreen::startRoomGame()
     {
-        if (blockInputs)
+        if (blockInputs || box.isBlocking())
         {
             return;
         }
@@ -299,7 +320,7 @@ namespace screens
 
     void roomWaitingScreen::goToGameScreen()
     {
-        if (blockInputs)
+        if (blockInputs || box.isBlocking())
         {
             return;
         }
@@ -310,20 +331,44 @@ namespace screens
 
     void roomWaitingScreen::updateStatingCardsCount()
     {
-        auto button = dynamic_cast<elements::card*>(rdr->getElement(buttons[0].id));
+        auto button = dynamic_cast<elements::card*>(rdr->getElement(buttons[1].id));
         std::stringstream ss;
         ss << "Number of starting cards [" << handSize << "]";
         button->setCenterText(ss.str());
+        rdr->setDirty();
     }
 
     void roomWaitingScreen::decreaseStartingCards()
     {
         handSize = max(4, handSize-1);
+
+        updateStatingCardsCount();
     }
 
     void roomWaitingScreen::increaseStartingCards()
     {
         handSize = min(12, handSize+1);
+
+        updateStatingCardsCount();
+    }
+
+    void roomWaitingScreen::updatePlayerName() const
+    {
+        auto button = dynamic_cast<elements::card*>(rdr->getElement(buttons[0].id));
+        std::stringstream ss;
+        ss << "SetPlayerName [" << netClient->getPlayerName() << "]";
+        button->setCenterText(ss.str());
+        rdr->setDirty();
+    }
+
+    void roomWaitingScreen::setPlayerName()
+    {
+        std::string name = netClient->getPlayerName();
+        box.openStringEditBox("Player Name", name, [this](std::string newName)
+        {
+            netClient->setName(newName);
+            updatePlayerName();
+        });
     }
 
     void roomWaitingScreen::selectButton(int index) const

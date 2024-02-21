@@ -31,7 +31,8 @@ void gameStateManager::bindGameEvents()
     events->bindEvent<gameEventData>(GAME_WON);
     events->bindEvent<gameEventData>(GAME_LOST);
     events->bindEvent<gameEventData>(GAME_UNO);
-    events->bindEvent<gameEventData>(GAME_NO_UNO_PENALTY);
+    events->bindEvent<gameEventData>(GAME_ON_UNO_PENALTY);
+    events->bindEvent<gameEventData>(GAME_STATE_UPDATED);
 
     events->bindEvent<turnEventData>(TURN_BEGIN);
     events->bindEvent<turnEventData>(TURN_END);
@@ -44,7 +45,7 @@ void gameStateManager::beginTurn()
     auto player = getCurrentPlayer();
     if (player->getHand().size() < 2 && !player->isInUnoMode())
     {
-        events->fireEvent(GAME_NO_UNO_PENALTY, gameEventData());
+        events->fireEvent(GAME_ON_UNO_PENALTY, gameEventData());
         gameStateManager::makePlayerDraw(player, 2);
     }
     else if (player->isInUnoMode())
@@ -128,6 +129,16 @@ turnSystem::IPlayer* gameStateManager::getPlayer(int i) const
     return turner->getPlayer(i);
 }
 
+turnSystem::IPlayer* gameStateManager::getPlayerFromId(int id) const
+{
+    return turner->getPlayerFromId(id);
+}
+
+int gameStateManager::playersCount() const
+{
+    return turner->playersCount();
+}
+
 cards::ICard* gameStateManager::getTopCard() const
 {
     return discardDeck->peek();
@@ -192,10 +203,11 @@ bool gameStateManager::canYellUno()
     return getCurrentPlayer()->getHand().size() == 2 && !getCurrentPlayer()->isInUnoMode();
 }
 
-void gameStateManager::yellUno()
+bool gameStateManager::yellUno()
 {
     events->fireEvent(GAME_UNO, gameEventData());
     getCurrentPlayer()->setUnoMode();
+    return true;
 }
 
 std::tuple<const char*, size_t> gameStateManager::getState()
@@ -268,6 +280,8 @@ void gameStateManager::setState(const char* data, size_t size)
     ptr += sizeof(size_t);
     turner->setState(ptr, mainDeck.get());
     ptr += tSize;
+
+    events->fireEvent(GAME_STATE_UPDATED, gameEventData());
 }
 
 void gameStateManager::print(const char* buffer, size_t size)
@@ -339,7 +353,7 @@ void gameStateManager::cheatWin()
 void gameStateManager::endGame()
 {
     running = false;
-    events->fireEvent(GAME_END, gameEventData(getCurrentPlayer()));
+    events->fireEvent(GAME_END, gameEventData(getCurrentPlayer(), false));
 }
 
 void gameStateManager::finishAction(cards::ICard* card)

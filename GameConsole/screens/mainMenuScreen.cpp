@@ -22,7 +22,7 @@ namespace screens
 
         titleId = rdr->addElement<elements::fileRead>(
             COORD{
-                static_cast<SHORT>(winSize.X/2-16),
+                static_cast<SHORT>(winSize.X / 2 - 16),
                 static_cast<SHORT>(4),
             },
             'b',
@@ -85,6 +85,7 @@ namespace screens
             rdr->exit();
         };
 
+        setButtonsSelectionColor();
         selectButton(currentButton);
         rdr->setDirty();
     }
@@ -143,6 +144,15 @@ namespace screens
             return;
         }
         rdr->exit();
+    }
+
+    void mainMenuScreen::setButtonsSelectionColor()
+    {
+        char color = 'b';
+        for (auto button : buttons)
+        {
+            (dynamic_cast<elements::card*>(rdr->getElement(button.id)))->setSelectionColor(color);
+        }
     }
 
     void mainMenuScreen::selectButton(int index) const

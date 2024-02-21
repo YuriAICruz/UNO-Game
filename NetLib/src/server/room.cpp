@@ -117,6 +117,19 @@ namespace netcode
         return false;
     }
 
+    bool room::hasClientConnection(SOCKET clientSocket) const
+    {
+        for (auto connectedClient : connectedClients)
+        {
+            if (connectedClient->connection != nullptr && *connectedClient->connection == clientSocket)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     std::string room::getRoomSerialized(int id)
     {
         std::stringstream ss;

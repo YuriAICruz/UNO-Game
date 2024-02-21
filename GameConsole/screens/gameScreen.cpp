@@ -2,11 +2,17 @@
 
 #include "netGameStateManager.h"
 #include "../renderer/elements/card.h"
+#include "../renderer/elements/frameList.h"
 #include "../renderer/elements/horizontalLayoutGroup.h"
 #include "../renderer/elements/text.h"
 #include "Cards/ActionTypes/base.h"
 #include "Cards/ActionTypes/draw.h"
 #include "../renderer/elements/fileRead.h"
+
+namespace elements
+{
+    class frameList;
+}
 
 namespace screens
 {
@@ -34,8 +40,9 @@ namespace screens
         lastY += offset;
         int border = 5;
         int sideMenuWidth = 15;
+        int playersInfoWidth = 15;
 
-        lastX = border;
+        lastX = border + playersInfoWidth;
 
         currentPlayerInfoId = rdr->addElement<elements::card>(
             COORD{
@@ -43,7 +50,7 @@ namespace screens
                 static_cast<SHORT>(lastY)
             },
             COORD{
-                static_cast<SHORT>(windowSize.X - border * 2 - sideMenuWidth),
+                static_cast<SHORT>(windowSize.X - border * 2 - sideMenuWidth - playersInfoWidth),
                 static_cast<SHORT>(5)
             },
             ' ',
@@ -51,6 +58,20 @@ namespace screens
             "Current Player",
             ""
         );
+
+        playersInfo.id = rdr->addElement<elements::frameList>(
+            COORD{
+                static_cast<SHORT>(offset),
+                static_cast<SHORT>(lastY)
+            },
+            COORD{
+                static_cast<SHORT>(playersInfoWidth),
+                static_cast<SHORT>(windowSize.Y - cardSizeY - offset * 2)
+            },
+            ' ',
+            'y'
+        );
+        updatePlayersInfo();
 
         int buttonWidth = sideMenuWidth;
         int buttonHeight = 3;
@@ -192,6 +213,10 @@ namespace screens
         if (cardsAreHidden)
         {
             showCurrentPlayerCards(false);
+            if (isOnline)
+            {
+                return;
+            }
         }
         if (popup.isOpen())
         {
@@ -428,8 +453,6 @@ namespace screens
         if (gameManager->canYellUno())
         {
             gameManager->yellUno();
-
-            showUnoPopup();
             return;
         }
 
@@ -451,6 +474,55 @@ namespace screens
     {
         events->fireEvent(NAVIGATION_GAME_OVER, transitionData(data.player));
         hide();
+    }
+
+    void gameScreen::updateScreen(gameEventData data)
+    {
+        if (blockInputs)
+        {
+            return;
+        }
+        if (!gameManager->isGameRunning())
+        {
+            return;
+        }
+
+        showCurrentPlayerCards(false);
+    }
+
+    void gameScreen::updatePlayersInfo() const
+    {
+        auto button = dynamic_cast<elements::frameList*>(rdr->getElement(playersInfo.id));
+        std::stringstream ss;
+        ss << "Players:";
+        if (button->linesCount() <= 0)
+        {
+            button->addText(ss.str());
+        }
+        else
+        {
+            button->setText(0, ss.str());
+        }
+        for (int i = 0, n = gameManager->playersCount(); i < n; ++i)
+        {
+            auto player = gameManager->getPlayer(i);
+
+            ss.str("");
+            ss << player->getName();
+            ss << ":[";
+            ss << player->getHand().size();
+            ss << "]";
+            if (button->linesCount() <= i)
+            {
+                button->addText(ss.str());
+            }
+            else
+            {
+                button->setText(i, ss.str());
+            }
+        }
+
+        rdr->setDirty();
     }
 
     void gameScreen::tryToPass()
@@ -538,9 +610,33 @@ namespace screens
 
     void gameScreen::showCurrentPlayerCards(bool hidden)
     {
-        cardsAreHidden = hidden;
+        std::list<cards::ICard*> hand;
+        if (isOnline)
+        {
+            auto netMan = dynamic_cast<netGameStateManager*>(gameManager);
+            cardsAreHidden = false;
+
+            if (netMan->isCurrentPlayer())
+            {
+                popup.hidePopup();
+            }
+            else
+            {
+                std::stringstream ss;
+                ss << "Waiting fot the player [" << netMan->getCurrentPlayer()->getName() << "] action.";
+                popup.clearActions();
+                popup.openWarningPopup(ss.str());
+            }
+
+            hand = netMan->getLocalPlayer()->getHand();
+        }
+        else
+        {
+            cardsAreHidden = showTurnWarning && hidden;
+            hand = gameManager->getCurrentPlayer()->getHand();
+        }
+
         auto pool = dynamic_cast<elements::horizontalLayoutGroup*>(rdr->getElement(handCardsPoolId));
-        std::list<cards::ICard*> hand = gameManager->getCurrentPlayer()->getHand();
         int handSize = hand.size();
         if (handSize > cardListButtons.size())
         {
@@ -550,7 +646,7 @@ namespace screens
         for (auto card : hand)
         {
             auto cardElement = dynamic_cast<elements::card*>(pool->getElement(cardListButtons[i].id));
-            setCardData(cardElement, card, hidden);
+            setCardData(cardElement, card, cardsAreHidden);
             i++;
         }
         for (int n = cardListButtons.size(); i < n; ++i)
@@ -572,13 +668,15 @@ namespace screens
             }
         }
 
-        if (hidden)
+        if (cardsAreHidden)
         {
             popup.clearActions();
             popup.openWarningPopup(
                 "Cards are hidden waiting for the next player, Enter to start"
             );
         }
+
+        updatePlayersInfo();
 
         rdr->setDirty();
     }
@@ -637,28 +735,53 @@ namespace screens
     void gameScreen::selectCard(int index)
     {
         turnSystem::IPlayer* player = gameManager->getCurrentPlayer();
+
         auto card = player->pickCard(index);
-        if (gameManager->tryExecutePlayerAction(card))
+        if (isOnline)
         {
-            if (gameManager->isGameRunning())
+            netGameStateManager* manager = dynamic_cast<netGameStateManager*>(gameManager);
+
+            if (!manager->isCurrentPlayer())
             {
-                showCurrentPlayerCards(
-                    *player != *gameManager->getCurrentPlayer()
-                );
+                showCurrentPlayerCards(false);
             }
-            return;
+            else
+            {
+                if (manager->tryExecutePlayerAction(index))
+                {
+                    if (gameManager->isGameRunning())
+                    {
+                        showCurrentPlayerCards(false);
+                    }
+                    return;
+                }
+            }
+        }
+        else
+        {
+            if (gameManager->tryExecutePlayerAction(card))
+            {
+                if (gameManager->isGameRunning())
+                {
+                    showCurrentPlayerCards(
+                        *player != *gameManager->getCurrentPlayer()
+                    );
+                }
+                return;
+            }
         }
         player->receiveCard(card);
+
         showCurrentPlayerCards(false);
     }
 
     void gameScreen::switchToCards()
     {
-        if(blockInputs)
+        if (blockInputs)
         {
             return;
         }
-        
+
         selectingCards = true;
         selectingOptions = false;
         selectCardButton(currentCardButton);
@@ -701,5 +824,10 @@ namespace screens
     {
         auto button = static_cast<elements::card*>(rdr->getElement(optionButtons[index].id));
         button->deselect();
+    }
+
+    void gameScreen::showWarnings(bool canShow)
+    {
+        showTurnWarning = canShow;
     }
 }

@@ -164,12 +164,17 @@ namespace netcode
 
     void client::setName(const std::string& name)
     {
+        clientName = name;
         std::stringstream ss;
         ss << NC_SET_NAME << NC_SEPARATOR << name;
         std::string str = ss.str();
         sendMessage(str.c_str());
     }
 
+    std::string& client::getPlayerName()
+    {
+        return clientName;
+    }
 
     int client::sendMessage(const char* str)
     {
@@ -179,7 +184,7 @@ namespace netcode
             error = true;
             return 1;
         }
-        logger::print("CLIENT: sending data . . .");
+        logger::print((logger::getPrinter() << "CLIENT: sending data size [" << strlen(str) << "]").str());
         int sendResult = send(clientSocket, str, strlen(str), 0);
         if (sendResult == SOCKET_ERROR)
         {
@@ -224,6 +229,7 @@ namespace netcode
         auto future = promise.get_future();
         std::stringstream ss;
         ss << NC_CREATE_ROOM << NC_SEPARATOR << roomName;
+        std::string str = ss.str();
         sendMessage(ss.str().c_str());
         future.wait();
         roomCallback = nullptr;
@@ -247,6 +253,7 @@ namespace netcode
         auto future = promise.get_future();
         std::stringstream ss;
         ss << NC_ENTER_ROOM << NC_SEPARATOR << id;
+        std::string str = ss.str();
         sendMessage(ss.str().c_str());
         future.wait();
         roomCallback = nullptr;
@@ -270,6 +277,7 @@ namespace netcode
 
         std::stringstream ss;
         ss << NC_GET_ROOM << NC_SEPARATOR << currentRoom.getId();
+        std::string str = ss.str();
         sendMessage(ss.str().c_str());
 
         future.wait();
@@ -319,7 +327,7 @@ namespace netcode
     void client::listenToServer()
     {
         isListening = true;
-        const int recvDataSize = 1024;
+        const int recvDataSize = NC_PACKET_SIZE;
         char recvData[recvDataSize];
         while (running)
         {
@@ -409,6 +417,8 @@ namespace netcode
         hasId = true;
         id = std::stoul(data[1]);
 
+        setName(clientName);
+
         if (connectingCallback != nullptr)
         {
             connectingCallback->set_value(0);
@@ -470,7 +480,8 @@ namespace netcode
                 ss << data[pos];
                 first = false;
             }
-            lastRoomsList[i] = room::constructRoom(ss.str());
+            std::string str = ss.str();
+            lastRoomsList[i] = room::constructRoom(str);
         }
 
         if (roomsCallback != nullptr)

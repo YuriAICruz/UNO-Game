@@ -16,6 +16,7 @@ namespace elements
         text centerTextElement;
         std::string centerText;
         std::string title;
+        char selectionColor;
 
     public:
         card(const COORD& pos, const COORD& size, char drawC, const char& c, std::string title,
@@ -41,7 +42,8 @@ namespace elements
                 drawC,
                 c,
                 centerText
-            )
+            ),
+            selectionColor(c)
         {
         }
 
@@ -49,6 +51,7 @@ namespace elements
 
         void select();
         void deselect();
+        void setSelectionColor(char c);
         void setPosition(COORD pos) override;
         void setSize(COORD s) override;
         void setColor(char c) override;

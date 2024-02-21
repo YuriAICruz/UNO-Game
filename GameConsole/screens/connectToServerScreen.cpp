@@ -202,6 +202,10 @@ namespace screens
 
     void connectToServerScreen::tryConnectClient()
     {
+        if(netClient->isRunning())
+        {
+            netClient->close();
+        }
         int result = netClient->start(serverAddr);
         if (result != 0)
         {

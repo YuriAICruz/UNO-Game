@@ -11,8 +11,10 @@ namespace screens
     class settingsMenuScreen : public IScreen
     {
     private:
-        button buttons[4];
-        std::vector<button> playersButtons;
+        button buttons[5];
+        int maxPlayers = 12;
+        int startingPlayers = 2;
+        std::vector<button> playersButtons{12};
         int currentButton = 0;
         int currentPlayerButton = 0;
 
@@ -20,6 +22,7 @@ namespace screens
         std::vector<std::string> players;
         std::string configFilePath = "Data\\deck_setup.json";
         int handCount = 7;
+        bool showWarningEachTurn = false;
         size_t seed = 12341234;
         bool editingPlayers = false;
 
@@ -70,7 +73,7 @@ namespace screens
                 transitionsMap[transitionMap.first].uid = id;
             }
 
-            players.resize(2);
+            players.resize(startingPlayers);
             std::stringstream ss;
             for (int i = 0, n = players.size(); i < n; ++i)
             {
@@ -78,7 +81,7 @@ namespace screens
                 players[i] = ss.str();
                 ss.str("");
             }
-            playersButtons.resize(12);
+            playersButtons.resize(maxPlayers);
         }
 
         ~settingsMenuScreen() override
@@ -129,6 +132,11 @@ namespace screens
         size_t getSeed() const
         {
             return seed;
+        }
+
+        bool canShowWarnings() const
+        {
+            return showWarningEachTurn;
         }
 
     private:

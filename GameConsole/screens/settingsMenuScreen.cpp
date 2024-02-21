@@ -20,7 +20,7 @@ namespace screens
         int border = 20;
         int buttonWidth = winSize.X - border * 2;
         int buttonHeight = 3;
-        int offset = 1;
+        int offset = 0;
 
         int lastX = winSize.X / 2 - title.length() / 2;
         int lastY = 1;
@@ -36,7 +36,7 @@ namespace screens
         );
 
         lastX = border;
-        lastY = offset*2;
+        lastY = offset * 2;
 
         std::stringstream ss;
         configureButton(
@@ -59,9 +59,30 @@ namespace screens
             });
 
         lastY += buttonHeight + offset;
-        ss.str("");
         configureButton(
             1,
+            buttonWidth, buttonHeight,
+            lastX, lastY,
+            showWarningEachTurn,
+            "Show warning each turn [", "]",
+            ss,
+            [this]
+            {
+                showWarningEachTurn = !showWarningEachTurn;
+                std::stringstream ss;
+                ss << "Show warning each turn [" << showWarningEachTurn << "]";
+                auto button = dynamic_cast<elements::card*>(rdr->getElement(buttons[1].id));
+                button->setCenterText(ss.str());
+                rdr->setDirty();
+            },
+            nullptr,
+            nullptr
+        );
+
+        lastY += buttonHeight + offset;
+        ss.str("");
+        configureButton(
+            2,
             buttonWidth, buttonHeight,
             lastX, lastY,
             configFilePath,
@@ -73,7 +94,7 @@ namespace screens
                 {
                     std::stringstream ss;
                     ss << "Deck configuration json path: \"" << configFilePath << "\"";
-                    auto filePathButton = static_cast<elements::card*>(rdr->getElement(buttons[1].id));
+                    auto filePathButton = static_cast<elements::card*>(rdr->getElement(buttons[2].id));
                     filePathButton->setCenterText(ss.str());
                     rdr->setDirty();
                 });
@@ -84,7 +105,7 @@ namespace screens
 
         lastY += buttonHeight + offset;
         configureButton(
-            2,
+            3,
             buttonWidth, buttonHeight,
             lastX, lastY,
             seed,
@@ -96,7 +117,7 @@ namespace screens
                 {
                     std::stringstream ss;
                     ss << "Random Seed: [" << seed << "]";
-                    auto seedButton = static_cast<elements::card*>(rdr->getElement(buttons[2].id));
+                    auto seedButton = static_cast<elements::card*>(rdr->getElement(buttons[3].id));
                     seedButton->setCenterText(ss.str());
                     rdr->setDirty();
                 });
@@ -107,7 +128,7 @@ namespace screens
 
         lastY += buttonHeight + offset;
         configureButton(
-            3,
+            4,
             buttonWidth, buttonHeight,
             lastX, lastY,
             players.size(),
@@ -125,7 +146,7 @@ namespace screens
                 {
                     return;
                 }
-                updatePlayersCount(3, size);
+                updatePlayersCount(4, size);
             },
             [this]
             {
@@ -135,10 +156,10 @@ namespace screens
                 {
                     return;
                 }
-                updatePlayersCount(3, size);
+                updatePlayersCount(4, size);
             }
         );
-        updatePlayersCount(3, players.size());
+        updatePlayersCount(4, players.size());
 
         selectButton(currentButton);
         exitPlayerEditMode();
@@ -303,7 +324,7 @@ namespace screens
 
     void settingsMenuScreen::setupPlayerButton()
     {
-        int size = 12;
+        int size = maxPlayers;
         playersButtons.resize(size);
 
         std::stringstream ss;

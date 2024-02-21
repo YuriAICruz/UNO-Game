@@ -13,6 +13,7 @@ namespace elements
 
     void card::select()
     {
+        frameElement.setColor(selectionColor);
         frameElement.setFrame(L'╔',
                               L'╖',
                               L'╚',
@@ -23,7 +24,13 @@ namespace elements
 
     void card::deselect()
     {
+        frameElement.setColor(color);
         frameElement.setDefault();
+    }
+
+    void card::setSelectionColor(char c)
+    {
+        selectionColor = c;
     }
 
     void card::setPosition(COORD pos)

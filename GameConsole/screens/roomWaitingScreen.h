@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "buttons.h"
+#include "editBox.h"
 #include "IScreen.h"
 #include "netGameStateManager.h"
 #include "popupWindow.h"
@@ -14,8 +15,9 @@ namespace screens
         int titleId;
         int currentButton = 0;
         int handSize = 7;
-        button buttons[3];
+        button buttons[4];
         popupWindow popup;
+        editBox box;
         std::shared_ptr<netcode::client> netClient;
         netGameStateManager* netGameManager;
         std::string cardsPath;
@@ -63,8 +65,8 @@ namespace screens
     public:
         roomWaitingScreen(std::shared_ptr<renderer::renderer> rdr, std::shared_ptr<eventBus::eventBus> events,
                           std::shared_ptr<netcode::client> cl
-                          )
-            : IScreen(rdr, events), netClient(cl), popup(popupWindow(rdr.get()))
+        )
+            : IScreen(rdr, events), netClient(cl), popup(popupWindow(rdr.get())), box(editBox(rdr.get()))
         {
             for (std::pair<const int, eventBus::delegate<transitionData>> transitionMap : transitionsMap)
             {
@@ -111,6 +113,8 @@ namespace screens
         void updateStatingCardsCount();
         void decreaseStartingCards();
         void increaseStartingCards();
+        void updatePlayerName() const;
+        void setPlayerName();
         void selectButton(int index) const;
         void deselectButton(int index) const;
     };

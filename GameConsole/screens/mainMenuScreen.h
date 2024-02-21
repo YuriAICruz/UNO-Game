@@ -83,6 +83,7 @@ namespace screens
         void moveRight(input::inputData data) override;
         void accept(input::inputData data) override;
         void cancel(input::inputData data) override;
+        void setButtonsSelectionColor();
         void selectButton(int index) const;
         void deselectButton(int index) const;
     };

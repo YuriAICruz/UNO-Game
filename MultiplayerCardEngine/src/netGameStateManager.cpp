@@ -1,13 +1,16 @@
 ﻿#include "netGameStateManager.h"
 
-#include <atomic>
 #include <iostream>
 #include <sstream>
 #include <tuple>
 
+#include "coreEventIds.h"
 #include "logger.h"
 #include "netCommands.h"
 #include "stringUtils.h"
+#include "StateManager/gameEventData.h"
+
+#define STATE_SYNC_DELAY 20
 
 netGameStateManager::netGameStateManager(
     std::shared_ptr<eventBus::eventBus> events,
@@ -174,15 +177,10 @@ void netGameStateManager::startGame()
     if (!isServer && !running)
     {
         std::promise<bool> promise;
-        std::promise<bool> promiseState;
         tryStartGameCallback = &promise;
-        gameStateUpdatedCallback = &promiseState;
         auto future = promise.get_future();
-        auto stateFuture = promiseState.get_future();
         netClient->sendMessage(CORE_NC_GAME_START);
         future.wait();
-        stateFuture.wait();
-        gameStateUpdatedCallback = nullptr;
         tryStartGameCallback = nullptr;
     }
 }
@@ -257,6 +255,12 @@ void netGameStateManager::createClientCustomCommands()
             {
                 drawCardsCallback(msg);
             },
+        },
+        {
+            CORE_NC_GAME_END, [this](std::string& msg)
+            {
+                showClientEndGame(msg);
+            },
         }
     };
     std::map<std::string, std::function<void (char*, size_t)>> rawCommands = {
@@ -325,6 +329,11 @@ bool netGameStateManager::isCurrentPlayer()
     return getCurrentPlayer()->Id() == netClient->getId();
 }
 
+turnSystem::IPlayer* netGameStateManager::getLocalPlayer() const
+{
+    return turner->getPlayerFromId(netClient->getId());
+}
+
 bool netGameStateManager::tryExecutePlayerAction(cards::ICard* card)
 {
     throw std::exception("passing card unsupported, pass index instead");
@@ -363,7 +372,7 @@ bool netGameStateManager::tryExecutePlayerAction(int index)
     return future.get();
 }
 
-void netGameStateManager::netPlayerActionCallback(const std::string& msg)
+void netGameStateManager::netPlayerActionCallback(const std::string& msg) const
 {
     std::vector<std::string> data = stringUtils::splitString(msg);
     if (tryExecuteActionCallback != nullptr)
@@ -390,34 +399,17 @@ void netGameStateManager::broadcastServerStateData(SOCKET cs)
     char* buffer = new char[bufferSize];
     char* ptr = buffer;
 
-    char separator = NC_SEPARATOR;
-
-    std::cout << "\nSENT\n";
-    print(std::get<0>(data), std::get<1>(data));
-    std::cout << "\n----\n";
-
-    std::memcpy(ptr, &CORE_NC_UPDATE_STATE, strlen(CORE_NC_UPDATE_STATE) * sizeof(char));
-    ptr += strlen(CORE_NC_UPDATE_STATE) * sizeof(char);
-    std::memcpy(ptr, &separator, sizeof(char));
-    ptr += sizeof(char);
-    std::memcpy(ptr, &std::get<1>(data), sizeof(size_t));
-    ptr += sizeof(size_t);
-    std::memcpy(ptr, &separator, sizeof(char));
-    ptr += sizeof(char);
-    std::memcpy(ptr, std::get<0>(data), std::get<1>(data));
-    ptr += std::get<1>(data);
+    encryptStateBuffer(data, ptr);
 
     netServer->broadcastToRoom(buffer, bufferSize, cs);
     delete std::get<0>(data);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(STATE_SYNC_DELAY));
 }
 
 void netGameStateManager::encryptStateBuffer(std::tuple<const char*, size_t> data, char* ptr)
 {
     char separator = NC_SEPARATOR;
-
-    std::cout << "\nSENT\n";
-    print(std::get<0>(data), std::get<1>(data));
-    std::cout << "\n----\n";
 
     std::memcpy(ptr, &CORE_NC_UPDATE_STATE, strlen(CORE_NC_UPDATE_STATE) * sizeof(char));
     ptr += strlen(CORE_NC_UPDATE_STATE) * sizeof(char);
@@ -452,10 +444,13 @@ void netGameStateManager::sendToClientServerStateData(SOCKET cs)
 
     netServer->sendMessage(cs, buffer, bufferSize, 0);
     delete std::get<0>(data);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(STATE_SYNC_DELAY));
 }
 
 void netGameStateManager::tryExecuteNetPlayerAction(const std::string& msg, SOCKET cs)
 {
+    logger::print("received player action");
     std::vector<std::string> data = stringUtils::splitString(msg);
     int index = std::stoi(data[1]);
     turnSystem::IPlayer* currentPlayer = getCurrentPlayer();
@@ -463,13 +458,17 @@ void netGameStateManager::tryExecuteNetPlayerAction(const std::string& msg, SOCK
     std::stringstream ss;
     ss << CORE_NC_PLAYCARD << NC_SEPARATOR;
 
-    if (gameStateManager::tryExecutePlayerAction(currentPlayer->pickCard(index)))
+    auto card = currentPlayer->pickCard(index);
+    if (gameStateManager::tryExecutePlayerAction(card))
     {
+        logger::print("player action executed successful");
         broadcastServerStateData(cs);
         ss << 1;
     }
     else
     {
+        logger::print("player action not executed");
+        currentPlayer->receiveCard(card);
         ss << 0;
     }
     std::string str = ss.str();
@@ -487,13 +486,6 @@ void netGameStateManager::setStateNet(char* buffer, size_t size)
     std::memcpy(&bufferSize, ptr, sizeof(size_t));
     ptr += sizeof(size_t);
     ptr += sizeof(char);
-
-    if (netClient->getId() == 1)
-    {
-        std::cout << "\nRECEIVED\n";
-        print(ptr, bufferSize);
-        std::cout << "\n----\n";
-    }
 
     setState(ptr, bufferSize);
 
@@ -526,20 +518,56 @@ void netGameStateManager::cheatWin()
     gameStateManager::cheatWin();
 }
 
+void netGameStateManager::endGame()
+{
+    if (!isServer)
+    {
+        return;
+    }
+
+    gameStateManager::endGame();
+
+    SOCKET sc = *serverRoom->clients()[0]->connection;
+
+    if (!isInRoom(sc))
+    {
+        return;
+    }
+    netServer->broadcastToRoom(CORE_NC_GAME_END, sc);
+    broadcastServerStateData(sc);
+}
+
+void netGameStateManager::onClientReconnected(netcode::clientInfo* client)
+{
+    if (running)
+    {
+        sendToClientServerStateData(*client->connection);
+    }
+}
+
+void netGameStateManager::showClientEndGame(const std::string& msg)
+{
+    checkIsServer();
+
+    running = false;
+    events->fireEvent(GAME_END, gameEventData(getCurrentPlayer(), true));
+}
+
 bool netGameStateManager::skipTurn()
 {
     checkIsServer();
 
-    std::promise<bool> promise;
+    if (!isCurrentPlayer())
+    {
+        return false;
+    }
+
     std::promise<bool> promiseCmd;
-    gameStateUpdatedCallback = &promise;
     executeCommandCallback = &promiseCmd;
-    auto future = promise.get_future();
     auto futureCmd = promiseCmd.get_future();
     netClient->sendMessage(CORE_NC_SKIP_TURN);
     futureCmd.wait();
-    future.wait();
-
+    executeCommandCallback = nullptr;
     return futureCmd.get();
 }
 
@@ -570,21 +598,55 @@ void netGameStateManager::skipTurnCallback(const std::string& msg)
     commandCallbackResponse(msg);
 }
 
-void netGameStateManager::yellUno()
+bool netGameStateManager::yellUno()
 {
     if (isServer)
     {
         gameStateManager::yellUno();
-        return;
+        return true;
     }
+
+    if (!isCurrentPlayer())
+    {
+        return false;
+    }
+
+    std::promise<bool> promiseCmd;
+    executeCommandCallback = &promiseCmd;
+    auto futureCmd = promiseCmd.get_future();
+    netClient->sendMessage(CORE_NC_YELL_UNO);
+    futureCmd.wait();
+    executeCommandCallback = nullptr;
+    return futureCmd.get();
 }
 
 void netGameStateManager::tryYellUno(const std::string& msg, SOCKET cs)
 {
+    bool canYell = canYellUno();
+    if (canYell)
+    {
+        gameStateManager::yellUno();
+    }
+    std::stringstream ss;
+    ss << CORE_NC_YELL_UNO << NC_SEPARATOR << (canYell ? "1" : "0");
+    std::string str = ss.str();
+    netServer->broadcastToRoom(str, cs);
 }
 
 void netGameStateManager::unoYellCallback(const std::string& msg)
 {
+    auto data = stringUtils::splitString(msg);
+
+    bool canYell = data[1] == "1";
+    if (executeCommandCallback != nullptr)
+    {
+        executeCommandCallback->set_value(canYell);
+    }
+
+    if (canYell)
+    {
+        gameStateManager::yellUno();
+    }
 }
 
 bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
@@ -595,31 +657,42 @@ bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
         return true;
     }
 
-    std::promise<bool> promise;
+    if (!isCurrentPlayer())
+    {
+        return false;
+    }
+
     std::promise<bool> promiseCmd;
 
-    gameStateUpdatedCallback = &promise;
     executeCommandCallback = &promiseCmd;
 
-    auto future = promise.get_future();
     auto futureCmd = promiseCmd.get_future();
 
     std::stringstream ss;
     ss << CORE_NC_DRAW_CARDS << NC_SEPARATOR << player->Id() << NC_SEPARATOR << count;
-    netClient->sendMessage(ss.str().c_str());
+    std::string str = ss.str();
+    netClient->sendMessage(str.c_str());
 
     futureCmd.wait();
-    future.wait();
+
+    executeCommandCallback = nullptr;
 
     return futureCmd.get();
 }
 
-void netGameStateManager::onClientReconnected(netcode::clientInfo* client)
+void netGameStateManager::setRoom(netcode::room* room)
 {
-    if (running)
+    serverRoom = room;
+}
+
+bool netGameStateManager::isInRoom(SOCKET sc) const
+{
+    if (!isServer)
     {
-        sendToClientServerStateData(*client->connection);
+        return false;
     }
+
+    return serverRoom->hasClientConnection(sc);
 }
 
 void netGameStateManager::tryDrawCards(const std::string& msg, SOCKET cs)
@@ -632,11 +705,11 @@ void netGameStateManager::tryDrawCards(const std::string& msg, SOCKET cs)
         auto id = stoi(data[1]);
         auto amount = stoi(data[2]);
 
-        gameStateManager::makePlayerDraw(getPlayer(id), amount);
+        gameStateManager::makePlayerDraw(getPlayerFromId(id), amount);
     }
 
     std::stringstream ss;
-    ss << CORE_NC_SKIP_TURN << NC_SEPARATOR << (canDraw ? 1 : 0);
+    ss << CORE_NC_DRAW_CARDS << NC_SEPARATOR << (canDraw ? 1 : 0);
     std::string str = ss.str();
     const char* resonse = str.c_str();
     send(cs, resonse, strlen(resonse), 0);
