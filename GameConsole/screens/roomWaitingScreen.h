@@ -117,5 +117,6 @@ namespace screens
         void setPlayerName();
         void selectButton(int index) const;
         void deselectButton(int index) const;
+        void setButtonsSelectionColor();
     };
 }

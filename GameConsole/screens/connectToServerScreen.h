@@ -113,5 +113,6 @@ namespace screens
         void tryConnectClient();
         void selectButton(int index) const;
         void deselectButton(int index) const;
+        void setButtonsSelectionColor();
     };
 }
