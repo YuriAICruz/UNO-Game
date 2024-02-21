@@ -8,6 +8,8 @@
 #endif
 
 #include <string>
+
+#include "../logger.h"
 #include "../../framework.h"
 
 namespace netcode
@@ -48,9 +50,11 @@ namespace netcode
 
         void reconnect()
         {
-            if(isConnected)
+            if (isConnected)
             {
-               throw std::exception("Client is already connected");
+                logger::printError(
+                    (logger::getPrinter() << "Client is already connected [" << id << ":" << name << "]").str()
+                );
             }
 
             isConnected = true;
