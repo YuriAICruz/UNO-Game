@@ -276,10 +276,13 @@ namespace netcode
         return &currentRoom;
     }
 
-    room* client::getUpdatedRoom()
+    room* client::getUpdatedRoom(bool wait)
     {
         std::promise<room*> promise;
-        roomCallback = &promise;
+        if (wait)
+        {
+            roomCallback = &promise;
+        }
         std::future<room*> future = promise.get_future();
 
         std::stringstream ss;
@@ -287,9 +290,14 @@ namespace netcode
         std::string str = ss.str();
         sendMessage(ss.str().c_str());
 
-        future.wait();
-        roomCallback = nullptr;
-        return future.get();
+        if (wait)
+        {
+            future.wait();
+            roomCallback = nullptr;
+            return future.get();
+        }
+
+        return &currentRoom;
     }
 
     int client::getSeed()
@@ -343,6 +351,7 @@ namespace netcode
                 recvData[i] = ' ';
             }
 
+            logger::print("CLIENT: listening . . .");
             int recvSize = recv(clientSocket, recvData, strlen(recvData), 0);
 
             logger::print((logger::getPrinter() << "CLIENT: data received size: " << recvSize).str());
