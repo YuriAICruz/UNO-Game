@@ -136,6 +136,27 @@ TEST(Deck, MoveDeck)
     EXPECT_EQ(card, emptyDeck->peek());
 }
 
+TEST(Deck, RefillDeck)
+{
+    const std::unique_ptr<decks::IDeck> deck = createDeck("Data\\deck_setup.json");
+    const std::unique_ptr<decks::IDeck> emptyDeck = std::make_unique<decks::deck>();
+
+    for (int i = 0; i < 5; ++i)
+    {
+        emptyDeck->stack(deck->dequeue());
+    }
+
+    cards::ICard* topCard = emptyDeck->peek();
+
+    cards::ICard* card = emptyDeck->dequeue();
+    emptyDeck->moveAllCardsTo(deck.get());
+    emptyDeck->enqueue(card);
+    deck->shuffle(12345);
+
+    EXPECT_EQ(topCard, emptyDeck->peek());
+    EXPECT_EQ(1, emptyDeck->count());
+}
+
 TEST(Deck, Serialize)
 {
     std::unique_ptr<decks::IDeck> deck = createDeck("Data\\test_deck_setup.json");
@@ -148,7 +169,7 @@ TEST(Deck, Serialize)
     std::cout << "\nDeck Data [End]\n";
 
     delete std::get<0>(data);
-    
+
     deck = createDeck("Data\\deck_setup.json");
     deck->shuffle(1234);
 

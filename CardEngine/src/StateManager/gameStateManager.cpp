@@ -62,6 +62,7 @@ bool gameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
     {
         currentPlayerCardsDraw++;
         player->receiveCard(mainDeck->dequeue());
+        checkMainDeckSize();
     }
 
     return true;
@@ -191,6 +192,17 @@ bool gameStateManager::playerHasValidCardOnHand(turnSystem::IPlayer* player)
     }
 
     return false;
+}
+
+void gameStateManager::checkMainDeckSize() const
+{
+    if(mainDeck->count() <= 0)
+    {
+        auto topCard = discardDeck->dequeue();
+        discardDeck->moveAllCardsTo(mainDeck.get());
+        discardDeck->enqueue(topCard);
+        mainDeck->shuffle(seed);
+    }
 }
 
 int gameStateManager::getStartHandSize()
