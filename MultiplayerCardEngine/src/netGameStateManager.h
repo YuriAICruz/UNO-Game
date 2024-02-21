@@ -79,6 +79,7 @@ public:
     bool yellUno() override;
     bool makePlayerDraw(turnSystem::IPlayer* player, int count) override;
     void setRoom(netcode::room* room);
+    netcode::room* getRoom() const;
 
 private:
     bool isInRoom(SOCKET sc) const;

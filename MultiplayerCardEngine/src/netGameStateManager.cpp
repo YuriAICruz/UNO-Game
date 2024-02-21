@@ -691,6 +691,16 @@ void netGameStateManager::setRoom(netcode::room* room)
     serverRoom = room;
 }
 
+netcode::room* netGameStateManager::getRoom() const
+{
+    if(isServer)
+    {
+        return serverRoom;
+    }
+
+    return netClient->getRoom();
+}
+
 bool netGameStateManager::isInRoom(SOCKET sc) const
 {
     if (!isServer)

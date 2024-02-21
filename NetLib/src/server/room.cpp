@@ -130,25 +130,6 @@ namespace netcode
         return false;
     }
 
-    std::string room::getRoomSerialized(int id)
-    {
-        std::stringstream ss;
-        ss << id << NC_SEPARATOR << getName() << NC_SEPARATOR;
-        int i = 0;
-        for (auto client : connectedClients)
-        {
-            if (i > 0)
-            {
-                ss << NC_SEPARATOR;
-            }
-            ss << client->getId();
-            ss << NC_SEPARATOR;
-            ss << client->getName();
-            i++;
-        }
-        return ss.str();
-    }
-
     std::string room::getClientName(uint16_t id) const
     {
         return getClient(id)->name;
@@ -172,6 +153,22 @@ namespace netcode
             ids.emplace_back(client->id);
         }
         return ids;
+    }
+
+    std::string room::getRoomSerialized(int id)
+    {
+        std::stringstream ss;
+        ss << id << NC_SEPARATOR << getName();
+        int i = 0;
+        for (auto client : connectedClients)
+        {
+            ss << NC_SEPARATOR;
+            ss << client->getId();
+            ss << NC_SEPARATOR;
+            ss << client->getName();
+            i++;
+        }
+        return ss.str();
     }
 
     room room::constructRoom(std::string data)

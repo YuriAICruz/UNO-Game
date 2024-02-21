@@ -39,6 +39,11 @@ namespace netcode
 
     void roomManager::exitRoom(clientInfo* client)
     {
+        if(client == nullptr)
+        {
+            logger::printError("null client, can't exit a null client");
+            return;
+        }
         auto room = getRoom(client);
         room->removeClient(client);
     }
@@ -63,7 +68,7 @@ namespace netcode
         {
             if (i > 0)
             {
-                ss << NC_OBJECT_SEPARATOR << NC_SEPARATOR;
+                ss << NC_SEPARATOR << NC_OBJECT_SEPARATOR << NC_SEPARATOR;
             }
             ss << pair.second.getRoomSerialized(pair.first);
             i++;
