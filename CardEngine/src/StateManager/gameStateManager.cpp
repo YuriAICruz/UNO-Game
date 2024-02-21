@@ -384,7 +384,7 @@ bool gameStateManager::isActionCardValid(cards::ICard* card, cards::ICard* topCa
 
 bool gameStateManager::isBaseCardValid(cards::ICard* card, cards::ICard* topCard) const
 {
-    return card->sameColor(*topCard) || card->sameNumber(*topCard);
+    return card->sameColor(*topCard) || (card->sameNumber(*topCard) && topCard->sameType(*card));
 }
 
 bool gameStateManager::isCardValid(cards::ICard* card, cards::ICard* topCard) const
