@@ -198,6 +198,14 @@ namespace netcode
     void server::disconnectClient(SOCKET clientSocket)
     {
         auto client = getClient(clientSocket);
+        if (nullptr == client.get())
+        {
+            logger::print(
+                (logger::getPrinter() << "SERVER: player with socket [" << clientSocket << "] could not be found").
+                str());
+            return;
+        }
+
         auto room = roomManager.getRoom(client.get());
         bool locked = room == nullptr ? false : room->isLocked();
         roomManager.clientDisconnected(client.get());
@@ -444,7 +452,9 @@ namespace netcode
     void server::broadcastUpdatedRoom(SOCKET clientSocket)
     {
         auto room = roomManager.getRoom(getClient(clientSocket).get());
-        logger::print((logger::printer() << "SERVER: broadcasting updated room data to all clients [" << room->getId() << "]").str());
+        logger::print(
+            (logger::printer() << "SERVER: broadcasting updated room data to all clients [" << room->getId() << "]").
+            str());
         int id = room->getId();
 
         std::stringstream ss;
