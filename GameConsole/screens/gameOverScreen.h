@@ -107,8 +107,13 @@ namespace screens
         {
             winnerPlayer = data.player;
             isOnline = data.isOnline;
-            updateWinningPlayerName();
+
+            if (!blockInputs)
+            {
+                updateWinningPlayerName();
+            }
         }
+
         void updateWinningPlayerName();
     };
 }
