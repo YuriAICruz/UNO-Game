@@ -78,6 +78,7 @@ namespace screens
         }
         if (popup.isOpen())
         {
+            popup.hidePopup();
             popup.executeActionCancel();
             return;
         }
@@ -91,6 +92,7 @@ namespace screens
         }
         if (popup.isOpen())
         {
+            popup.hidePopup();
             popup.executeActionCancel();
             return;
         }
@@ -104,6 +106,7 @@ namespace screens
         }
         if (popup.isOpen())
         {
+            popup.hidePopup();
             popup.executeActionCancel();
             return;
         }
@@ -125,6 +128,7 @@ namespace screens
         }
         if (popup.isOpen())
         {
+            popup.hidePopup();
             popup.executeActionCancel();
             return;
         }
@@ -142,6 +146,7 @@ namespace screens
         }
         if (popup.isOpen())
         {
+            popup.hidePopup();
             popup.executeActionAccept();
             return;
         }
@@ -157,6 +162,7 @@ namespace screens
         }
         if (popup.isOpen())
         {
+            popup.hidePopup();
             popup.executeActionCancel();
             return;
         }
