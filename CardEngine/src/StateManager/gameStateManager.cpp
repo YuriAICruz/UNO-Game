@@ -205,12 +205,12 @@ void gameStateManager::checkMainDeckSize() const
     }
 }
 
-int gameStateManager::getStartHandSize()
+int gameStateManager::getStartHandSize() const
 {
     return handSize;
 }
 
-bool gameStateManager::canYellUno()
+bool gameStateManager::canYellUno() const
 {
     return getCurrentPlayer()->getHand().size() == 2 && !getCurrentPlayer()->isInUnoMode();
 }

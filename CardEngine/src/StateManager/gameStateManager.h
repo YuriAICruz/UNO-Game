@@ -44,8 +44,8 @@ public:
     virtual bool tryExecutePlayerAction(cards::ICard* card);
     virtual bool playerHasValidCardOnHand(turnSystem::IPlayer* player);
     void checkMainDeckSize() const;
-    int getStartHandSize();
-    bool canYellUno();
+    int getStartHandSize() const;
+    bool canYellUno() const;
     bool canSkipTurn() const;
     bool canDrawCard() const;
     virtual bool skipTurn();
