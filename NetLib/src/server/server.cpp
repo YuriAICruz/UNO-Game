@@ -78,8 +78,7 @@ namespace netcode
         {
             if (pair.second->isConnected)
             {
-                auto responseData = msg.c_str();
-                sendMessage(*pair.second->connection, responseData, strlen(responseData), 0);
+                sendMessage(msg.c_str(), *pair.second->connection);
             }
         }
     }
@@ -87,7 +86,7 @@ namespace netcode
     void server::broadcastToRoom(std::string msg, SOCKET cs)
     {
         auto room = roomManager.getRoom(getClient(cs).get());
-        if(room == nullptr)
+        if (room == nullptr)
         {
             throw std::exception("Room Not found");
         }
@@ -95,20 +94,19 @@ namespace netcode
         {
             if (pair->isConnected)
             {
-                auto responseData = msg.c_str();
-                sendMessage(*pair->connection, responseData, strlen(responseData), 0);
+                sendMessage(msg, *pair->connection);
             }
         }
     }
 
-    void server::broadcastToRoom(const char* responseData, size_t size, SOCKET cs)
+    void server::broadcastToRoomRaw(const char* responseData, size_t size, SOCKET cs)
     {
         auto room = roomManager.getRoom(getClient(cs).get());
         for (auto pair : room->clients())
         {
             if (pair->isConnected)
             {
-                sendMessage(*pair->connection, responseData, size, 0);
+                sendMessageRaw(*pair->connection, responseData, size, 0);
             }
         }
     }
@@ -275,15 +273,19 @@ namespace netcode
             std::string message;
             message.assign(recvData);
 
-            std::vector<std::string> data = stringUtils::splitString(message);
-            if (containsCommand(data[0]))
+            auto commandsBuffer = stringUtils::splitString(message, NC_COMMAND_END);
+            for (auto& command : commandsBuffer)
             {
-                commands[data[0]](message, clientSocket);
-            }
+                std::vector<std::string> data = stringUtils::splitString(command);
+                if (containsCommand(data[0]))
+                {
+                    commands[data[0]](command, clientSocket);
+                }
 
-            if (containsCustomCommand(data[0]))
-            {
-                customCommands[data[0]](message, clientSocket);
+                if (containsCustomCommand(data[0]))
+                {
+                    customCommands[data[0]](command, clientSocket);
+                }
             }
         }
 
@@ -340,31 +342,35 @@ namespace netcode
         keyBuffer[keySize] = '\0';
 
         std::string keyReceived(keyBuffer);
-        auto data = stringUtils::splitString(keyReceived);
-
-        if (validKeys.find(data[0]) == validKeys.end())
+        auto commandsBuffer = stringUtils::splitString(keyReceived, NC_COMMAND_END);
+        for (auto& command : commandsBuffer)
         {
-            logger::printError("SERVER: Invalid key");
-            sendMessage(clientSocket, NC_INVALID_KEY, strlen(NC_INVALID_KEY), 0);
-            return false;
+            auto data = stringUtils::splitString(command);
+
+            if (validKeys.find(data[0]) == validKeys.end())
+            {
+                logger::printError("SERVER: Invalid key");
+                sendMessage(NC_INVALID_KEY, clientSocket);
+                return false;
+            }
+
+            if (data.size() > 1)
+            {
+                id = stoi(data[1]);
+            }
+
+            std::stringstream ss;
+            ss << NC_VALID_KEY << NC_SEPARATOR << id;
+            sendMessage(ss.str(), clientSocket);
+            return true;
         }
 
-        if (data.size() > 1)
-        {
-            id = stoi(data[1]);
-        }
-
-        std::stringstream ss;
-        ss << NC_VALID_KEY << NC_SEPARATOR << id;
-        std::string str = ss.str();
-        const char* response = str.c_str();
-        sendMessage(clientSocket, response, strlen(response), 0);
-        return true;
+        return false;
     }
 
     std::shared_ptr<clientInfo> server::getClient(SOCKET clientSocket)
     {
-        for (auto pair : clients)
+        for (auto& pair : clients)
         {
             if (pair.second->connection != nullptr && *pair.second->connection == clientSocket)
             {
@@ -377,7 +383,7 @@ namespace netcode
 
     std::shared_ptr<clientInfo> server::getClientFromId(size_t id) const
     {
-        for (auto pair : clients)
+        for (auto& pair : clients)
         {
             if (pair.first == id)
             {
@@ -402,13 +408,11 @@ namespace netcode
         std::stringstream ss;
         ss << NC_CREATE_ROOM << NC_SEPARATOR;
         ss << roomManager.getRoomSerialized(id);
-        std::string str = ss.str();
-        const char* responseData = str.c_str();
+        sendMessage(ss.str(), clientSocket);
 
-        sendMessage(clientSocket, responseData, strlen(responseData), 0);
         logger::print((logger::getPrinter() << "SERVER: created room with id" << id << "").str());
 
-        if(onRoomCreated!= nullptr)
+        if (onRoomCreated != nullptr)
         {
             onRoomCreated(roomManager.getRoom(id));
         }
@@ -418,8 +422,7 @@ namespace netcode
     {
         logger::print("SERVER: listing rooms");
         std::string str = roomManager.listRooms();
-        const char* responseData = str.c_str();
-        sendMessage(clientSocket, responseData, strlen(responseData), 0);
+        sendMessage(str, clientSocket);
     }
 
     void server::getRoom(const std::string& message, SOCKET clientSocket)
@@ -430,9 +433,7 @@ namespace netcode
         std::stringstream ss;
         ss << NC_GET_ROOM << NC_SEPARATOR;
         ss << roomManager.getRoomSerialized(id);
-        std::string str = ss.str();
-        const char* responseData = str.c_str();
-        sendMessage(clientSocket, responseData, strlen(responseData), 0);
+        sendMessage(ss.str(), clientSocket);
         logger::print((logger::getPrinter() << "SERVER: sent to client room updated data [" << id << "]").str());
     }
 
@@ -446,16 +447,14 @@ namespace netcode
             std::stringstream ss;
             ss << NC_ENTER_ROOM << NC_SEPARATOR;
             ss << roomManager.getRoomSerialized(id);
-            std::string str = ss.str();
-            const char* responseData = str.c_str();
 
-            broadcastToRoom(responseData, strlen(responseData), clientSocket);
+            broadcastToRoom(ss.str(), clientSocket);
             logger::print((logger::getPrinter() << "SERVER: added client to room with id [" << id << "]").str());
             return;
         }
-        
+
         logger::print((logger::getPrinter() << "SERVER: Could not add client to room [" << id << "]").str());
-        sendMessage(clientSocket, NC_EXIT_ROOM, strlen(NC_EXIT_ROOM), 0);
+        sendMessage(NC_EXIT_ROOM, clientSocket);
     }
 
     void server::exitRoom(const std::string& message, SOCKET clientSocket)
@@ -463,8 +462,7 @@ namespace netcode
         logger::print("SERVER: client exiting room");
         auto client = getClient(clientSocket);
         roomManager.exitRoom(client.get());
-        const char* responseData = NC_EXIT_ROOM;
-        sendMessage(clientSocket, responseData, strlen(responseData), 0);
+        sendMessage(NC_EXIT_ROOM, clientSocket);
     }
 
     void server::updateClientName(const std::string& message, SOCKET clientSocket)
@@ -473,8 +471,7 @@ namespace netcode
         logger::print("SERVER: updating client name");
         auto client = getClient(clientSocket);
         client->name = data[1];
-        const char* responseData = NC_SET_NAME;
-        sendMessage(clientSocket, responseData, strlen(responseData), 0);
+        sendMessage(NC_SET_NAME, clientSocket);
     }
 
     void server::getSeed(const std::string& message, SOCKET clientSocket)
@@ -484,7 +481,7 @@ namespace netcode
         ss << NC_GET_SEED << NC_SEPARATOR << seed;
         std::string str = ss.str();
         const char* responseData = str.c_str();
-        sendMessage(clientSocket, responseData, strlen(responseData), 0);
+        sendMessage(responseData, clientSocket);
     }
 
     void server::setSeed(const std::string& message, SOCKET clientSocket)
@@ -493,9 +490,23 @@ namespace netcode
         this->seed = std::stoull(data[1]);
     }
 
-    void server::sendMessage(SOCKET clientSocket, const char* responseData, int len, int flags) const
+    void server::sendMessage(std::string message, SOCKET clientSocket) const
     {
-        logger::print((logger::getPrinter()<<"SERVER: sending message size ["<<len<<"]").str());
+        sendMessage(message.c_str(), clientSocket);
+    }
+
+    void server::sendMessage(const char* message, SOCKET clientSocket) const
+    {
+        std::stringstream ss;
+        ss << message << NC_COMMAND_END;
+        std::string str = ss.str();
+        const char* response = str.c_str();
+        sendMessageRaw(clientSocket, response, strlen(response), 0);
+    }
+
+    void server::sendMessageRaw(SOCKET clientSocket, const char* responseData, int len, int flags) const
+    {
+        logger::print((logger::getPrinter() << "SERVER: sending message size [" << len << "]").str());
         auto result = send(clientSocket, responseData, len, flags);
         if (result == SOCKET_ERROR)
         {

@@ -390,18 +390,47 @@ void netGameStateManager::broadcastServerStateData(SOCKET cs)
     }
 
     std::tuple<const char*, size_t> data = getState();
-    size_t bufferSize = strlen(CORE_NC_UPDATE_STATE) * sizeof(char) +
-        sizeof(char) +
-        sizeof(size_t) +
-        sizeof(char) +
-        std::get<1>(data);
+    size_t bufferSize = 
+        strlen(CORE_NC_UPDATE_STATE) * sizeof(char) +
+        sizeof(char) + //NC_SEPARATOR
+        sizeof(size_t) + //state Size
+        sizeof(char) + //NC_SEPARATOR
+        std::get<1>(data) +
+        sizeof(char); //NC_COMMAND_END
 
     char* buffer = new char[bufferSize];
     char* ptr = buffer;
 
     encryptStateBuffer(data, ptr);
 
-    netServer->broadcastToRoom(buffer, bufferSize, cs);
+    netServer->broadcastToRoomRaw(buffer, bufferSize, cs);
+    delete std::get<0>(data);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(STATE_SYNC_DELAY));
+}
+
+void netGameStateManager::sendToClientServerStateData(SOCKET cs)
+{
+    if (!isServer)
+    {
+        return;
+    }
+
+    std::tuple<const char*, size_t> data = getState();
+    size_t bufferSize =
+        strlen(CORE_NC_UPDATE_STATE) * sizeof(char) +
+        sizeof(char) + //NC_SEPARATOR
+        sizeof(size_t) + //state Size
+        sizeof(char) + //NC_SEPARATOR
+        std::get<1>(data) +
+        sizeof(char); //NC_COMMAND_END
+
+    char* buffer = new char[bufferSize];
+    char* ptr = buffer;
+
+    encryptStateBuffer(data, ptr);
+
+    netServer->sendMessageRaw(cs, buffer, bufferSize, 0);
     delete std::get<0>(data);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(STATE_SYNC_DELAY));
@@ -410,6 +439,7 @@ void netGameStateManager::broadcastServerStateData(SOCKET cs)
 void netGameStateManager::encryptStateBuffer(std::tuple<const char*, size_t> data, char* ptr)
 {
     char separator = NC_SEPARATOR;
+    char endCmd = NC_COMMAND_END;
 
     std::memcpy(ptr, &CORE_NC_UPDATE_STATE, strlen(CORE_NC_UPDATE_STATE) * sizeof(char));
     ptr += strlen(CORE_NC_UPDATE_STATE) * sizeof(char);
@@ -421,31 +451,7 @@ void netGameStateManager::encryptStateBuffer(std::tuple<const char*, size_t> dat
     ptr += sizeof(char);
     std::memcpy(ptr, std::get<0>(data), std::get<1>(data));
     ptr += std::get<1>(data);
-}
-
-void netGameStateManager::sendToClientServerStateData(SOCKET cs)
-{
-    if (!isServer)
-    {
-        return;
-    }
-
-    std::tuple<const char*, size_t> data = getState();
-    size_t bufferSize = strlen(CORE_NC_UPDATE_STATE) * sizeof(char) +
-        sizeof(char) +
-        sizeof(size_t) +
-        sizeof(char) +
-        std::get<1>(data);
-
-    char* buffer = new char[bufferSize];
-    char* ptr = buffer;
-
-    encryptStateBuffer(data, ptr);
-
-    netServer->sendMessage(cs, buffer, bufferSize, 0);
-    delete std::get<0>(data);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(STATE_SYNC_DELAY));
+    std::memcpy(ptr, &endCmd, sizeof(char));
 }
 
 void netGameStateManager::tryExecuteNetPlayerAction(const std::string& msg, SOCKET cs)

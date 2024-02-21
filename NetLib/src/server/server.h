@@ -104,8 +104,10 @@ namespace netcode
         room* getRoom(int id);
         void broadcast(std::string msg);
         void broadcastToRoom(std::string msg, SOCKET cs);
-        void broadcastToRoom(const char* responseData, size_t size, SOCKET cs);
-        void sendMessage(SOCKET clientSocket, const char* responseData, int len, int flags) const;
+        void broadcastToRoomRaw(const char* responseData, size_t size, SOCKET cs);
+        void sendMessage(std::string message, SOCKET clientSocket) const;
+        void sendMessage(const char* message, SOCKET clientSocket) const;
+        void sendMessageRaw(SOCKET clientSocket, const char* responseData, int len, int flags) const;
 
         int getSeed() const
         {

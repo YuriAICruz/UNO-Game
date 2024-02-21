@@ -16,6 +16,7 @@ bool waiting;
 
 std::shared_ptr<netcode::server> startServer()
 {
+    std::this_thread::sleep_for(std::chrono::milliseconds(STATE_SYNC_DELAY));
     auto sv = std::make_shared<netcode::server>();
 
     sv->start();
@@ -413,9 +414,9 @@ TEST(NetGameFlowTests, StartSessionWithDedicatedServer)
 
     int handSize = 7;
     std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
-    auto serverManager = std::make_shared<netGameStateManager>(events, sv);
-    auto clientManagerA = std::make_shared<netGameStateManager>(events, clA);
-    auto clientManagerB = std::make_shared<netGameStateManager>(events, clB);
+    auto serverManager = std::make_unique<netGameStateManager>(events, sv);
+    auto clientManagerA = std::make_unique<netGameStateManager>(events, clA);
+    auto clientManagerB = std::make_unique<netGameStateManager>(events, clB);
     serverManager->bindGameEvents();
 
     clientManagerA->setupGame(clA->getRoom(), handSize, "Data\\deck_setup.json", 12345);
@@ -430,9 +431,10 @@ TEST(NetGameFlowTests, StartSessionWithDedicatedServer)
     EXPECT_FALSE(clientManagerB->isCurrentPlayer());
 
     auto stc = serverManager->getTopCard();
-    auto ctc = clientManagerA->getTopCard();
-    EXPECT_EQ(*serverManager->getTopCard(), *clientManagerA->getTopCard());
-    EXPECT_EQ(*serverManager->getTopCard(), *clientManagerB->getTopCard());
+    auto catc = clientManagerA->getTopCard();
+    auto cbtc = clientManagerB->getTopCard();
+    EXPECT_EQ(*stc, *catc);
+    EXPECT_EQ(*stc, *cbtc);
 
     auto currentPlayer = serverManager->getCurrentPlayer();
     auto clientCurrentPlayerA = clientManagerA->getCurrentPlayer();
@@ -538,7 +540,7 @@ TEST(NetGameFlowTests, ReconnectToRunningGame)
 
     EXPECT_NE(serverManager->getCurrentPlayer()->Id(), startingPlayer->Id());
     EXPECT_EQ(serverManager->getCurrentPlayer()->Id(), clientManagerB->getCurrentPlayer()->Id());
-    
+
     EXPECT_TRUE(clientManagerB->makePlayerDraw(clientManagerB->getCurrentPlayer(), 1));
     EXPECT_TRUE(clientManagerB->skipTurn());
 
