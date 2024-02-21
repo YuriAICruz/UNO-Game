@@ -66,7 +66,7 @@ public:
     bool tryExecutePlayerAction(cards::ICard* card) override;
     void checkIsServer() const;
     bool tryExecutePlayerAction(int index);
-    void netPlayerActionCallback(const std::string& msg) const;
+    void netPlayerActionCallback(const std::string& msg);
     void broadcastServerStateData(SOCKET cs);
     void encryptStateBuffer(std::tuple<const char*, size_t> data, char* ptr);
     void sendToClientServerStateData(SOCKET cs);

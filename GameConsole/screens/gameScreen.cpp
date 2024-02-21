@@ -474,6 +474,11 @@ namespace screens
 
     void gameScreen::onGameEnded(gameEventData data)
     {
+        if (blockInputs)
+        {
+            return;
+        }
+
         events->fireEvent(NAVIGATION_GAME_OVER, transitionData(data.player));
         hide();
     }

@@ -103,7 +103,7 @@ TEST(GameFlow, PlayReverse)
 
     cards::ICard* topCard = manager->getTopCard();
 
-    std::unique_ptr<cards::ICard> baseCard = std::make_unique<cards::baseCard>(0, topCard->Number(), 'e');
+    std::unique_ptr<cards::ICard> baseCard = std::make_unique<cards::baseCard>(0, topCard->Number(), topCard->Color());
     EXPECT_TRUE(manager->tryExecutePlayerAction(baseCard.get()));
 
     currentPlayer = manager->getCurrentPlayer();

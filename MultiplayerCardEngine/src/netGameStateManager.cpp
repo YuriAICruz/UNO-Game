@@ -373,13 +373,19 @@ bool netGameStateManager::tryExecutePlayerAction(int index)
     return future.get();
 }
 
-void netGameStateManager::netPlayerActionCallback(const std::string& msg) const
+void netGameStateManager::netPlayerActionCallback(const std::string& msg)
 {
     std::vector<std::string> data = stringUtils::splitString(msg);
     if (tryExecuteActionCallback != nullptr)
     {
         int r = stoi(data[1]);
         tryExecuteActionCallback->set_value(r > 0);
+
+        // server can respond 2 if the game has ended in this turn
+        if (r == 2)
+        {
+            showClientEndGame(msg);
+        }
     }
 }
 
@@ -470,7 +476,14 @@ void netGameStateManager::tryExecuteNetPlayerAction(const std::string& msg, SOCK
     {
         logger::print("player action executed successful");
         broadcastServerStateData(cs);
-        ss << 1;
+        if (running)
+        {
+            ss << 1;
+        }
+        else
+        {
+            ss << 2;
+        }
     }
     else
     {

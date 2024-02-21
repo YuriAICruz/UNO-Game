@@ -370,6 +370,7 @@ void gameStateManager::endTurn()
     if (getCurrentPlayer()->getHand().size() <= 0)
     {
         endGame();
+        return;
     }
 
     turner->endTurn();
