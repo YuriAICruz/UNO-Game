@@ -411,10 +411,6 @@ void netGameStateManager::encryptStateBuffer(std::tuple<const char*, size_t> dat
 {
     char separator = NC_SEPARATOR;
 
-    std::cout << "\nSENT\n";
-    print(std::get<0>(data), std::get<1>(data));
-    std::cout << "\n----\n";
-
     std::memcpy(ptr, &CORE_NC_UPDATE_STATE, strlen(CORE_NC_UPDATE_STATE) * sizeof(char));
     ptr += strlen(CORE_NC_UPDATE_STATE) * sizeof(char);
     std::memcpy(ptr, &separator, sizeof(char));
@@ -674,7 +670,8 @@ bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
 
     std::stringstream ss;
     ss << CORE_NC_DRAW_CARDS << NC_SEPARATOR << player->Id() << NC_SEPARATOR << count;
-    netClient->sendMessage(ss.str().c_str());
+    std::string str = ss.str();
+    netClient->sendMessage(str.c_str());
 
     futureCmd.wait();
 
@@ -712,7 +709,7 @@ void netGameStateManager::tryDrawCards(const std::string& msg, SOCKET cs)
     }
 
     std::stringstream ss;
-    ss << CORE_NC_SKIP_TURN << NC_SEPARATOR << (canDraw ? 1 : 0);
+    ss << CORE_NC_DRAW_CARDS << NC_SEPARATOR << (canDraw ? 1 : 0);
     std::string str = ss.str();
     const char* resonse = str.c_str();
     send(cs, resonse, strlen(resonse), 0);

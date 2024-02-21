@@ -184,7 +184,7 @@ namespace netcode
             error = true;
             return 1;
         }
-        logger::print("CLIENT: sending data . . .");
+        logger::print((logger::getPrinter() << "CLIENT: sending data size [" << strlen(str) << "]").str());
         int sendResult = send(clientSocket, str, strlen(str), 0);
         if (sendResult == SOCKET_ERROR)
         {
@@ -229,6 +229,7 @@ namespace netcode
         auto future = promise.get_future();
         std::stringstream ss;
         ss << NC_CREATE_ROOM << NC_SEPARATOR << roomName;
+        std::string str = ss.str();
         sendMessage(ss.str().c_str());
         future.wait();
         roomCallback = nullptr;
@@ -252,6 +253,7 @@ namespace netcode
         auto future = promise.get_future();
         std::stringstream ss;
         ss << NC_ENTER_ROOM << NC_SEPARATOR << id;
+        std::string str = ss.str();
         sendMessage(ss.str().c_str());
         future.wait();
         roomCallback = nullptr;
@@ -275,6 +277,7 @@ namespace netcode
 
         std::stringstream ss;
         ss << NC_GET_ROOM << NC_SEPARATOR << currentRoom.getId();
+        std::string str = ss.str();
         sendMessage(ss.str().c_str());
 
         future.wait();

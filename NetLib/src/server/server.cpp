@@ -495,14 +495,15 @@ namespace netcode
 
     void server::sendMessage(SOCKET clientSocket, const char* responseData, int len, int flags) const
     {
+        logger::print((logger::getPrinter()<<"SERVER: sending message size ["<<len<<"]").str());
         auto result = send(clientSocket, responseData, len, flags);
         if (result == SOCKET_ERROR)
         {
-            logger::printError((logger::getPrinter() << "Failed to send message [" << result << "]").str());
+            logger::printError((logger::getPrinter() << "SERVER: Failed to send message [" << result << "]").str());
         }
         if (result == 0)
         {
-            logger::printError((logger::getPrinter() << "Connection closed [" << result << "]").str());
+            logger::printError((logger::getPrinter() << "SERVER: Connection closed [" << result << "]").str());
         }
     }
 }

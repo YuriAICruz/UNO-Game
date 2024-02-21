@@ -11,6 +11,7 @@
 #include "server/server.h"
 #include "StateManager/gameStateManager.h"
 
+#define STATE_SYNC_DELAY 200
 bool waiting;
 
 std::shared_ptr<netcode::server> startServer()
@@ -34,6 +35,7 @@ void closeServer(netcode::server* sv)
     {
     }
     EXPECT_FALSE(sv->isRunning());
+    std::this_thread::sleep_for(std::chrono::milliseconds(STATE_SYNC_DELAY));
 }
 
 void closeClient(netcode::client* cl)
