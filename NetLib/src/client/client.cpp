@@ -184,8 +184,15 @@ namespace netcode
             error = true;
             return 1;
         }
+
         logger::print((logger::getPrinter() << "CLIENT: sending data size [" << strlen(str) << "]").str());
-        int sendResult = send(clientSocket, str, strlen(str), 0);
+
+        std::stringstream ss;
+        ss << str << NC_COMMAND_END;
+
+        std::string newStr = ss.str();
+        const char* msg = newStr.c_str();
+        int sendResult = send(clientSocket, msg, strlen(msg), 0);
         if (sendResult == SOCKET_ERROR)
         {
             logger::printError("CLIENT: Send failed");
@@ -359,20 +366,24 @@ namespace netcode
             lastResponse.assign(recvData, recvSize);
 
             logger::print((logger::getPrinter() << "CLIENT: Received: " << recvData).str());
-            auto data = stringUtils::splitString(lastResponse);
-            if (containsCommand(data[0]))
+            auto commandsBuffer = stringUtils::splitString(lastResponse, NC_COMMAND_END);
+            for (auto& command : commandsBuffer)
             {
-                commands[data[0]](lastResponse);
-            }
+                auto data = stringUtils::splitString(command);
+                if (containsCommand(data[0]))
+                {
+                    commands[data[0]](command);
+                }
 
-            if (containsCustomCommand(data[0]))
-            {
-                customCommands[data[0]](lastResponse);
-            }
+                if (containsCustomCommand(data[0]))
+                {
+                    customCommands[data[0]](command);
+                }
 
-            if (containsCustomRawCommand(data[0]))
-            {
-                customRawCommands[data[0]](recvData, recvSize);
+                if (containsCustomRawCommand(data[0]))
+                {
+                    customRawCommands[data[0]](recvData, recvSize);
+                }
             }
         }
 

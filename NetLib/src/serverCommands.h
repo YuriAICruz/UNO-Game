@@ -14,6 +14,7 @@
 #define NC_GET_SEED     "gseed"
 
 #define NC_SEPARATOR        ';'
+#define NC_COMMAND_END      '\t'
 #define NC_OBJECT_SEPARATOR "|"
 #define NC_VALID_KEY        "valid_key"
 #define NC_INVALID_KEY      "invalid_key"
