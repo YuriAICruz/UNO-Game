@@ -16,7 +16,7 @@ namespace screens
         explicit editBox(renderer::renderer* rdr) : rdr(rdr) {  }
         void openStringEditBox(std::string title, std::string& data, const std::function<void(std::string newData)>& callback);
         void openSizeTEditBox(std::string title, size_t& data, const std::function<void(std::string)>& callback);
-        bool isBlocking();
+        bool isBlocking() const;
 
     private:
         template <class T>

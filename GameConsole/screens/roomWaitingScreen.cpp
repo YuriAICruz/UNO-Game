@@ -12,6 +12,8 @@ namespace screens
         IScreen::show();
         rdr->clear();
 
+        isRoomReady = false;
+
         std::stringstream ss;
         ss << "Room: " << netClient->getRoomName() << ", waiting for players";
         std::string titleText = ss.str();
@@ -355,6 +357,11 @@ namespace screens
 
     void roomWaitingScreen::updateReadyState() const
     {
+        if (blockInputs || box.isBlocking())
+        {
+            return;
+        }
+
         auto button = dynamic_cast<elements::card*>(rdr->getElement(buttons[3].id));
         netcode::room* room = netClient->getRoom();
         std::stringstream ss;

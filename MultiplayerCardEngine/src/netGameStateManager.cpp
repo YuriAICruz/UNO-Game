@@ -565,8 +565,10 @@ void netGameStateManager::endGame()
     {
         return;
     }
+
     netServer->broadcastToRoom(CORE_NC_GAME_END, sc);
-    broadcastServerStateData(sc);
+
+    serverRoom->unlock();
 }
 
 void netGameStateManager::onClientReconnected(netcode::clientInfo* client)
@@ -654,7 +656,7 @@ bool netGameStateManager::yellUno()
 
 void netGameStateManager::tryYellUno(const std::string& msg, SOCKET cs)
 {
-    bool canYell = canYellUno();
+    bool canYell = getCurrentPlayer()->getHand().size() == 2;
     if (canYell)
     {
         gameStateManager::yellUno();
@@ -789,6 +791,10 @@ void netGameStateManager::tryDrawCards(const std::string& msg, SOCKET cs)
     auto data = stringUtils::splitString(msg);
 
     bool canDraw = canDrawCard();
+    logger::print(
+        (logger::getPrinter() << "player draw cards : " << (canDraw ? "true" : "false") << " drawn = [" <<
+            currentPlayerCardsDraw << "]").
+        str());
     if (canDraw)
     {
         auto id = stoi(data[1]);

@@ -589,7 +589,17 @@ namespace netcode
 
     void server::sendMessageRaw(SOCKET clientSocket, const char* responseData, int len, int flags) const
     {
-        logger::print((logger::getPrinter() << "SERVER: sending message size [" << len << "]").str());
+        if(len<100)
+        {
+            logger::print(
+                (logger::getPrinter() << "SERVER: sending message size [" << responseData << "]" << " to connection [" <<
+                    clientSocket << "]").str());
+        }else
+        {
+            logger::print(
+                (logger::getPrinter() << "SERVER: sending message size [" << len << "]" << " to connection [" <<
+                    clientSocket << "]").str());   
+        }
         auto result = send(clientSocket, responseData, len, flags);
         if (result == SOCKET_ERROR)
         {

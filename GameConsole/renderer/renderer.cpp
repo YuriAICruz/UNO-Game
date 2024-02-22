@@ -145,6 +145,11 @@ namespace renderer
                 break;
             }
         }
+        if (index >= elements.size())
+        {
+            std::cerr << "Element not found: " << id;
+            throw std::exception("Element not found.");
+        }
 
         return elements.at(index).get();
     }
