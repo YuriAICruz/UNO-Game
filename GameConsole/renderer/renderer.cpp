@@ -21,11 +21,6 @@ namespace renderer
         currentBuffer = &windowBuffer;
         nextBuffer = &windowBufferB;
 
-        if (!SetConsoleCtrlHandler(consoleHandlerRoutine, TRUE))
-        {
-            throw rendererException("Error setting up console handler.");
-        }
-
         std::locale::global(std::locale("en_US.UTF-8"));
 
         hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -172,12 +167,6 @@ namespace renderer
             throw std::exception("no element found");
         }
         elements.erase(elements.begin() + index);
-    }
-
-    BOOL renderer::consoleHandlerRoutine(DWORD dwCtrlType)
-    {
-        //Handle window events here
-        return FALSE;
     }
 
     COORD renderer::getConsoleWindowSize()
