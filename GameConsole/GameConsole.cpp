@@ -1,5 +1,10 @@
 #include <memory>
 
+#ifndef PCH_H
+#define PCH_H
+#include "wInclude.h"
+#endif //PCH_H
+
 #include "Bootstrapper/bootstrapper.h"
 #include "input/inputHandler.h"
 #include "renderer/renderer.h"

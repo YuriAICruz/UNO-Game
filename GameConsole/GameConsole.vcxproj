@@ -137,7 +137,6 @@
     <ClCompile Include="eventIds.h" />
     <ClCompile Include="GameConsole.cpp" />
     <ClCompile Include="input\inputHandler.cpp" />
-    <ClCompile Include="pch.cpp" />
     <ClCompile Include="renderer\elements\card.cpp" />
     <ClCompile Include="renderer\elements\fileRead.cpp" />
     <ClCompile Include="renderer\elements\frame.cpp" />
@@ -253,7 +252,6 @@
   <ItemGroup>
     <ClInclude Include="input\inputData.h" />
     <ClInclude Include="input\inputHandler.h" />
-    <ClInclude Include="pch.h" />
     <ClInclude Include="renderer\bufferData.h" />
     <ClInclude Include="renderer\elements\card.h" />
     <ClInclude Include="renderer\elements\fileRead.h" />
