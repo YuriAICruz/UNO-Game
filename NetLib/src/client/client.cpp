@@ -432,7 +432,11 @@ namespace netcode
                 break;
             }
 
-            recvData[recvSize] = '\0'; // Null-terminate received data
+            if (recvSize >= recvDataSize)
+            {
+                recvData[recvSize] = '\0'; // Null-terminate received data
+            }
+            recvSize = min(recvDataSize-1, recvSize);
             lastResponse.assign(recvData, recvSize);
 
             logger::print((logger::getPrinter() << "CLIENT: Received: " << recvData).str());
