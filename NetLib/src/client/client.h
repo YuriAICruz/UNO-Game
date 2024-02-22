@@ -43,6 +43,7 @@ namespace netcode
         std::promise<int>* connectingCallback;
         std::promise<std::vector<room>>* roomsCallback;
         std::promise<room*>* roomCallback;
+        std::promise<bool>* roomReadyCallback;
         std::promise<int>* seedCallback;
 
         std::map<std::string, std::function<void (std::string&)>> customCommands;
@@ -96,6 +97,12 @@ namespace netcode
                     this->invalidKeyCallback(message);
                 }
             },
+            {
+                NC_ROOM_READY_STATUS, [this](std::string& message)
+                {
+                    this->roomStatusCallback(message);
+                }
+            },
         };
 
     public:
@@ -113,6 +120,9 @@ namespace netcode
         void exitRoom();
         void enterRoom(int id);
         bool hasRoom();
+        bool setReady();
+        bool sendRoomReadyStatus(bool ready);
+        bool setNotReady();
         room* getRoom();
         room* getUpdatedRoom(bool wait = true);
         int getSeed();
@@ -169,6 +179,7 @@ namespace netcode
         void getRoomCallback(const std::string& message);
         void getSeedCallback(const std::string& message);
         void enterRoomCallback(const std::string& message);
+        void roomStatusCallback(const std::string& message);
         void exitRoomCallback(const std::string& message);
     };
 }

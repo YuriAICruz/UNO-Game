@@ -143,6 +143,11 @@ namespace netcode
         roomManager.getRoom(getClient(cs).get())->unlock();
     }
 
+    bool server::isRoomReady(int roomId)
+    {
+        return roomManager.getRoom(roomId)->isReady();
+    }
+
     void server::listening()
     {
         if (!running)
@@ -465,6 +470,15 @@ namespace netcode
         logger::print((logger::getPrinter() << "SERVER: sent to all clients in room [" << id << "]").str());
     }
 
+    void server::sendRoomData(SOCKET clientSocket, int id)
+    {
+        std::stringstream ss;
+        ss << NC_ENTER_ROOM << NC_SEPARATOR;
+        ss << roomManager.getRoomSerialized(id);
+
+        broadcastToRoom(ss.str(), clientSocket);
+    }
+
     void server::enterRoom(const std::string& message, SOCKET clientSocket)
     {
         std::vector<std::string> data = stringUtils::splitString(message);
@@ -472,11 +486,7 @@ namespace netcode
         int id = stoi(data[1]);
         if (roomManager.enterRoom(id, getClient(clientSocket)))
         {
-            std::stringstream ss;
-            ss << NC_ENTER_ROOM << NC_SEPARATOR;
-            ss << roomManager.getRoomSerialized(id);
-
-            broadcastToRoom(ss.str(), clientSocket);
+            sendRoomData(clientSocket, id);
             logger::print((logger::getPrinter() << "SERVER: added client to room with id [" << id << "]").str());
             return;
         }
@@ -502,6 +512,36 @@ namespace netcode
         }
 
         sendMessage(NC_EXIT_ROOM, clientSocket);
+    }
+
+    void server::updateRoomStatus(const std::string& message, SOCKET clientSocket)
+    {
+        auto data = stringUtils::splitString(message);
+        bool ready = data[1] == "1";
+        
+        std::stringstream ss;
+        ss << NC_ROOM_READY_STATUS << NC_SEPARATOR;
+
+        auto room = roomManager.getRoom(getClient(clientSocket).get());
+        if(room == nullptr || room->isLocked())
+        {
+            ss << 0;
+            broadcastToRoom(ss.str(), clientSocket);
+            return;
+        }
+        
+        if (ready)
+        {
+            room->setIsReady();
+        }
+        else
+        {
+            room->setNotReady();
+        } 
+
+        sendRoomData(clientSocket, room->getId());
+        ss << 1;
+        broadcastToRoom(ss.str(), clientSocket);
     }
 
     void server::updateClientName(const std::string& message, SOCKET clientSocket)

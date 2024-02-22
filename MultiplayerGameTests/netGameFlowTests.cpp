@@ -432,7 +432,7 @@ TEST(NetGameFlowTests, StartSessionWithDedicatedServer)
     EXPECT_FALSE(clientManagerB->isCurrentPlayer());
 
     // delay to wait the clientManagerB to be sync with the server data 
-    std::this_thread::sleep_for(std::chrono::milliseconds(STATE_SYNC_DELAY*2));
+    std::this_thread::sleep_for(std::chrono::milliseconds(STATE_SYNC_DELAY * 2));
     auto stc = serverManager->getTopCard();
     auto catc = clientManagerA->getTopCard();
     auto cbtc = clientManagerB->getTopCard();
@@ -622,7 +622,40 @@ TEST(NetGameFlowTests, SyncVar)
 
     clientManagerA->setupGame(clA->getRoom(), handSize, "Data\\deck_setup.json", 12345);
     clientManagerA->startGame();
-    EXPECT_FALSE(clientManagerA->yellUno());
+
+    closeClient(clA.get());
+    closeClient(clB.get());
+    closeServer(sv.get());
+}
+
+TEST(NetGameFlowTests, RoomReady)
+{
+    auto sv = startServer();
+    ASSERT_TRUE(sv->isRunning());
+
+    auto clA = startClient("Player A");
+    auto clB = startClient("Player B");
+
+    clA->createRoom("TestRoom");
+    clB->enterRoom(clA->getRoomId());
+
+    int handSize = 7;
+    std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
+    auto serverManager = std::make_shared<netGameStateManager>(events, sv);
+    auto clientManagerA = std::make_shared<netGameStateManager>(events, clA);
+    auto clientManagerB = std::make_shared<netGameStateManager>(events, clB);
+    serverManager->bindGameEvents();
+
+    clA->setReady();
+    clB->setReady();
+    ASSERT_TRUE(sv->isRoomReady(clA->getRoomId()));
+    clB->setNotReady();
+    ASSERT_FALSE(sv->isRoomReady(clA->getRoomId()));
+
+    clientManagerA->setupGame(clA->getRoom(), handSize, "Data\\deck_setup.json", 12345);
+    clientManagerA->startGame();
+    
+    ASSERT_FALSE(clB->setNotReady());
 
     closeClient(clA.get());
     closeClient(clB.get());

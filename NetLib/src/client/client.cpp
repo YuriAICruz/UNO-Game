@@ -271,6 +271,51 @@ namespace netcode
         return currentRoom.count() > 0;
     }
 
+    bool client::setReady()
+    {
+        if (!hasId)
+        {
+            return false;
+        }
+
+        return sendRoomReadyStatus(true);
+    }
+
+    bool client::setNotReady()
+    {
+        if (!hasId)
+        {
+            return false;
+        }
+
+        return sendRoomReadyStatus(false);
+    }
+
+    bool client::sendRoomReadyStatus(bool ready)
+    {
+        std::promise<bool> promise;
+        roomReadyCallback = &promise;
+        auto future = promise.get_future();
+
+        if (ready)
+        {
+            currentRoom.setIsReady();
+        }
+        else
+        {
+            currentRoom.setNotReady();
+        }
+
+        std::stringstream ss;
+        ss << NC_ROOM_READY_STATUS << NC_SEPARATOR << (ready ? 1 : 0);
+        std::string str = ss.str();
+        sendMessage(str.c_str());
+
+        future.wait();
+        roomReadyCallback = nullptr;
+        return future.get();
+    }
+
     room* client::getRoom()
     {
         return &currentRoom;
@@ -529,6 +574,16 @@ namespace netcode
     void client::enterRoomCallback(const std::string& message)
     {
         updateRoom(message);
+    }
+
+    void client::roomStatusCallback(const std::string& message)
+    {
+        auto data = stringUtils::splitString(message);
+
+        if (roomReadyCallback != nullptr)
+        {
+            roomReadyCallback->set_value(data[1] == "1");
+        }
     }
 
     void client::exitRoomCallback(const std::string& message)
