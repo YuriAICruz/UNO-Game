@@ -20,6 +20,7 @@ namespace netcode
         std::string name = "John Doe";
         SOCKET* connection;
         bool isConnected = true;
+        bool ready = false;
 
         clientInfo() = default;
 

@@ -18,7 +18,7 @@ namespace screens
 
         COORD windowSize = rdr->getWindowSize();
         int lastX = windowSize.X / 2 - titleText.size() / 2;
-        int lastY = 3;
+        int lastY = 1;
         titleId = rdr->addElement<elements::text>(
             COORD{
                 static_cast<SHORT>(lastX),
@@ -29,7 +29,7 @@ namespace screens
             titleText
         );
 
-        int buttonWidth = 40;
+        int buttonWidth = 45;
         int buttonHeight = 3;
         int offset = 1;
         lastX = windowSize.X / 2 - buttonWidth / 2;
@@ -81,7 +81,8 @@ namespace screens
         };
         updateStatingCardsCount();
 
-        lastY += (buttonHeight + offset) * 2;
+
+        lastY += buttonHeight + offset;
         buttons[2].id = rdr->addElement<elements::card>(
             COORD{
                 static_cast<SHORT>(lastX),
@@ -94,12 +95,14 @@ namespace screens
             ' ',
             'g',
             "",
-            "Start"
+            "Set Seed []"
         );
         buttons[2].action = [this]
         {
-            startRoomGame();
+            setSeed();
         };
+        updateSeed();
+
 
         lastY += buttonHeight + offset;
         buttons[3].id = rdr->addElement<elements::card>(
@@ -114,9 +117,50 @@ namespace screens
             ' ',
             'g',
             "",
-            "Return"
+            "Set Ready"
         );
         buttons[3].action = [this]
+        {
+            toggleReady();
+        };
+        updateReadyState();
+
+        lastY += buttonHeight + offset;
+        buttons[4].id = rdr->addElement<elements::card>(
+            COORD{
+                static_cast<SHORT>(lastX),
+                static_cast<SHORT>(lastY)
+            },
+            COORD{
+                static_cast<SHORT>(buttonWidth),
+                static_cast<SHORT>(buttonHeight)
+            },
+            ' ',
+            'g',
+            "",
+            "Start"
+        );
+        buttons[4].action = [this]
+        {
+            startRoomGame();
+        };
+
+        lastY += buttonHeight + offset;
+        buttons[5].id = rdr->addElement<elements::card>(
+            COORD{
+                static_cast<SHORT>(lastX),
+                static_cast<SHORT>(lastY)
+            },
+            COORD{
+                static_cast<SHORT>(buttonWidth),
+                static_cast<SHORT>(buttonHeight)
+            },
+            ' ',
+            'g',
+            "",
+            "Return"
+        );
+        buttons[5].action = [this]
         {
             tryExitRoom();
         };
@@ -125,6 +169,12 @@ namespace screens
         netClient->onRoomUpdate = [this](netcode::room* r)
         {
             updateStartButton(r);
+            updateReadyState();
+        };
+        netClient->onRoomReady = [this](bool ready)
+        {
+            updateStartButton(netGameManager->getRoom(), ready);
+            updateReadyState();
         };
         netGameManager->onRoomGameStarted = [this]()
         {
@@ -269,17 +319,80 @@ namespace screens
         this->seed = seed;
     }
 
-    void roomWaitingScreen::updateStartButton(netcode::room* room)
+    void roomWaitingScreen::setSeed()
+    {
+        seed = netClient->getSeed();
+        box.openSizeTEditBox("Random Seed: ", seed, [this](std::string)
+        {
+            updateSeed();
+        });
+    }
+
+    void roomWaitingScreen::updateSeed() const
+    {
+        std::stringstream ss;
+        ss << "Random Seed: [" << seed << "]";
+        elements::card* seedButton = dynamic_cast<elements::card*>(rdr->getElement(buttons[2].id));
+        seedButton->setCenterText(ss.str());
+        rdr->setDirty();
+    }
+
+    void roomWaitingScreen::toggleReady() const
+    {
+        netcode::room* room = netClient->getRoom();
+
+        if (room->isClientReady())
+        {
+            netClient->setNotReady();
+        }
+        else
+        {
+            netClient->setReady();
+        }
+
+        updateReadyState();
+    }
+
+    void roomWaitingScreen::updateReadyState() const
+    {
+        auto button = dynamic_cast<elements::card*>(rdr->getElement(buttons[3].id));
+        netcode::room* room = netClient->getRoom();
+        std::stringstream ss;
+
+        if (room->isClientReady())
+        {
+            ss << "Ready! [Cancel]";
+        }
+        else
+        {
+            ss << "Not Ready";
+        }
+
+        button->setCenterText(ss.str());
+    }
+
+    void roomWaitingScreen::updateStartButton(netcode::room* room, bool ready)
     {
         if (blockInputs || box.isBlocking())
         {
             return;
         }
 
-        auto button = dynamic_cast<elements::card*>(rdr->getElement(buttons[2].id));
+        isRoomReady = ready;
+        auto button = dynamic_cast<elements::card*>(rdr->getElement(buttons[4].id));
 
         std::stringstream ss;
-        ss << "[" << room->count() << "] players in room, Start?";
+
+        if (ready)
+        {
+            ss << "START - ";
+        }
+        else
+        {
+            ss << "WAITING - room not ready ";
+        }
+
+        ss << "[" << room->count() << "] players";
         button->setCenterText(ss.str());
         rdr->setDirty();
     }
@@ -304,6 +417,13 @@ namespace screens
     {
         if (blockInputs || box.isBlocking())
         {
+            return;
+        }
+
+        if (!isRoomReady)
+        {
+            popup.clearActions();
+            popup.openWarningPopup("Room is not ready");
             return;
         }
 

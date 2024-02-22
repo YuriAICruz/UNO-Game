@@ -297,13 +297,14 @@ namespace netcode
         roomReadyCallback = &promise;
         auto future = promise.get_future();
 
+        bool lastState = currentRoom.isClientReady();
         if (ready)
         {
-            currentRoom.setIsReady();
+            currentRoom.setClientReady();
         }
         else
         {
-            currentRoom.setNotReady();
+            currentRoom.setClientNotReady();
         }
 
         std::stringstream ss;
@@ -313,7 +314,22 @@ namespace netcode
 
         future.wait();
         roomReadyCallback = nullptr;
-        return future.get();
+
+        bool result = future.get();
+
+        if (!result)
+        {
+            if (lastState)
+            {
+                currentRoom.setClientReady();
+            }
+            else
+            {
+                currentRoom.setClientNotReady();
+            }
+        }
+
+        return result;
     }
 
     room* client::getRoom()
@@ -598,6 +614,22 @@ namespace netcode
         if (roomCallback != nullptr)
         {
             roomCallback->set_value(&currentRoom);
+        }
+    }
+
+    void client::roomIsReadyCallback(const std::string& message) const
+    {
+        if (onRoomReady != nullptr)
+        {
+            onRoomReady(true);
+        }
+    }
+
+    void client::roomIsNotReadyCallback(const std::string& message) const
+    {
+        if (onRoomReady != nullptr)
+        {
+            onRoomReady(false);
         }
     }
 }

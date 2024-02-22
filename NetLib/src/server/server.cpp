@@ -145,7 +145,7 @@ namespace netcode
 
     bool server::isRoomReady(int roomId)
     {
-        return roomManager.getRoom(roomId)->isReady();
+        return roomManager.getRoom(roomId)->isClientReady();
     }
 
     void server::listening()
@@ -518,30 +518,33 @@ namespace netcode
     {
         auto data = stringUtils::splitString(message);
         bool ready = data[1] == "1";
-        
+
         std::stringstream ss;
         ss << NC_ROOM_READY_STATUS << NC_SEPARATOR;
 
-        auto room = roomManager.getRoom(getClient(clientSocket).get());
-        if(room == nullptr || room->isLocked())
+        auto client = getClient(clientSocket).get();
+
+        auto room = roomManager.getRoom(client);
+        if (room == nullptr || room->isLocked())
         {
             ss << 0;
             broadcastToRoom(ss.str(), clientSocket);
             return;
         }
-        
-        if (ready)
+
+        client->ready = ready;
+
+        ss << 1;
+        broadcastToRoom(ss.str(), clientSocket);
+
+        if (roomManager.roomClientsAreReady(room->getId()))
         {
-            room->setIsReady();
+            broadcastToRoom(NC_ROOM_ALL_READY, clientSocket);
         }
         else
         {
-            room->setNotReady();
-        } 
-
-        sendRoomData(clientSocket, room->getId());
-        ss << 1;
-        broadcastToRoom(ss.str(), clientSocket);
+            broadcastToRoom(NC_ROOM_NOT_READY, clientSocket);
+        }
     }
 
     void server::updateClientName(const std::string& message, SOCKET clientSocket)

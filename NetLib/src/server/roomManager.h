@@ -20,5 +20,6 @@ namespace netcode
         std::string listRooms() const;
         std::string getRoomSerialized(int id);
         void clientDisconnected(clientInfo* client);
+        bool roomClientsAreReady(int roomId);
     };
 }

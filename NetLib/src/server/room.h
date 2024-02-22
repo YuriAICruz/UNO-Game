@@ -15,7 +15,7 @@ namespace netcode
         int id;
         bool locked = false;
         std::vector<std::shared_ptr<clientInfo>> connectedClients;
-        bool ready;
+        bool clientReady = false;
 
     public:
         room() = default;
@@ -51,9 +51,9 @@ namespace netcode
         std::string getClientName(uint16_t id) const;
         std::vector<std::string> getClientsNames();
         std::vector<uint16_t> getClientsIds();
-        void setIsReady();
-        void setNotReady();
-        bool isReady() const;
+        void setClientReady();
+        void setClientNotReady();
+        bool isClientReady() const;
         static room constructRoom(std::string data);
 
         std::string& getName()

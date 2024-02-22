@@ -103,10 +103,23 @@ namespace netcode
                     this->roomStatusCallback(message);
                 }
             },
+            {
+                NC_ROOM_ALL_READY, [this](std::string& message)
+                {
+                    this->roomIsReadyCallback(message);
+                }
+            },
+            {
+                NC_ROOM_NOT_READY, [this](std::string& message)
+                {
+                    this->roomIsNotReadyCallback(message);
+                }
+            },
         };
 
     public:
         std::function<void (room*)> onRoomUpdate;
+        std::function<void (bool)> onRoomReady;
         client() = default;
 
         int start(std::string addr = "ftp://127.0.0.1:8080");
@@ -181,5 +194,7 @@ namespace netcode
         void enterRoomCallback(const std::string& message);
         void roomStatusCallback(const std::string& message);
         void exitRoomCallback(const std::string& message);
+        void roomIsReadyCallback(const std::string& message) const;
+        void roomIsNotReadyCallback(const std::string& message) const;
     };
 }

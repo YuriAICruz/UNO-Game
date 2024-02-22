@@ -8,6 +8,8 @@
 #define NC_GET_ROOM             "getr"
 #define NC_ENTER_ROOM           "enterr"
 #define NC_ROOM_READY_STATUS    "rrstats"
+#define NC_ROOM_ALL_READY       "allr"
+#define NC_ROOM_NOT_READY       "notr"
 #define NC_EXIT_ROOM            "exitr"
 
 #define NC_SET_NAME             "setName"

@@ -15,12 +15,13 @@ namespace screens
         int titleId;
         int currentButton = 0;
         int handSize = 7;
-        button buttons[4];
+        button buttons[6];
         popupWindow popup;
         editBox box;
         std::shared_ptr<netcode::client> netClient;
-        netGameStateManager* netGameManager;
+        netGameStateManager* netGameManager = nullptr;
         std::string cardsPath;
+        bool isRoomReady = false;
         size_t seed;
 
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
@@ -103,9 +104,13 @@ namespace screens
         void cancel(input::inputData data) override;
         void setGameManager(netGameStateManager* gameManager);
         void setGameSettings(std::string cardsPath, size_t seed);
+        void setSeed();
+        void updateSeed() const;
+        void toggleReady() const;
+        void updateReadyState() const;
 
     private:
-        void updateStartButton(netcode::room* room);
+        void updateStartButton(netcode::room* room, bool ready = false);
         void tryExitRoom();
         void exitRoomAndReturnToMainScreen();
         void startRoomGame();
