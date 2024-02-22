@@ -7,6 +7,7 @@
 #include "gameEventData.h"
 #include "turnEventData.h"
 #include "../coreEventIds.h"
+#include "../../../NetLib/src/logger.h"
 #include "../Cards/ActionTypes/draw.h"
 #include "../Cards/ActionTypes/reverse.h"
 #include "../Cards/ActionTypes/skip.h"
@@ -299,7 +300,7 @@ void gameStateManager::setState(const char* data, size_t size)
     }
     catch (...)
     {
-        std::cerr << "Failed to decrypt state";
+        logger::printError("Failed to decrypt state");
     }
 }
 
