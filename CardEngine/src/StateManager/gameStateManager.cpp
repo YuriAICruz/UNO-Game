@@ -300,7 +300,7 @@ void gameStateManager::setState(const char* data, size_t size)
     }
     catch (...)
     {
-        logger::printError("Failed to decrypt state");
+        std::cerr << "Failed to decrypt state";
     }
 }
 
