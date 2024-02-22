@@ -214,18 +214,19 @@ namespace renderer
     void renderer::clearScreen()
     {
         system("cls");
+        std::cout << std::flush;
         forceRedraw();
         clearBuffer();
     }
 
-    void renderer::resetScreen()
+    void renderer::resetScreen() const
     {
         SetConsoleCursorPosition(hConsole, COORD{0, 0});
 
         clearBuffer();
     }
 
-    void renderer::clearBuffer()
+    void renderer::clearBuffer() const
     {
         for (int x = 0; x < lastWindowSize.X; ++x)
         {

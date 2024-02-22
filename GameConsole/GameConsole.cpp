@@ -143,7 +143,6 @@ int main()
         if (rdr->isDirty())
         {
             rdr->draw();
-            std::flush;
         }
 
         if (rdr->canEnd())
