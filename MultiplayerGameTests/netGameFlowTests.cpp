@@ -646,16 +646,17 @@ TEST(NetGameFlowTests, RoomReady)
     auto clientManagerB = std::make_shared<netGameStateManager>(events, clB);
     serverManager->bindGameEvents();
 
-    clA->setReady();
-    clB->setReady();
-    ASSERT_TRUE(sv->isRoomReady(clA->getRoomId()));
+    EXPECT_TRUE(clA->setReady());
+    std::this_thread::sleep_for(std::chrono::milliseconds(STATE_SYNC_DELAY));
+    EXPECT_TRUE(clB->setReady());
+    EXPECT_TRUE(sv->isRoomReady(clA->getRoomId()));
     clB->setNotReady();
-    ASSERT_FALSE(sv->isRoomReady(clA->getRoomId()));
+    EXPECT_FALSE(sv->isRoomReady(clA->getRoomId()));
 
     clientManagerA->setupGame(clA->getRoom(), handSize, "Data\\deck_setup.json", 12345);
     clientManagerA->startGame();
     
-    ASSERT_FALSE(clB->setNotReady());
+    EXPECT_FALSE(clB->setNotReady());
 
     closeClient(clA.get());
     closeClient(clB.get());

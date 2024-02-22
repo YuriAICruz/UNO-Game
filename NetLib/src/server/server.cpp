@@ -145,7 +145,7 @@ namespace netcode
 
     bool server::isRoomReady(int roomId)
     {
-        return roomManager.getRoom(roomId)->isClientReady();
+        return roomManager.roomClientsAreReady(roomId);
     }
 
     void server::listening()
