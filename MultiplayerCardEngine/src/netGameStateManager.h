@@ -16,6 +16,7 @@ private:
     std::promise<bool>* trySetGameSettingsCallback = nullptr;
     std::promise<bool>* gameStateUpdatedCallback = nullptr;
     std::promise<bool>* executeCommandCallback = nullptr;
+    std::map<int, int> syncValuesDictionary;
     bool isHost = false;
     bool isServer = false;
     netcode::room* serverRoom;
@@ -80,6 +81,10 @@ public:
     bool makePlayerDraw(turnSystem::IPlayer* player, int count) override;
     void setRoom(netcode::room* room);
     netcode::room* getRoom() const;
+    void setSyncVar(int id, int value);
+    int getSyncVar(int id) const;
+    void trySyncVar(const std::string& msg, SOCKET cs);
+    void syncVarCallback(const std::string& msg);
 
 private:
     bool isInRoom(SOCKET sc) const;

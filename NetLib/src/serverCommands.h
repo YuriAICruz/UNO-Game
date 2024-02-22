@@ -12,6 +12,7 @@
 #define NC_SET_NAME     "setName"
 #define NC_SET_SEED     "sseed"
 #define NC_GET_SEED     "gseed"
+#define NC_SYNC_VAR     "sv"
 
 #define NC_SEPARATOR        ';'
 #define NC_COMMAND_END      '\t'

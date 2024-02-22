@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 
+#include "gameVarIds.h"
 #include "logger.h"
 #include "netCommands.h"
 #include "netGameStateManager.h"
@@ -568,6 +569,56 @@ TEST(NetGameFlowTests, CallUno)
     auto clientManagerA = std::make_shared<netGameStateManager>(events, clA);
     auto clientManagerB = std::make_shared<netGameStateManager>(events, clB);
     serverManager->bindGameEvents();
+
+    clientManagerA->setupGame(clA->getRoom(), handSize, "Data\\deck_setup.json", 12345);
+    clientManagerA->startGame();
+    EXPECT_FALSE(clientManagerA->yellUno());
+
+    closeClient(clA.get());
+    closeClient(clB.get());
+    closeServer(sv.get());
+}
+
+TEST(NetGameFlowTests, SyncVar)
+{
+    auto sv = startServer();
+    ASSERT_TRUE(sv->isRunning());
+
+    auto clA = startClient("Player A");
+    auto clB = startClient("Player B");
+
+    clA->createRoom("TestRoom");
+    clB->enterRoom(clA->getRoomId());
+
+    std::shared_ptr<eventBus::eventBus> events = std::make_unique<eventBus::eventBus>();
+    auto serverManager = std::make_shared<netGameStateManager>(events, sv);
+    auto clientManagerA = std::make_shared<netGameStateManager>(events, clA);
+    auto clientManagerB = std::make_shared<netGameStateManager>(events, clB);
+    serverManager->bindGameEvents();
+
+    int initialHandSize = 8;
+    int handSize = clientManagerA->getSyncVar(CG_VAR_HAND_SIZE);
+
+    clientManagerA->setSyncVar(CG_VAR_HAND_SIZE, initialHandSize);
+    handSize = clientManagerA->getSyncVar(CG_VAR_HAND_SIZE);
+    EXPECT_EQ(initialHandSize, handSize);
+    handSize = clientManagerB->getSyncVar(CG_VAR_HAND_SIZE);
+    while (handSize == 0)
+    {
+        handSize = clientManagerB->getSyncVar(CG_VAR_HAND_SIZE);
+    }
+    EXPECT_EQ(initialHandSize, handSize);
+
+    initialHandSize = 7;
+    clientManagerB->setSyncVar(CG_VAR_HAND_SIZE, initialHandSize);
+    handSize = 12;
+    handSize = clientManagerB->getSyncVar(CG_VAR_HAND_SIZE);
+    EXPECT_EQ(initialHandSize, handSize);
+    while (handSize != clientManagerA->getSyncVar(CG_VAR_HAND_SIZE))
+    {
+    }
+    handSize = clientManagerA->getSyncVar(CG_VAR_HAND_SIZE);
+    EXPECT_EQ(initialHandSize, handSize);
 
     clientManagerA->setupGame(clA->getRoom(), handSize, "Data\\deck_setup.json", 12345);
     clientManagerA->startGame();
