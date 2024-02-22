@@ -196,7 +196,7 @@ bool gameStateManager::playerHasValidCardOnHand(turnSystem::IPlayer* player)
 
 void gameStateManager::checkMainDeckSize() const
 {
-    if(mainDeck->count() <= 0)
+    if (mainDeck->count() <= 0)
     {
         auto topCard = discardDeck->dequeue();
         discardDeck->moveAllCardsTo(mainDeck.get());
@@ -266,34 +266,41 @@ std::tuple<const char*, size_t> gameStateManager::getState()
 
 void gameStateManager::setState(const char* data, size_t size)
 {
-    const char* ptr = data;
+    try
+    {
+        const char* ptr = data;
 
-    std::memcpy(&seed, ptr, sizeof(size_t));
-    ptr += sizeof(size_t);
-    std::memcpy(&currentPlayerCardsDraw, ptr, sizeof(uint8_t));
-    ptr += sizeof(uint8_t);
-    std::memcpy(&handSize, ptr, sizeof(uint8_t));
-    ptr += sizeof(uint8_t);
+        std::memcpy(&seed, ptr, sizeof(size_t));
+        ptr += sizeof(size_t);
+        std::memcpy(&currentPlayerCardsDraw, ptr, sizeof(uint8_t));
+        ptr += sizeof(uint8_t);
+        std::memcpy(&handSize, ptr, sizeof(uint8_t));
+        ptr += sizeof(uint8_t);
 
-    size_t mdSize;
-    std::memcpy(&mdSize, ptr, sizeof(size_t));
-    ptr += sizeof(size_t);
-    mainDeck->setState(ptr, mdSize);
-    ptr += mdSize;
+        size_t mdSize;
+        std::memcpy(&mdSize, ptr, sizeof(size_t));
+        ptr += sizeof(size_t);
+        mainDeck->setState(ptr, mdSize);
+        ptr += mdSize;
 
-    size_t ddSize;
-    std::memcpy(&ddSize, ptr, sizeof(size_t));
-    ptr += sizeof(size_t);
-    discardDeck->setState(ptr, ddSize);
-    ptr += ddSize;
+        size_t ddSize;
+        std::memcpy(&ddSize, ptr, sizeof(size_t));
+        ptr += sizeof(size_t);
+        discardDeck->setState(ptr, ddSize);
+        ptr += ddSize;
 
-    size_t tSize;
-    std::memcpy(&tSize, ptr, sizeof(size_t));
-    ptr += sizeof(size_t);
-    turner->setState(ptr, mainDeck.get());
-    ptr += tSize;
+        size_t tSize;
+        std::memcpy(&tSize, ptr, sizeof(size_t));
+        ptr += sizeof(size_t);
+        turner->setState(ptr, mainDeck.get());
+        ptr += tSize;
 
-    events->fireEvent(GAME_STATE_UPDATED, gameEventData());
+        events->fireEvent(GAME_STATE_UPDATED, gameEventData());
+    }
+    catch (...)
+    {
+        std::cerr << "Failed to decrypt state";
+    }
 }
 
 void gameStateManager::print(const char* buffer, size_t size)
