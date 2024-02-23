@@ -115,12 +115,6 @@ int main(int argc, char* argv[])
     {
         return 1;
     }
-    logger::print((logger::printer() << "initializing ngrok for port forwarding [" << portValue << "]").str());
-    std::stringstream ss;
-    ss << "start cmd /c .\\ngrok.exe tcp " << portValue;
-    std::string cmd = ss.str();
-
-    auto ngrokPID = std::system(cmd.c_str());
 
     std::cout << "server is running you can now type extra commands:\n";
     while (serverInstance->isRunning())
@@ -137,12 +131,6 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (ngrokPID > 0)
-    {
-        logger::print("terminating ngrok...");
-        std::string killCommand = "taskkill /PID " + std::to_string(ngrokPID) + " /F";
-        system(killCommand.c_str());
-    }
     serverInstance->close();
 
     return 0;
