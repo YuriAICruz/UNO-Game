@@ -197,7 +197,12 @@ namespace netcode
 
     room room::constructRoom(std::string data)
     {
-        auto splitData = stringUtils::splitString(data);
+        std::vector<std::string> splitData = stringUtils::splitString(data);
+        return constructRoom(splitData);
+    }
+
+    room room::constructRoom(std::vector<std::string> splitData)
+    {
         int id = std::stoi(splitData[0]);
         std::string name = splitData[1];
         std::vector<clientInfo> clients;

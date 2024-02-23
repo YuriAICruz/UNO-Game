@@ -10,6 +10,17 @@
 
 namespace netcode
 {
+    void client::setRoom(const room& room)
+    {
+        currentRoom = room;
+    }
+
+    bool client::executeCommand(commands::clientCommand* cmd)
+    {
+        commandsHistory.push_back(cmd);
+        return cmd->execute();
+    }
+
     int client::initializeWinsock()
     {
         logger::print("CLIENT: initializing Winsock . . .");
@@ -34,6 +45,17 @@ namespace netcode
         }
         logger::print("CLIENT: socket created");
         return 0;
+    }
+
+    void client::callbackPendingCommands(const std::string& key, const std::string& message)
+    {
+        for (auto cmd : commandsHistory)
+        {
+            if(cmd->isPending(key))
+            {
+                cmd->callback(message);
+            }
+        }
     }
 
     int client::start(std::string addressStr)
@@ -174,6 +196,11 @@ namespace netcode
     std::string& client::getPlayerName()
     {
         return clientName;
+    }
+
+    int client::sendMessage(std::string str)
+    {
+        return sendMessage(str.c_str());
     }
 
     int client::sendMessage(const char* str)
@@ -444,6 +471,7 @@ namespace netcode
             for (auto& command : commandsBuffer)
             {
                 auto data = stringUtils::splitString(command);
+                callbackPendingCommands(data[0], command);
                 if (containsCommand(data[0]))
                 {
                     commands[data[0]](command);
@@ -593,7 +621,7 @@ namespace netcode
 
     void client::enterRoomCallback(const std::string& message)
     {
-        updateRoom(message);
+        //updateRoom(message);
     }
 
     void client::roomStatusCallback(const std::string& message)

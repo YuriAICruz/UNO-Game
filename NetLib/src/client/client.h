@@ -3,15 +3,11 @@
 #include <future>
 #include <map>
 
-#ifndef NET_WinSock2
-#define NET_WinSock2
-#include <WinSock2.h>
-#include <WS2tcpip.h>
-#pragma comment(lib, "ws2_32.lib")
-#endif
 
+#include "../winSockImp.h"
 #include "../serverCommands.h"
 #include "../../framework.h"
+#include "../commands/client/clientCommand.h"
 #include "../server/room.h"
 
 #ifdef _DEBUG
@@ -46,6 +42,7 @@ namespace netcode
         std::promise<bool>* roomReadyCallback;
         std::promise<int>* seedCallback;
 
+        std::vector<commands::clientCommand*> commandsHistory;
         std::map<std::string, std::function<void (std::string&)>> customCommands;
         std::map<std::string, std::function<void (char*, size_t)>> customRawCommands;
         std::map<std::string, std::function<void (std::string&)>> commands = {
@@ -126,6 +123,7 @@ namespace netcode
         int connectToServer();
         void setName(const std::string& name);
         std::string& getPlayerName();
+        int sendMessage(std::string str);
         int sendMessage(const char* str);
         int close();
 
@@ -176,9 +174,13 @@ namespace netcode
             customRawCommands = cmds;
         }
 
+        void setRoom(const room& room);
+        bool executeCommand(commands::clientCommand* cmd);
+
     private:
         int initializeWinsock();
         int createSocket();
+        void callbackPendingCommands(const std::string& key, const std::string& message);
         void listenToServer();
         bool containsCommand(const std::string& string);
         bool containsCustomCommand(const std::string& command);

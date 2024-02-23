@@ -1,16 +1,10 @@
 ﻿#pragma once
 
-#ifndef NET_WinSock2
-#define NET_WinSock2
-#include <WinSock2.h>
-#include <WS2tcpip.h>
-#pragma comment(lib, "ws2_32.lib")
-#endif
-
 #include <string>
 
 #include "../logger.h"
 #include "../../framework.h"
+#include "../winSockImp.h"
 
 namespace netcode
 {

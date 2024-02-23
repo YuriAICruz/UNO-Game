@@ -1,18 +1,12 @@
 ﻿#pragma once
 
-#ifndef NET_WinSock2
-#define NET_WinSock2
-#include <WinSock2.h>
-#include <WS2tcpip.h>
-#pragma comment(lib, "ws2_32.lib")
-#endif
-
 #include <atomic>
 #include <functional>
 #include <map>
 #include <string>
 #include <unordered_set>
 
+#include "../winSockImp.h"
 #include "../../framework.h"
 #include "clientInfo.h"
 #include "room.h"

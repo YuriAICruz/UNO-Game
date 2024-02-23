@@ -4,6 +4,7 @@
 #include <string>
 
 #include "../../framework.h"
+#include "../winSockImp.h"
 #include "clientInfo.h"
 
 namespace netcode
@@ -56,6 +57,7 @@ namespace netcode
         void setClientsNotReady();
         bool isClientReady() const;
         static room constructRoom(std::string data);
+        static room constructRoom(std::vector<std::string> splitData);
 
         std::string& getName()
         {
