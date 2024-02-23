@@ -3,7 +3,6 @@
 #include <future>
 #include <map>
 
-
 #include "../winSockImp.h"
 #include "../serverCommands.h"
 #include "../../framework.h"
@@ -42,7 +41,7 @@ namespace netcode
         std::promise<bool>* roomReadyCallback;
         std::promise<int>* seedCallback;
 
-        std::vector<commands::clientCommand*> commandsHistory;
+        std::vector<std::unique_ptr<commands::clientCommand>> commandsHistory;
         std::map<std::string, std::function<void (std::string&)>> customCommands;
         std::map<std::string, std::function<void (char*, size_t)>> customRawCommands;
         std::map<std::string, std::function<void (std::string&)>> commands = {
@@ -175,12 +174,18 @@ namespace netcode
         }
 
         void setRoom(const room& room);
-        bool executeCommand(commands::clientCommand* cmd);
+        
+        template<typename T,typename... Args>
+        bool NETCODE_API executeCommand(Args&&... args)
+        {
+            commandsHistory.push_back(std::make_unique<T>(std::forward<Args>(args)..., this));
+            return commandsHistory.back()->execute();
+        }
 
     private:
         int initializeWinsock();
         int createSocket();
-        void callbackPendingCommands(const std::string& key, const std::string& message);
+        void callbackPendingCommands(const std::string& key, const std::string& message) const;
         void listenToServer();
         bool containsCommand(const std::string& string);
         bool containsCustomCommand(const std::string& command);

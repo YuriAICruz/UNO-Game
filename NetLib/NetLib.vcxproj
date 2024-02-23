@@ -230,6 +230,7 @@
       <SDLCheck>true</SDLCheck>
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
+    <ClCompile Include="src\commands\client\createRoomCmd.cpp" />
     <ClCompile Include="src\commands\client\enterRoomCmd.cpp" />
     <ClCompile Include="src\commands\command.cpp" />
     <ClCompile Include="src\commands\server\serverCommand.cpp">
@@ -317,6 +318,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="src\client\client.h" />
     <ClInclude Include="src\commands\client\clientCommand.h" />
+    <ClInclude Include="src\commands\client\createRoomCmd.h" />
     <ClInclude Include="src\commands\client\enterRoomCmd.h" />
     <ClInclude Include="src\commands\command.h" />
     <ClInclude Include="src\commands\server\serverCommand.h" />

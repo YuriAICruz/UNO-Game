@@ -15,12 +15,6 @@ namespace netcode
         currentRoom = room;
     }
 
-    bool client::executeCommand(commands::clientCommand* cmd)
-    {
-        commandsHistory.push_back(cmd);
-        return cmd->execute();
-    }
-
     int client::initializeWinsock()
     {
         logger::print("CLIENT: initializing Winsock . . .");
@@ -47,9 +41,9 @@ namespace netcode
         return 0;
     }
 
-    void client::callbackPendingCommands(const std::string& key, const std::string& message)
+    void client::callbackPendingCommands(const std::string& key, const std::string& message) const
     {
-        for (auto cmd : commandsHistory)
+        for (const std::unique_ptr<commands::clientCommand>& cmd : commandsHistory)
         {
             if(cmd->isPending(key))
             {
@@ -459,7 +453,7 @@ namespace netcode
                 break;
             }
 
-            if (recvSize >= recvDataSize)
+            if (recvSize < recvDataSize)
             {
                 recvData[recvSize] = '\0'; // Null-terminate received data
             }

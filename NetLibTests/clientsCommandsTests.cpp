@@ -1,13 +1,14 @@
 ﻿#include "gtest/gtest.h"
 #include "client/client.h"
+#include "commands/client/createRoomCmd.h"
 #include "commands/client/enterRoomCmd.h"
 #include "server/server.h"
 
 TEST(clientsCmd, enterRoomCmd)
 {
-    auto sv = std::make_shared<netcode::server>();
-    auto clA = std::make_shared<netcode::client>();
-    auto clB = std::make_shared<netcode::client>();
+    auto sv = std::make_unique<netcode::server>();
+    auto clA = std::make_unique<netcode::client>();
+    auto clB = std::make_unique<netcode::client>();
 
     sv->start();
     clA->start();
@@ -15,11 +16,14 @@ TEST(clientsCmd, enterRoomCmd)
     clB->start();
     clB->connectToServer();
 
-    auto roomName = "test";
-    clA->createRoom(roomName);
+    while (!clA->isConnected() || !clB->isConnected())
+    {
+        
+    }
 
-    auto cmd = commands::enterRoomCmd(0, NC_ENTER_ROOM, clB.get());
-    clB->executeCommand(&cmd);
+    std::string roomName = "test";
+    clA->executeCommand<commands::createRoomCmd>(roomName);
+    clB->executeCommand<commands::enterRoomCmd>(0);
 
     ASSERT_EQ(clB->getRoom()->getName(), roomName);
 }

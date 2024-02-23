@@ -4,12 +4,13 @@
 
 namespace commands
 {
-    class NETCODE_API enterRoomCmd : public clientCommand
+    class NETCODE_API createRoomCmd : public clientCommand
     {
-        int roomId;
+        std::string roomName;
 
     public:
-        enterRoomCmd(int roomId, netcode::client* client) : clientCommand(NC_ENTER_ROOM, client), roomId(roomId)
+        createRoomCmd(const std::string& name, netcode::client* client)
+            : clientCommand(NC_CREATE_ROOM, client), roomName(name)
         {
         }
 

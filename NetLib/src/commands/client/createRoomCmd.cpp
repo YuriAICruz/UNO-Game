@@ -1,24 +1,22 @@
-﻿#include <sstream>
-
-#include "enterRoomCmd.h"
+﻿#include "createRoomCmd.h"
 #include "../../stringUtils.h"
 #include "../../client/client.h"
 
 namespace commands
 {
-    bool enterRoomCmd::execute()
+    bool createRoomCmd::execute()
     {
         std::promise<bool> promise;
         std::future<bool> future = setPromise(promise);
 
         std::stringstream ss;
-        ss << cmdKey << NC_SEPARATOR << roomId;
+        ss << cmdKey << NC_SEPARATOR << roomName;
         netClient->sendMessage(ss.str());
 
         return waitAndReturnPromise(future);
     }
 
-    void enterRoomCmd::callback(const std::string& message)
+    void createRoomCmd::callback(const std::string& message)
     {
         std::vector<std::string> data = stringUtils::splitString(message);
 
