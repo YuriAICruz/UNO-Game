@@ -53,6 +53,7 @@ namespace netcode
         std::vector<uint16_t> getClientsIds();
         void setClientReady();
         void setClientNotReady();
+        void setClientsNotReady();
         bool isClientReady() const;
         static room constructRoom(std::string data);
 

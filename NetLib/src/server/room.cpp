@@ -67,6 +67,7 @@ namespace netcode
     void room::unlock()
     {
         locked = false;
+        setClientsNotReady();
     }
 
     bool room::isLocked() const
@@ -163,6 +164,14 @@ namespace netcode
     void room::setClientNotReady()
     {
         clientReady = false;
+    }
+
+    void room::setClientsNotReady()
+    {
+        for (auto client : clients())
+        {
+            client->ready = false;
+        }
     }
 
     bool room::isClientReady() const

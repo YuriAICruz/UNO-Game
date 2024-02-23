@@ -617,7 +617,7 @@ namespace screens
 
     void gameScreen::showCurrentPlayerCards(bool hidden)
     {
-        if(!gameManager->isGameRunning())
+        if(blockInputs)
         {
             return;
         }

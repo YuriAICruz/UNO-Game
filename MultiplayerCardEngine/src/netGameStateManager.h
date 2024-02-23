@@ -100,4 +100,7 @@ private:
 
     void tryDrawCards(const std::string& msg, SOCKET cs);
     void drawCardsCallback(const std::string& msg) const;
+
+public:
+    bool canYellUno() const override;
 };
