@@ -271,6 +271,67 @@ namespace netcode
         return currentRoom.count() > 0;
     }
 
+    bool client::setReady()
+    {
+        if (!hasId)
+        {
+            return false;
+        }
+
+        return sendRoomReadyStatus(true);
+    }
+
+    bool client::setNotReady()
+    {
+        if (!hasId)
+        {
+            return false;
+        }
+
+        return sendRoomReadyStatus(false);
+    }
+
+    bool client::sendRoomReadyStatus(bool ready)
+    {
+        std::promise<bool> promise;
+        roomReadyCallback = &promise;
+        auto future = promise.get_future();
+
+        bool lastState = currentRoom.isClientReady();
+        if (ready)
+        {
+            currentRoom.setClientReady();
+        }
+        else
+        {
+            currentRoom.setClientNotReady();
+        }
+
+        std::stringstream ss;
+        ss << NC_ROOM_READY_STATUS << NC_SEPARATOR << (ready ? 1 : 0);
+        std::string str = ss.str();
+        sendMessage(str.c_str());
+
+        future.wait();
+        roomReadyCallback = nullptr;
+
+        bool result = future.get();
+
+        if (!result)
+        {
+            if (lastState)
+            {
+                currentRoom.setClientReady();
+            }
+            else
+            {
+                currentRoom.setClientNotReady();
+            }
+        }
+
+        return result;
+    }
+
     room* client::getRoom()
     {
         return &currentRoom;
@@ -371,7 +432,11 @@ namespace netcode
                 break;
             }
 
-            recvData[recvSize] = '\0'; // Null-terminate received data
+            if (recvSize >= recvDataSize)
+            {
+                recvData[recvSize] = '\0'; // Null-terminate received data
+            }
+            recvSize = min(recvDataSize-1, recvSize);
             lastResponse.assign(recvData, recvSize);
 
             logger::print((logger::getPrinter() << "CLIENT: Received: " << recvData).str());
@@ -531,6 +596,16 @@ namespace netcode
         updateRoom(message);
     }
 
+    void client::roomStatusCallback(const std::string& message)
+    {
+        auto data = stringUtils::splitString(message);
+
+        if (roomReadyCallback != nullptr)
+        {
+            roomReadyCallback->set_value(data[1] == "1");
+        }
+    }
+
     void client::exitRoomCallback(const std::string& message)
     {
         currentRoom = room();
@@ -543,6 +618,22 @@ namespace netcode
         if (roomCallback != nullptr)
         {
             roomCallback->set_value(&currentRoom);
+        }
+    }
+
+    void client::roomIsReadyCallback(const std::string& message) const
+    {
+        if (onRoomReady != nullptr)
+        {
+            onRoomReady(true);
+        }
+    }
+
+    void client::roomIsNotReadyCallback(const std::string& message) const
+    {
+        if (onRoomReady != nullptr)
+        {
+            onRoomReady(false);
         }
     }
 }

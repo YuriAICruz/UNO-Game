@@ -155,6 +155,21 @@ namespace netcode
         return ids;
     }
 
+    void room::setClientReady()
+    {
+        clientReady = true;
+    }
+
+    void room::setClientNotReady()
+    {
+        clientReady = false;
+    }
+
+    bool room::isClientReady() const
+    {
+        return clientReady;
+    }
+
     std::string room::getRoomSerialized(int id)
     {
         std::stringstream ss;

@@ -262,6 +262,12 @@ void netGameStateManager::createClientCustomCommands()
             {
                 showClientEndGame(msg);
             },
+        },
+        {
+            NC_SYNC_VAR, [this](std::string& msg)
+            {
+                syncVarCallback(msg);
+            },
         }
     };
     std::map<std::string, std::function<void (char*, size_t)>> rawCommands = {
@@ -314,6 +320,12 @@ void netGameStateManager::createServerCustomCommands()
             CORE_NC_DRAW_CARDS, [this](std::string& msg, SOCKET cs)
             {
                 tryDrawCards(msg, cs);
+            }
+        },
+        {
+            NC_SYNC_VAR, [this](std::string& msg, SOCKET cs)
+            {
+                trySyncVar(msg, cs);
             }
         }
     };
@@ -553,8 +565,10 @@ void netGameStateManager::endGame()
     {
         return;
     }
+
     netServer->broadcastToRoom(CORE_NC_GAME_END, sc);
-    broadcastServerStateData(sc);
+
+    serverRoom->unlock();
 }
 
 void netGameStateManager::onClientReconnected(netcode::clientInfo* client)
@@ -642,7 +656,7 @@ bool netGameStateManager::yellUno()
 
 void netGameStateManager::tryYellUno(const std::string& msg, SOCKET cs)
 {
-    bool canYell = canYellUno();
+    bool canYell = getCurrentPlayer()->getHand().size() == 2;
     if (canYell)
     {
         gameStateManager::yellUno();
@@ -715,6 +729,53 @@ netcode::room* netGameStateManager::getRoom() const
     return netClient->getRoom();
 }
 
+void netGameStateManager::setSyncVar(int id, int value)
+{
+    checkIsServer();
+    syncValuesDictionary.insert_or_assign(id, value);
+
+    std::stringstream ss;
+    ss << NC_SYNC_VAR << NC_SEPARATOR << id << NC_SEPARATOR << value;
+    std::string str = ss.str();
+    netClient->sendMessage(str.c_str());
+}
+
+int netGameStateManager::getSyncVar(int id) const
+{
+    auto it = syncValuesDictionary.find(id);
+    if (it != syncValuesDictionary.end())
+    {
+        return it->second;
+    }
+
+    return 0;
+}
+
+void netGameStateManager::trySyncVar(const std::string& msg, SOCKET cs)
+{
+    if (!isServer)
+    {
+        return;
+    }
+
+    auto data = stringUtils::splitString(msg);
+    int id = stoi(data[1]);
+    int value = stoi(data[2]);
+    syncValuesDictionary.insert_or_assign(id, value);
+
+    std::stringstream ss;
+    ss << NC_SYNC_VAR << NC_SEPARATOR << id << NC_SEPARATOR << value;
+    netServer->broadcastToRoom(ss.str(), cs);
+}
+
+void netGameStateManager::syncVarCallback(const std::string& msg)
+{
+    auto data = stringUtils::splitString(msg);
+    int id = stoi(data[1]);
+    int value = stoi(data[2]);
+    syncValuesDictionary.insert_or_assign(id, value);
+}
+
 bool netGameStateManager::isInRoom(SOCKET sc) const
 {
     if (!isServer)
@@ -730,6 +791,10 @@ void netGameStateManager::tryDrawCards(const std::string& msg, SOCKET cs)
     auto data = stringUtils::splitString(msg);
 
     bool canDraw = canDrawCard();
+    logger::print(
+        (logger::getPrinter() << "player draw cards : " << (canDraw ? "true" : "false") << " drawn = [" <<
+            currentPlayerCardsDraw << "]").
+        str());
     if (canDraw)
     {
         auto id = stoi(data[1]);

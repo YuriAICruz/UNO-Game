@@ -29,9 +29,14 @@ namespace input
 
         std::vector<inputData> readInput()
         {
+            std::vector<inputData> inputs;
+            if (PeekConsoleInput(hInput, irInBuf, 128, &cNumRead) && cNumRead <= 0)
+            {
+                return inputs;
+            }
+
             ReadConsoleInput(hInput, irInBuf, 128, &cNumRead);
 
-            std::vector<inputData> inputs;
             for (DWORD i = 0; i < cNumRead; ++i)
             {
                 if (irInBuf[i].EventType == KEY_EVENT && irInBuf[i].Event.KeyEvent.bKeyDown)

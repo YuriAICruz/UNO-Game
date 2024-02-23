@@ -14,7 +14,7 @@ namespace netcode
 
     room* roomManager::getRoom(int id)
     {
-        return &rooms[id];
+        return &rooms.at(id);
     }
 
     room* roomManager::getRoom(clientInfo* client)
@@ -90,5 +90,19 @@ namespace netcode
             return;
         }
         room->removeClient(client);
+    }
+
+    bool roomManager::roomClientsAreReady(int roomId)
+    {
+        room* room = getRoom(roomId);
+        for (auto client : room->clients())
+        {
+            if(!client->ready)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

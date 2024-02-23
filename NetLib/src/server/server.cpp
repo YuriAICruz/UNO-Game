@@ -143,6 +143,11 @@ namespace netcode
         roomManager.getRoom(getClient(cs).get())->unlock();
     }
 
+    bool server::isRoomReady(int roomId)
+    {
+        return roomManager.roomClientsAreReady(roomId);
+    }
+
     void server::listening()
     {
         if (!running)
@@ -465,6 +470,15 @@ namespace netcode
         logger::print((logger::getPrinter() << "SERVER: sent to all clients in room [" << id << "]").str());
     }
 
+    void server::sendRoomData(SOCKET clientSocket, int id)
+    {
+        std::stringstream ss;
+        ss << NC_ENTER_ROOM << NC_SEPARATOR;
+        ss << roomManager.getRoomSerialized(id);
+
+        broadcastToRoom(ss.str(), clientSocket);
+    }
+
     void server::enterRoom(const std::string& message, SOCKET clientSocket)
     {
         std::vector<std::string> data = stringUtils::splitString(message);
@@ -472,11 +486,7 @@ namespace netcode
         int id = stoi(data[1]);
         if (roomManager.enterRoom(id, getClient(clientSocket)))
         {
-            std::stringstream ss;
-            ss << NC_ENTER_ROOM << NC_SEPARATOR;
-            ss << roomManager.getRoomSerialized(id);
-
-            broadcastToRoom(ss.str(), clientSocket);
+            sendRoomData(clientSocket, id);
             logger::print((logger::getPrinter() << "SERVER: added client to room with id [" << id << "]").str());
             return;
         }
@@ -502,6 +512,39 @@ namespace netcode
         }
 
         sendMessage(NC_EXIT_ROOM, clientSocket);
+    }
+
+    void server::updateRoomStatus(const std::string& message, SOCKET clientSocket)
+    {
+        auto data = stringUtils::splitString(message);
+        bool ready = data[1] == "1";
+
+        std::stringstream ss;
+        ss << NC_ROOM_READY_STATUS << NC_SEPARATOR;
+
+        auto client = getClient(clientSocket).get();
+
+        auto room = roomManager.getRoom(client);
+        if (room == nullptr || room->isLocked())
+        {
+            ss << 0;
+            broadcastToRoom(ss.str(), clientSocket);
+            return;
+        }
+
+        client->ready = ready;
+
+        ss << 1;
+        broadcastToRoom(ss.str(), clientSocket);
+
+        if (roomManager.roomClientsAreReady(room->getId()))
+        {
+            broadcastToRoom(NC_ROOM_ALL_READY, clientSocket);
+        }
+        else
+        {
+            broadcastToRoom(NC_ROOM_NOT_READY, clientSocket);
+        }
     }
 
     void server::updateClientName(const std::string& message, SOCKET clientSocket)
@@ -546,7 +589,17 @@ namespace netcode
 
     void server::sendMessageRaw(SOCKET clientSocket, const char* responseData, int len, int flags) const
     {
-        logger::print((logger::getPrinter() << "SERVER: sending message size [" << len << "]").str());
+        if(len<100)
+        {
+            logger::print(
+                (logger::getPrinter() << "SERVER: sending message size [" << responseData << "]" << " to connection [" <<
+                    clientSocket << "]").str());
+        }else
+        {
+            logger::print(
+                (logger::getPrinter() << "SERVER: sending message size [" << len << "]" << " to connection [" <<
+                    clientSocket << "]").str());   
+        }
         auto result = send(clientSocket, responseData, len, flags);
         if (result == SOCKET_ERROR)
         {

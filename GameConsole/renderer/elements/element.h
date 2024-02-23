@@ -2,7 +2,6 @@
 #include <vector>
 
 #include "guidGenerator.h"
-#include "../pch.h"
 
 namespace renderer
 {

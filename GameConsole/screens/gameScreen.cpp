@@ -617,6 +617,11 @@ namespace screens
 
     void gameScreen::showCurrentPlayerCards(bool hidden)
     {
+        if(!gameManager->isGameRunning())
+        {
+            return;
+        }
+
         std::list<cards::ICard*> hand;
         if (isOnline)
         {

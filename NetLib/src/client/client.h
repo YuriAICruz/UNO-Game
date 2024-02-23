@@ -43,6 +43,7 @@ namespace netcode
         std::promise<int>* connectingCallback;
         std::promise<std::vector<room>>* roomsCallback;
         std::promise<room*>* roomCallback;
+        std::promise<bool>* roomReadyCallback;
         std::promise<int>* seedCallback;
 
         std::map<std::string, std::function<void (std::string&)>> customCommands;
@@ -96,10 +97,29 @@ namespace netcode
                     this->invalidKeyCallback(message);
                 }
             },
+            {
+                NC_ROOM_READY_STATUS, [this](std::string& message)
+                {
+                    this->roomStatusCallback(message);
+                }
+            },
+            {
+                NC_ROOM_ALL_READY, [this](std::string& message)
+                {
+                    this->roomIsReadyCallback(message);
+                }
+            },
+            {
+                NC_ROOM_NOT_READY, [this](std::string& message)
+                {
+                    this->roomIsNotReadyCallback(message);
+                }
+            },
         };
 
     public:
         std::function<void (room*)> onRoomUpdate;
+        std::function<void (bool)> onRoomReady;
         client() = default;
 
         int start(std::string addr = "ftp://127.0.0.1:8080");
@@ -113,6 +133,9 @@ namespace netcode
         void exitRoom();
         void enterRoom(int id);
         bool hasRoom();
+        bool setReady();
+        bool sendRoomReadyStatus(bool ready);
+        bool setNotReady();
         room* getRoom();
         room* getUpdatedRoom(bool wait = true);
         int getSeed();
@@ -169,6 +192,9 @@ namespace netcode
         void getRoomCallback(const std::string& message);
         void getSeedCallback(const std::string& message);
         void enterRoomCallback(const std::string& message);
+        void roomStatusCallback(const std::string& message);
         void exitRoomCallback(const std::string& message);
+        void roomIsReadyCallback(const std::string& message) const;
+        void roomIsNotReadyCallback(const std::string& message) const;
     };
 }

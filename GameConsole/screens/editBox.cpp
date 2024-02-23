@@ -35,7 +35,7 @@ namespace screens
         editBoxTearDown(newValue, callback);
     }
 
-    bool editBox::isBlocking()
+    bool editBox::isBlocking() const
     {
         return blockInputs;
     }

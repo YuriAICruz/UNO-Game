@@ -52,8 +52,8 @@ namespace renderer
 
         void setColor(char color);
         void clearScreen();
-        void resetScreen();
-        void clearBuffer();
+        void resetScreen() const;
+        void clearBuffer() const;
         void SwapBuffers();
         void updateBuffer();
     };

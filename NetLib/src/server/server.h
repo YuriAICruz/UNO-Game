@@ -92,6 +92,12 @@ namespace netcode
                     this->updateClientName(message, clientConnection);
                 }
             },
+            {
+                NC_ROOM_READY_STATUS, [this](std::string& message, SOCKET clientConnection)
+                {
+                    this->updateRoomStatus(message, clientConnection);
+                }
+            },
         };
 
     public:
@@ -103,6 +109,7 @@ namespace netcode
         int close();
         room* getRoom(int id);
         void broadcastUpdatedRoom(SOCKET clientSocket);
+        void sendRoomData(SOCKET clientSocket, int id);
         void broadcast(std::string msg);
         void broadcastToRoom(std::string msg, SOCKET cs);
         void broadcastToRoomRaw(const char* responseData, size_t size, SOCKET cs);
@@ -137,6 +144,7 @@ namespace netcode
 
         void lockRoom(SOCKET cs);
         void unlockRoom(SOCKET cs);
+        bool isRoomReady(int roomId);
 
     private:
         void listening();
@@ -154,6 +162,7 @@ namespace netcode
         void getRoom(const std::string& message, SOCKET clientSocket);
         void enterRoom(const std::string& message, SOCKET clientSocket);
         void exitRoom(const std::string& message, SOCKET clientSocket);
+        void updateRoomStatus(const std::string& message, SOCKET clientSocket);
 
         void updateClientName(const std::string& message, SOCKET clientSocket);
         void getSeed(const std::string& message, SOCKET clientSocket);
