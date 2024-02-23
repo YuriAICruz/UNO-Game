@@ -817,6 +817,16 @@ void netGameStateManager::drawCardsCallback(const std::string& msg) const
     commandCallbackResponse(msg);
 }
 
+bool netGameStateManager::canYellUno() const
+{
+    if(isServer)
+    {
+        return gameStateManager::canYellUno();
+    }
+
+    return getCurrentPlayer()->getHand().size() == 2;
+}
+
 void netGameStateManager::commandCallbackResponse(const std::string& msg) const
 {
     if (executeCommandCallback != nullptr)
