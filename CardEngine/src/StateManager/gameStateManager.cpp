@@ -62,6 +62,7 @@ bool gameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
     {
         currentPlayerCardsDraw++;
         player->receiveCard(mainDeck->dequeue());
+        checkMainDeckSize();
     }
 
     return true;
@@ -193,12 +194,23 @@ bool gameStateManager::playerHasValidCardOnHand(turnSystem::IPlayer* player)
     return false;
 }
 
-int gameStateManager::getStartHandSize()
+void gameStateManager::checkMainDeckSize() const
+{
+    if(mainDeck->count() <= 0)
+    {
+        auto topCard = discardDeck->dequeue();
+        discardDeck->moveAllCardsTo(mainDeck.get());
+        discardDeck->enqueue(topCard);
+        mainDeck->shuffle(seed);
+    }
+}
+
+int gameStateManager::getStartHandSize() const
 {
     return handSize;
 }
 
-bool gameStateManager::canYellUno()
+bool gameStateManager::canYellUno() const
 {
     return getCurrentPlayer()->getHand().size() == 2 && !getCurrentPlayer()->isInUnoMode();
 }
@@ -370,6 +382,7 @@ void gameStateManager::endTurn()
     if (getCurrentPlayer()->getHand().size() <= 0)
     {
         endGame();
+        return;
     }
 
     turner->endTurn();
@@ -384,7 +397,7 @@ bool gameStateManager::isActionCardValid(cards::ICard* card, cards::ICard* topCa
 
 bool gameStateManager::isBaseCardValid(cards::ICard* card, cards::ICard* topCard) const
 {
-    return card->sameColor(*topCard) || card->sameNumber(*topCard);
+    return card->sameColor(*topCard) || (card->sameNumber(*topCard) && card->sameType(*topCard));
 }
 
 bool gameStateManager::isCardValid(cards::ICard* card, cards::ICard* topCard) const

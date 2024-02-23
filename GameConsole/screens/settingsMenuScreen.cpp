@@ -159,8 +159,10 @@ namespace screens
                 updatePlayersCount(4, size);
             }
         );
+
         updatePlayersCount(4, players.size());
 
+        setButtonsSelectionColor();
         selectButton(currentButton);
         exitPlayerEditMode();
         rdr->setDirty();
@@ -408,6 +410,7 @@ namespace screens
             playerButton->setCenterText("");
         }
 
+        setButtonsSelectionColor();
         rdr->setDirty();
     }
 
@@ -462,6 +465,19 @@ namespace screens
         buttons[index].action = action;
         buttons[index].actionLeft = actionLeft;
         buttons[index].actionRight = actionRight;
+    }
+
+    void settingsMenuScreen::setButtonsSelectionColor()
+    {
+        char color = 'b';
+        for (auto button : buttons)
+        {
+            (dynamic_cast<elements::card*>(rdr->getElement(button.id)))->setSelectionColor(color);
+        }
+        for (auto playerButton : playersButtons)
+        {
+            (dynamic_cast<elements::card*>(rdr->getElement(playerButton.id)))->setSelectionColor(color);
+        }
     }
 
     template <typename T>

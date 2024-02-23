@@ -430,6 +430,8 @@ TEST(NetGameFlowTests, StartSessionWithDedicatedServer)
     EXPECT_TRUE(clientManagerA->isCurrentPlayer());
     EXPECT_FALSE(clientManagerB->isCurrentPlayer());
 
+    // delay to wait the clientManagerB to be sync with the server data 
+    std::this_thread::sleep_for(std::chrono::milliseconds(STATE_SYNC_DELAY*2));
     auto stc = serverManager->getTopCard();
     auto catc = clientManagerA->getTopCard();
     auto cbtc = clientManagerB->getTopCard();

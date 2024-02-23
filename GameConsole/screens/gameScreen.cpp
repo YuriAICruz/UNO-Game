@@ -184,11 +184,13 @@ namespace screens
             showCurrentPlayerCards(true);
         }
 
+        setButtonsSelectionColor();
         rdr->setDirty();
     }
 
     void gameScreen::hide()
     {
+        currentCardButton = 0;
         cardListButtons.resize(0);
         IScreen::hide();
         popup.hide();
@@ -472,6 +474,11 @@ namespace screens
 
     void gameScreen::onGameEnded(gameEventData data)
     {
+        if (blockInputs)
+        {
+            return;
+        }
+
         events->fireEvent(NAVIGATION_GAME_OVER, transitionData(data.player));
         hide();
     }
@@ -700,11 +707,13 @@ namespace screens
 
         if (hidden)
         {
+            cardElement->setSelectionColor('c');
             cardElement->setColor('w');
             cardElement->setTitleText("");
         }
         else
         {
+            cardElement->setSelectionColor(card->Color());
             cardElement->setColor(card->Color());
         }
 
@@ -829,5 +838,14 @@ namespace screens
     void gameScreen::showWarnings(bool canShow)
     {
         showTurnWarning = canShow;
+    }
+
+    void gameScreen::setButtonsSelectionColor()
+    {
+        char color = 'c';
+        for (auto button : optionButtons)
+        {
+            (dynamic_cast<elements::card*>(rdr->getElement(button.id)))->setSelectionColor(color);
+        }
     }
 }

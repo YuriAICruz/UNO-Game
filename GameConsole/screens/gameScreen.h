@@ -118,6 +118,7 @@ namespace screens
 
 
         void showWarnings(bool canShow);
+        void setButtonsSelectionColor();
         void show() override;
         void hide() override;
         void setGameManager(gameStateManager* gm);

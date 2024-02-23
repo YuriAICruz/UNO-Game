@@ -114,7 +114,7 @@ namespace netcode
         void enterRoom(int id);
         bool hasRoom();
         room* getRoom();
-        room* getUpdatedRoom();
+        room* getUpdatedRoom(bool wait = true);
         int getSeed();
         std::vector<room> getRooms();
         std::string& getRoomName();

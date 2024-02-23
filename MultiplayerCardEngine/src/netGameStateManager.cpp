@@ -159,6 +159,7 @@ void netGameStateManager::trySetGameSettings(const std::string& msg, SOCKET cs)
     decryptGameSettingsAndSetup(msg);
     logger::print("SERVER: Game Settings Updated");
 
+    netServer->broadcastUpdatedRoom(cs);
     netServer->broadcastToRoom(msg, cs);
 }
 
@@ -372,13 +373,19 @@ bool netGameStateManager::tryExecutePlayerAction(int index)
     return future.get();
 }
 
-void netGameStateManager::netPlayerActionCallback(const std::string& msg) const
+void netGameStateManager::netPlayerActionCallback(const std::string& msg)
 {
     std::vector<std::string> data = stringUtils::splitString(msg);
     if (tryExecuteActionCallback != nullptr)
     {
         int r = stoi(data[1]);
         tryExecuteActionCallback->set_value(r > 0);
+
+        // server can respond 2 if the game has ended in this turn
+        if (r == 2)
+        {
+            showClientEndGame(msg);
+        }
     }
 }
 
@@ -390,7 +397,7 @@ void netGameStateManager::broadcastServerStateData(SOCKET cs)
     }
 
     std::tuple<const char*, size_t> data = getState();
-    size_t bufferSize = 
+    size_t bufferSize =
         strlen(CORE_NC_UPDATE_STATE) * sizeof(char) +
         sizeof(char) + //NC_SEPARATOR
         sizeof(size_t) + //state Size
@@ -469,7 +476,14 @@ void netGameStateManager::tryExecuteNetPlayerAction(const std::string& msg, SOCK
     {
         logger::print("player action executed successful");
         broadcastServerStateData(cs);
-        ss << 1;
+        if (running)
+        {
+            ss << 1;
+        }
+        else
+        {
+            ss << 2;
+        }
     }
     else
     {
@@ -689,6 +703,16 @@ bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
 void netGameStateManager::setRoom(netcode::room* room)
 {
     serverRoom = room;
+}
+
+netcode::room* netGameStateManager::getRoom() const
+{
+    if (isServer)
+    {
+        return serverRoom;
+    }
+
+    return netClient->getRoom();
 }
 
 bool netGameStateManager::isInRoom(SOCKET sc) const

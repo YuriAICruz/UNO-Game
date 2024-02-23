@@ -79,7 +79,9 @@ namespace screens
 
         popup.show();
 
+        setButtonsSelectionColor();
         selectButton(currentButton);
+
         rdr->setDirty();
     }
 
@@ -202,7 +204,7 @@ namespace screens
 
     void connectToServerScreen::tryConnectClient()
     {
-        if(netClient->isRunning())
+        if (netClient->isRunning())
         {
             netClient->close();
         }
@@ -219,7 +221,7 @@ namespace screens
             netClient->close();
             return;
         }
-        
+
         events->fireEvent(NAVIGATION_NETWORK_ROOMS, transitionData());
         hide();
     }
@@ -234,5 +236,14 @@ namespace screens
     {
         auto button = static_cast<elements::card*>(rdr->getElement(buttons[index].id));
         button->deselect();
+    }
+
+    void connectToServerScreen::setButtonsSelectionColor()
+    {
+        char color = 'b';
+        for (auto button : buttons)
+        {
+            (dynamic_cast<elements::card*>(rdr->getElement(button.id)))->setSelectionColor(color);
+        }
     }
 }

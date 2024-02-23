@@ -25,7 +25,7 @@ namespace cards
                 return false;
             }
 
-            return sameNumber(other) && sameColor(other);
+            return sameNumber(other) && sameColor(other) && !other.hasAction();
         }
 
         bool hasAction() const override

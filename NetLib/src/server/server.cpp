@@ -198,6 +198,14 @@ namespace netcode
     void server::disconnectClient(SOCKET clientSocket)
     {
         auto client = getClient(clientSocket);
+        if (nullptr == client.get())
+        {
+            logger::print(
+                (logger::getPrinter() << "SERVER: player with socket [" << clientSocket << "] could not be found").
+                str());
+            return;
+        }
+
         auto room = roomManager.getRoom(client.get());
         bool locked = room == nullptr ? false : room->isLocked();
         roomManager.clientDisconnected(client.get());
@@ -248,10 +256,12 @@ namespace netcode
         }
         else
         {
-            std::shared_ptr<clientInfo> client = std::make_shared<clientInfo>(connectionsCount);
+            std::shared_ptr<clientInfo> client = std::make_shared<clientInfo>(id);
             client->connection = &clientSocket;
             clients.insert(std::make_pair(id, client));
         }
+
+        logger::print((logger::getPrinter() << "SERVER: client connected [" << id << "]").str());
 
         if (!running)
         {
@@ -430,11 +440,29 @@ namespace netcode
         std::vector<std::string> data = stringUtils::splitString(message);
         logger::print((logger::printer() << "SERVER: getting room [" << data[1] << "] information").str());
         int id = stoi(data[1]);
+
         std::stringstream ss;
         ss << NC_GET_ROOM << NC_SEPARATOR;
         ss << roomManager.getRoomSerialized(id);
         sendMessage(ss.str(), clientSocket);
+
         logger::print((logger::getPrinter() << "SERVER: sent to client room updated data [" << id << "]").str());
+    }
+
+    void server::broadcastUpdatedRoom(SOCKET clientSocket)
+    {
+        auto room = roomManager.getRoom(getClient(clientSocket).get());
+        logger::print(
+            (logger::printer() << "SERVER: broadcasting updated room data to all clients [" << room->getId() << "]").
+            str());
+        int id = room->getId();
+
+        std::stringstream ss;
+        ss << NC_GET_ROOM << NC_SEPARATOR;
+        ss << roomManager.getRoomSerialized(id);
+        broadcastToRoom(ss.str(), clientSocket);
+
+        logger::print((logger::getPrinter() << "SERVER: sent to all clients in room [" << id << "]").str());
     }
 
     void server::enterRoom(const std::string& message, SOCKET clientSocket)
@@ -460,8 +488,19 @@ namespace netcode
     void server::exitRoom(const std::string& message, SOCKET clientSocket)
     {
         logger::print("SERVER: client exiting room");
+
         auto client = getClient(clientSocket);
-        roomManager.exitRoom(client.get());
+        if (nullptr == client.get())
+        {
+            logger::printError(
+                (logger::getPrinter() << "Could not find client with socket [" << clientSocket << "]").str()
+            );
+        }
+        else
+        {
+            roomManager.exitRoom(client.get());
+        }
+
         sendMessage(NC_EXIT_ROOM, clientSocket);
     }
 
@@ -501,6 +540,7 @@ namespace netcode
         ss << message << NC_COMMAND_END;
         std::string str = ss.str();
         const char* response = str.c_str();
+        logger::print((logger::getPrinter() << "SERVER: message: " << response).str());
         sendMessageRaw(clientSocket, response, strlen(response), 0);
     }
 

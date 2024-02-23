@@ -58,6 +58,7 @@ namespace screens
 
         popup.show();
 
+        setButtonsSelectionColor();
         selectButton(currentButton);
 
         rdr->setDirty();
@@ -77,6 +78,7 @@ namespace screens
         }
         if (popup.isOpen())
         {
+            popup.hidePopup();
             popup.executeActionCancel();
             return;
         }
@@ -90,6 +92,7 @@ namespace screens
         }
         if (popup.isOpen())
         {
+            popup.hidePopup();
             popup.executeActionCancel();
             return;
         }
@@ -103,6 +106,7 @@ namespace screens
         }
         if (popup.isOpen())
         {
+            popup.hidePopup();
             popup.executeActionCancel();
             return;
         }
@@ -124,6 +128,7 @@ namespace screens
         }
         if (popup.isOpen())
         {
+            popup.hidePopup();
             popup.executeActionCancel();
             return;
         }
@@ -141,6 +146,7 @@ namespace screens
         }
         if (popup.isOpen())
         {
+            popup.hidePopup();
             popup.executeActionAccept();
             return;
         }
@@ -156,6 +162,7 @@ namespace screens
         }
         if (popup.isOpen())
         {
+            popup.hidePopup();
             popup.executeActionCancel();
             return;
         }
@@ -258,5 +265,14 @@ namespace screens
         auto button = static_cast<elements::card*>(rdr->getElement(buttons[index].id));
         button->deselect();
         rdr->setDirty();
+    }
+
+    void roomCreationScreen::setButtonsSelectionColor()
+    {
+        char color = 'b';
+        for (auto button : buttons)
+        {
+            (dynamic_cast<elements::card*>(rdr->getElement(button.id)))->setSelectionColor(color);
+        }
     }
 }

@@ -35,6 +35,11 @@ namespace screens
             ""
         );
 
+        if (winnerPlayer != nullptr)
+        {
+            updateWinningPlayerName();
+        }
+
         rdr->setDirty();
     }
 
