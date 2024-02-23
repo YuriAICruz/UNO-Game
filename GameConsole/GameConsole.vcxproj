@@ -76,7 +76,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>"$(SolutionDir)\CardEngine\src"</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>"$(SolutionDir)\CardEngine\src";"$(SolutionDir)\NetLib\src";"$(SolutionDir)\MultiplayerCardEngine\src"</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -91,7 +91,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>"$(SolutionDir)\CardEngine\src"</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>"$(SolutionDir)\CardEngine\src";"$(SolutionDir)\NetLib\src";"$(SolutionDir)\MultiplayerCardEngine\src"</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -106,12 +106,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>"$(SolutionDir)\CardEngine\src"</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>"$(SolutionDir)\CardEngine\src";"$(SolutionDir)\NetLib\src";"$(SolutionDir)\MultiplayerCardEngine\src"</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <PreBuildEvent>
+      <Command>xcopy "$(SolutionDir)\GameConsole\Data" "$(TargetDir)\Data\" /E /Y</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -121,7 +124,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>"$(SolutionDir)\CardEngine\src"</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>"$(SolutionDir)\CardEngine\src";"$(SolutionDir)\NetLib\src";"$(SolutionDir)\MultiplayerCardEngine\src"</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -131,12 +134,81 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="eventIds.h" />
     <ClCompile Include="GameConsole.cpp" />
+    <ClCompile Include="input\inputHandler.cpp" />
+    <ClCompile Include="renderer\elements\card.cpp" />
+    <ClCompile Include="renderer\elements\fileRead.cpp" />
+    <ClCompile Include="renderer\elements\frame.cpp" />
+    <ClCompile Include="renderer\elements\element.cpp" />
+    <ClCompile Include="renderer\elements\frameList.cpp" />
+    <ClCompile Include="renderer\elements\horizontalLayoutGroup.cpp" />
+    <ClCompile Include="renderer\elements\layoutGroup.cpp" />
+    <ClCompile Include="renderer\elements\square.cpp" />
+    <ClCompile Include="renderer\elements\text.cpp" />
+    <ClCompile Include="renderer\renderer.cpp" />
+    <ClCompile Include="renderer\rendererException.cpp" />
+    <ClCompile Include="screens\buttons.cpp" />
+    <ClCompile Include="screens\connectToServerScreen.cpp" />
+    <ClCompile Include="screens\editBox.cpp" />
+    <ClCompile Include="screens\gameOverScreen.cpp" />
+    <ClCompile Include="screens\gameScreen.cpp" />
+    <ClCompile Include="screens\IScreen.cpp" />
+    <ClCompile Include="screens\mainMenuScreen.cpp" />
+    <ClCompile Include="screens\popupWindow.cpp" />
+    <ClCompile Include="screens\roomCreationScreen.cpp" />
+    <ClCompile Include="screens\roomWaitingScreen.cpp" />
+    <ClCompile Include="screens\settingsMenuScreen.cpp" />
+    <ClCompile Include="screens\transitionData.cpp" />
+    <ClCompile Include="wInclude.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CardEngine\CardEngine.vcxproj">
       <Project>{5271d90a-72bb-4b58-861c-7725e0fb7105}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\MultiplayerCardEngine\MultiplayerCardEngine.vcxproj">
+      <Project>{b0f171ff-8a38-47b2-bc48-63052c938a4a}</Project>
+      <Name>MultiplayerCardEngine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NetLib\NetLib.vcxproj">
+      <Project>{251cd7bc-f08a-4018-8387-aaa9fcd42675}</Project>
+      <Name>NetLib</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="input\inputData.h" />
+    <ClInclude Include="input\inputHandler.h" />
+    <ClInclude Include="renderer\bufferData.h" />
+    <ClInclude Include="renderer\elements\card.h" />
+    <ClInclude Include="renderer\elements\fileRead.h" />
+    <ClInclude Include="renderer\elements\frame.h" />
+    <ClInclude Include="renderer\elements\element.h" />
+    <ClInclude Include="renderer\elements\frameList.h" />
+    <ClInclude Include="renderer\elements\horizontalLayoutGroup.h" />
+    <ClInclude Include="renderer\elements\layoutGroup.h" />
+    <ClInclude Include="renderer\elements\square.h" />
+    <ClInclude Include="renderer\elements\text.h" />
+    <ClInclude Include="renderer\renderer.h" />
+    <ClInclude Include="renderer\rendererException.h" />
+    <ClInclude Include="screens\buttons.h" />
+    <ClInclude Include="screens\connectToServerScreen.h" />
+    <ClInclude Include="screens\editBox.h" />
+    <ClInclude Include="screens\gameOverScreen.h" />
+    <ClInclude Include="screens\gameScreen.h" />
+    <ClInclude Include="screens\IScreen.h" />
+    <ClInclude Include="screens\mainMenuScreen.h" />
+    <ClInclude Include="screens\popupWindow.h" />
+    <ClInclude Include="screens\roomCreationScreen.h" />
+    <ClInclude Include="screens\roomWaitingScreen.h" />
+    <ClInclude Include="screens\settingsMenuScreen.h" />
+    <ClInclude Include="screens\transitionData.h" />
+    <ClInclude Include="wInclude.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Data\deck_setup.json" />
+    <Content Include="Data\Game_Over.txt" />
+    <Content Include="Data\Title.txt" />
+    <Content Include="Data\UNO.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

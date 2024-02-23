@@ -1,17 +1,21 @@
 ﻿#pragma once
-#include <vcruntime_typeinfo.h>
+#include <string>
+
 #include "ICard.h"
 #include "../../framework.h"
+#include "ActionTypes/base.h"
 
-namespace Cards
+namespace cards
 {
     class ENGINE_API baseCard : public ICard
     {
     public:
-        explicit baseCard(const int number, const char color)
+        explicit baseCard(const uint8_t id, const int number, const char color)
         {
+            this->id = id;
             this->number = number;
             this->color = color;
+            action = std::make_unique<actions::base>();
         }
 
         bool equal(const ICard& other) const override
@@ -21,7 +25,17 @@ namespace Cards
                 return false;
             }
 
-            return number == other.Number() && color == other.Color();
+            return sameNumber(other) && sameColor(other) && !other.hasAction();
+        }
+
+        bool hasAction() const override
+        {
+            return false;
+        }
+
+        std::string typeName() const override
+        {
+            return "";
         }
     };
 }

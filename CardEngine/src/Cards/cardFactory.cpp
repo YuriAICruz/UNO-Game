@@ -10,18 +10,25 @@
 #include "reverseCard.h"
 #include "skipCard.h"
 
-namespace Cards
+namespace cards
 {
     template <typename Type>
-    ICard* createAndAddInstance(std::vector<std::unique_ptr<ICard>>& instances, int n, char c)
+    ICard* createAndAddInstance(std::vector<std::unique_ptr<ICard>>& instances, uint8_t id, int n, char c)
     {
-        instances.emplace_back(std::make_unique<Type>(n, c));
+        for (auto& c : instances)
+        {
+            if(c->Id() == id)
+            {
+                return c.get();
+            }
+        }
+        instances.emplace_back(std::make_unique<Type>(id, n, c));
         return instances.back().get();
     }
 
     std::vector<std::unique_ptr<ICard>> cardFactory::instances;
 
-    using CreateCardFunction = ICard* (*)(std::vector<std::unique_ptr<ICard>>&, int, char);
+    using CreateCardFunction = ICard* (*)(std::vector<std::unique_ptr<ICard>>&, uint8_t, int, char);
     
     constexpr size_t hash(const char* str) {
         size_t hash = 14695981039346656037ull;
@@ -39,8 +46,8 @@ namespace Cards
         {hash("skip"), &createAndAddInstance<skipCard>}
     };
 
-    ICard* cardFactory::Instantiate(const char* type, int number, char color)
+    ICard* cardFactory::Instantiate(uint8_t id, const char* type, int number, char color)
     {
-        return classes.at(hash(type))(instances, number, color);
+        return classes.at(hash(type))(instances, id, number, color);
     }
 }
