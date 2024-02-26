@@ -1,8 +1,10 @@
 ﻿#include "gtest/gtest.h"
 #include "client/client.h"
+#include "server/room.h"
+#include "server/server.h"
 #include "commands/client/createRoomCmd.h"
 #include "commands/client/enterRoomCmd.h"
-#include "server/server.h"
+#include "commands/client/getRoomCmd.h"
 
 TEST(clientsCmd, enterRoomCmd)
 {
@@ -23,4 +25,8 @@ TEST(clientsCmd, enterRoomCmd)
     netcode::room* r;
     clB->executeCommand<commands::getRoomCmd>(r);
     ASSERT_EQ(r->getName(), roomName);
+
+    clA->close();
+    clB->close();
+    sv->close();
 }

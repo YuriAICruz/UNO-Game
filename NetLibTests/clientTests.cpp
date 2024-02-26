@@ -8,6 +8,7 @@
 #include "commands/client/enterRoomCmd.h"
 #include "commands/client/exitRoomCmd.h"
 #include "commands/client/getRoomsCmd.h"
+#include "commands/client/getRoomCmd.h"
 #include "commands/client/hasRoomCmd.h"
 
 bool running;
