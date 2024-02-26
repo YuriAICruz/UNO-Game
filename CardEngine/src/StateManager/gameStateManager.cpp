@@ -131,7 +131,7 @@ turnSystem::IPlayer* gameStateManager::getPlayer(int i) const
     return turner->getPlayer(i);
 }
 
-turnSystem::IPlayer* gameStateManager::getPlayerFromId(int id) const
+turnSystem::IPlayer* gameStateManager::getPlayerFromId(uint16_t id) const
 {
     return turner->getPlayerFromId(id);
 }
@@ -221,6 +221,11 @@ bool gameStateManager::yellUno()
     events->fireEvent(GAME_UNO, gameEventData());
     getCurrentPlayer()->setUnoMode();
     return true;
+}
+
+int gameStateManager::getCurrentPlayerCardsDraw()
+{
+    return currentPlayerCardsDraw;
 }
 
 std::tuple<const char*, size_t> gameStateManager::getState()

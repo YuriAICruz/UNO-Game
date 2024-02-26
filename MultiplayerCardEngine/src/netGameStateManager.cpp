@@ -153,18 +153,6 @@ void netGameStateManager::createClientCustomCommands()
 {
     std::map<std::string, std::function<void (std::string&)>> commands = {
         {
-            CORE_NC_YELL_UNO, [this](std::string& msg)
-            {
-                unoYellCallback(msg);
-            },
-        },
-        {
-            CORE_NC_DRAW_CARDS, [this](std::string& msg)
-            {
-                drawCardsCallback(msg);
-            },
-        },
-        {
             CORE_NC_GAME_END, [this](std::string& msg)
             {
                 showClientEndGame(msg);
@@ -193,24 +181,6 @@ void netGameStateManager::createClientCustomCommands()
 void netGameStateManager::createServerCustomCommands()
 {
     std::map<std::string, std::function<void (std::string&, SOCKET)>> commands = {
-        {
-            CORE_NC_GAME_SETTINGS, [this](std::string& msg, SOCKET cs)
-            {
-                trySetGameSettings(msg, cs);
-            }
-        },
-        {
-            CORE_NC_YELL_UNO, [this](std::string& msg, SOCKET cs)
-            {
-                tryYellUno(msg, cs);
-            }
-        },
-        {
-            CORE_NC_DRAW_CARDS, [this](std::string& msg, SOCKET cs)
-            {
-                tryDrawCards(msg, cs);
-            }
-        },
         {
             NC_SYNC_VAR, [this](std::string& msg, SOCKET cs)
             {
@@ -425,48 +395,6 @@ bool netGameStateManager::yellUno()
         gameStateManager::yellUno();
         return true;
     }
-
-    if (!isCurrentPlayer())
-    {
-        return false;
-    }
-
-    std::promise<bool> promiseCmd;
-    executeCommandCallback = &promiseCmd;
-    auto futureCmd = promiseCmd.get_future();
-    netClient->sendMessage(CORE_NC_YELL_UNO);
-    futureCmd.wait();
-    executeCommandCallback = nullptr;
-    return futureCmd.get();
-}
-
-void netGameStateManager::tryYellUno(const std::string& msg, SOCKET cs)
-{
-    bool canYell = getCurrentPlayer()->getHand().size() == 2;
-    if (canYell)
-    {
-        gameStateManager::yellUno();
-    }
-    std::stringstream ss;
-    ss << CORE_NC_YELL_UNO << NC_SEPARATOR << (canYell ? "1" : "0");
-    std::string str = ss.str();
-    netServer->broadcastToRoom(str, cs);
-}
-
-void netGameStateManager::unoYellCallback(const std::string& msg)
-{
-    auto data = stringUtils::splitString(msg);
-
-    bool canYell = data[1] == "1";
-    if (executeCommandCallback != nullptr)
-    {
-        executeCommandCallback->set_value(canYell);
-    }
-
-    if (canYell)
-    {
-        gameStateManager::yellUno();
-    }
 }
 
 bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
@@ -476,28 +404,6 @@ bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
         gameStateManager::makePlayerDraw(player, count);
         return true;
     }
-
-    if (!isCurrentPlayer())
-    {
-        return false;
-    }
-
-    std::promise<bool> promiseCmd;
-
-    executeCommandCallback = &promiseCmd;
-
-    auto futureCmd = promiseCmd.get_future();
-
-    std::stringstream ss;
-    ss << CORE_NC_DRAW_CARDS << NC_SEPARATOR << player->Id() << NC_SEPARATOR << count;
-    std::string str = ss.str();
-    netClient->sendMessage(str.c_str());
-
-    futureCmd.wait();
-
-    executeCommandCallback = nullptr;
-
-    return futureCmd.get();
 }
 
 void netGameStateManager::setRoom(netcode::room* room)
@@ -574,37 +480,6 @@ bool netGameStateManager::isInRoom(SOCKET sc) const
     return serverRoom->hasClientConnection(sc);
 }
 
-void netGameStateManager::tryDrawCards(const std::string& msg, SOCKET cs)
-{
-    auto data = stringUtils::splitString(msg);
-
-    bool canDraw = canDrawCard();
-    logger::print(
-        (logger::getPrinter() << "player draw cards : " << (canDraw ? "true" : "false") << " drawn = [" <<
-            currentPlayerCardsDraw << "]").
-        str());
-    if (canDraw)
-    {
-        auto id = stoi(data[1]);
-        auto amount = stoi(data[2]);
-
-        gameStateManager::makePlayerDraw(getPlayerFromId(id), amount);
-    }
-
-    std::stringstream ss;
-    ss << CORE_NC_DRAW_CARDS << NC_SEPARATOR << (canDraw ? 1 : 0);
-    std::string str = ss.str();
-    const char* resonse = str.c_str();
-    send(cs, resonse, strlen(resonse), 0);
-
-    broadcastServerStateData(cs);
-}
-
-void netGameStateManager::drawCardsCallback(const std::string& msg) const
-{
-    commandCallbackResponse(msg);
-}
-
 bool netGameStateManager::canYellUno() const
 {
     if (isServer)
@@ -613,8 +488,4 @@ bool netGameStateManager::canYellUno() const
     }
 
     return getCurrentPlayer()->getHand().size() == 2;
-}
-
-void netGameStateManager::commandCallbackResponse(const std::string& msg) const
-{
 }

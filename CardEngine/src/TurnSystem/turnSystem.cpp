@@ -73,7 +73,7 @@ namespace turnSystem
         return players[i].get();
     }
 
-    IPlayer* turnSystem::getPlayerFromId(int id) const
+    IPlayer* turnSystem::getPlayerFromId(uint16_t id) const
     {
         for (auto player : players)
         {

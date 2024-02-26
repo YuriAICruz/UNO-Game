@@ -52,8 +52,6 @@ public:
     void decryptGameSettingsAndSetup(const std::string& msg);
     void decryptGameSettingsAndSetup(const std::vector<std::string>& data);
 
-    void trySetGameSettings(const std::string& msg, SOCKET cs);
-    void gameSettingsCallback(const std::string& msg);
     void startGame() override;
     void createClientCustomCommands();
     bool isCurrentPlayer();
@@ -75,6 +73,7 @@ public:
     int getSyncVar(int id) const;
     void trySyncVar(const std::string& msg, SOCKET cs);
     void syncVarCallback(const std::string& msg);
+    bool canYellUno() const override;
 
     template <typename T, typename... Args>
     bool NETCODE_API executeGameCommand(Args&&... args)
@@ -97,17 +96,4 @@ private:
     bool isInRoom(SOCKET sc) const;
     void onClientReconnected(netcode::clientInfo* client);
     void showClientEndGame(const std::string& msg);
-
-    void trySkipTurn(const std::string& msg, SOCKET cs);
-    void commandCallbackResponse(const std::string& msg) const;
-    void skipTurnCallback(const std::string& msg);
-
-    void tryYellUno(const std::string& msg, SOCKET cs);
-    void unoYellCallback(const std::string& msg);
-
-    void tryDrawCards(const std::string& msg, SOCKET cs);
-    void drawCardsCallback(const std::string& msg) const;
-
-public:
-    bool canYellUno() const override;
 };
