@@ -8,7 +8,6 @@ namespace commands
     bool setReadyCmd::execute()
     {
         bool result = netClient->executeCommand<sendRoomReadyStatusCmd>(room, true);
-        pending = false;
 
         if (result && netClient->onRoomReady != nullptr)
         {
