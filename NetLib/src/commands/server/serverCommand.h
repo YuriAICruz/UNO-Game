@@ -3,21 +3,28 @@
 
 #include "../command.h"
 #include "../../winSockImp.h"
-#include "../../server/server.h"
+
+namespace netcode
+{
+    class server;
+    class roomManager;
+}
 
 namespace commands
 {
-    class serverCommand : command
+    class serverCommand : public command
     {
     protected:
         netcode::server* netServer;
+        netcode::roomManager* manager;
 
     public:
-        serverCommand(netcode::server* server) : netServer(server)
+        serverCommand(const char* key, netcode::roomManager* manager, netcode::server* server) :
+            command(key), netServer(server), manager(manager)
         {
         }
 
         virtual bool execute() = 0;
-        virtual void callback(std::string& message, SOCKET clientConnection) = 0;
+        virtual bool callback(std::vector<std::string>& data, SOCKET clientSocket) = 0;
     };
 }
