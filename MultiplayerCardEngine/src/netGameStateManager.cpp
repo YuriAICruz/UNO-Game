@@ -8,6 +8,7 @@
 #include "logger.h"
 #include "netCommands.h"
 #include "stringUtils.h"
+#include "commands/client/gameSettingsCmd.h"
 #include "commands/server/lockRoomServerCmd.h"
 #include "StateManager/gameEventData.h"
 
@@ -61,20 +62,19 @@ netGameStateManager::~netGameStateManager()
     }
 }
 
-void netGameStateManager::setupGame(netcode::room* room, int handSize, std::string deckConfigFilePath,
-                                    size_t seed)
+void netGameStateManager::setupGame(netcode::room* room, int handSize, std::string deckConfigFilePath, size_t seed)
 {
     checkIsServer();
     gameStateManager::setupGame(room->getClientsNames(), room->getClientsIds(), handSize, deckConfigFilePath, seed);
-    sendGameSettings(deckConfigFilePath);
+    executeGameCommand<commands::gameSettingsCmd>(deckConfigFilePath);
 }
 
-void netGameStateManager::setupGame(std::vector<std::string>& players, int handSize, std::string deckConfigFilePath,
-                                    size_t seed)
+void netGameStateManager::setupGame(
+    std::vector<std::string>& players, int handSize, std::string deckConfigFilePath, size_t seed)
 {
     checkIsServer();
     gameStateManager::setupGame(players, handSize, deckConfigFilePath, seed);
-    sendGameSettings(deckConfigFilePath);
+    executeGameCommand<commands::gameSettingsCmd>(deckConfigFilePath);
 }
 
 void netGameStateManager::setupGame(std::vector<std::string> players, std::vector<uint16_t> playersIds, int handSize,
@@ -82,29 +82,15 @@ void netGameStateManager::setupGame(std::vector<std::string> players, std::vecto
 {
     checkIsServer();
     gameStateManager::setupGame(players, playersIds, handSize, deckConfigFilePath, seed);
-    sendGameSettings(deckConfigFilePath);
+    executeGameCommand<commands::gameSettingsCmd>(deckConfigFilePath);
 }
 
-void netGameStateManager::sendGameSettings(std::string path)
-{
-    if (!isServer && !running)
-    {
-        std::promise<bool> promise;
-        trySetGameSettingsCallback = &promise;
-        auto future = promise.get_future();
-
-        std::string str = encryptGameSettings(path);
-        netClient->sendMessage(str.c_str());
-        future.wait();
-        trySetGameSettingsCallback = nullptr;
-    }
-}
-
-std::string netGameStateManager::encryptGameSettings(std::string path) const
+std::string netGameStateManager::encryptGameSettings(const std::string& path, const std::string& cmdKey) const
 {
     std::stringstream ss;
+
     int size = turner->playersCount();
-    ss << CORE_NC_GAME_SETTINGS << NC_SEPARATOR;
+    ss << cmdKey << NC_SEPARATOR;
     ss << static_cast<int>(handSize) << NC_SEPARATOR;
     ss << path << NC_SEPARATOR;
     ss << std::to_string(seed) << NC_SEPARATOR;
@@ -119,13 +105,17 @@ std::string netGameStateManager::encryptGameSettings(std::string path) const
         ss << id;
         i++;
     }
+
     return ss.str();
 }
 
 void netGameStateManager::decryptGameSettingsAndSetup(const std::string& msg)
 {
-    auto data = stringUtils::splitString(msg);
+    decryptGameSettingsAndSetup(stringUtils::splitString(msg));
+}
 
+void netGameStateManager::decryptGameSettingsAndSetup(const std::vector<std::string>& data)
+{
     int hand = std::stoi(data[1]);
     std::string path = data[2];
     size_t seed = std::stoull(data[3]);
@@ -151,28 +141,7 @@ void netGameStateManager::decryptGameSettingsAndSetup(const std::string& msg)
         }
     }
 
-
     gameStateManager::setupGame(names, ids, hand, path, seed);
-}
-
-void netGameStateManager::trySetGameSettings(const std::string& msg, SOCKET cs)
-{
-    logger::print("SERVER: Updating Game Settings");
-    decryptGameSettingsAndSetup(msg);
-    logger::print("SERVER: Game Settings Updated");
-
-    netServer->broadcastUpdatedRoom(cs);
-    netServer->broadcastToRoom(msg, cs);
-}
-
-void netGameStateManager::gameSettingsCallback(const std::string& msg)
-{
-    decryptGameSettingsAndSetup(msg);
-
-    if (trySetGameSettingsCallback != nullptr)
-    {
-        trySetGameSettingsCallback->set_value(true);
-    }
 }
 
 void netGameStateManager::startGame()
@@ -182,12 +151,6 @@ void netGameStateManager::startGame()
 void netGameStateManager::createClientCustomCommands()
 {
     std::map<std::string, std::function<void (std::string&)>> commands = {
-        {
-            CORE_NC_GAME_SETTINGS, [this](std::string& msg)
-            {
-                gameSettingsCallback(msg);
-            },
-        },
         {
             CORE_NC_SKIP_TURN, [this](std::string& msg)
             {

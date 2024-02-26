@@ -47,10 +47,11 @@ public:
         int handSize,
         std::string deckConfigFilePath,
         size_t seed) override;
-    std::string encryptGameSettings(std::string path) const;
 
-    void sendGameSettings(std::string path);
+    std::string encryptGameSettings(const std::string& path, const std::string& cmdKey) const;
     void decryptGameSettingsAndSetup(const std::string& msg);
+    void decryptGameSettingsAndSetup(const std::vector<std::string>& data);
+
     void trySetGameSettings(const std::string& msg, SOCKET cs);
     void gameSettingsCallback(const std::string& msg);
     void startGame() override;
