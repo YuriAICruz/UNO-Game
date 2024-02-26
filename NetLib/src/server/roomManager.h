@@ -10,6 +10,7 @@ namespace netcode
     {
     private:
         std::map<int, room> rooms;
+        uint16_t count = 0;
 
     public:
         void createRoom(int id, std::string roomName);
@@ -17,7 +18,8 @@ namespace netcode
         room* getRoom(clientInfo* client);
         void exitRoom(clientInfo* client);
         bool enterRoom(int id, const std::shared_ptr<clientInfo>& client);
-        std::string listRooms() const;
+        uint16_t roomsCount() const;
+        std::string listRooms(const std::string& cmdKey) const;
         std::string getRoomSerialized(int id);
         void clientDisconnected(clientInfo* client);
         bool roomClientsAreReady(int roomId);

@@ -6,12 +6,29 @@
 #include "../logger.h"
 #include "../serverCommands.h"
 #include "../stringUtils.h"
+#include "../commands/server/createRoomServerCmd.h"
+#include "../commands/server/enterRoomServerCmd.h"
+#include "../commands/server/exitRoomServerCmd.h"
+#include "../commands/server/getRoomServerCmd.h"
+#include "../commands/server/getRoomsServerCmd.h"
+#include "../commands/server/getSeedServerCmd.h"
+#include "../commands/server/setSeedServerCmd.h"
+#include "../commands/server/setNameServerCmd.h"
+#include "../commands/server/updateRoomStatusServerCmd.h"
 
 namespace netcode
 {
     server::server()
     {
+        executeServerCommand<commands::createRoomServerCmd>();
         executeServerCommand<commands::enterRoomServerCmd>();
+        executeServerCommand<commands::exitRoomServerCmd>();
+        executeServerCommand<commands::getRoomServerCmd>();
+        executeServerCommand<commands::getRoomsServerCmd>();
+        executeServerCommand<commands::getSeedServerCmd>();
+        executeServerCommand<commands::setSeedServerCmd>();
+        executeServerCommand<commands::setNameServerCmd>();
+        executeServerCommand<commands::updateRoomStatusServerCmd>();
     }
 
     int server::start(int port)
@@ -138,11 +155,6 @@ namespace netcode
         initializing = false;
         running = false;
         return 0;
-    }
-
-    room* server::getRoom(int id)
-    {
-        return roomManager.getRoom(id);
     }
 
     void server::lockRoom(SOCKET cs)
@@ -318,10 +330,6 @@ namespace netcode
             {
                 std::vector<std::string> data = stringUtils::splitString(command);
                 callbackPendingCommands(data[0], data, clientSocket);
-                if (containsCommand(data[0]))
-                {
-                    commands[data[0]](command, clientSocket);
-                }
 
                 if (containsCustomCommand(data[0]))
                 {
@@ -347,13 +355,6 @@ namespace netcode
 
         logger::print((logger::getPrinter() << "SERVER: closing client connection [" << clientSocket << "]").str());
         disconnectClient(clientSocket);
-    }
-
-    bool server::containsCommand(const std::string& command)
-    {
-        auto it = commands.find(command);
-
-        return it != commands.end();
     }
 
     bool server::containsCustomCommand(const std::string& command)
@@ -435,37 +436,6 @@ namespace netcode
         return nullptr;
     }
 
-    void server::createRoom(const std::string& message, SOCKET clientSocket)
-    {
-        std::vector<std::string> data = stringUtils::splitString(message);
-        logger::print((logger::printer() << "SERVER: creating room [" << data[1] << "]").str());
-
-        std::string roomName = data[1];
-        int id = roomsCount;
-        roomsCount++;
-        roomManager.createRoom(id, roomName);
-        roomManager.enterRoom(id, getClient(clientSocket));
-
-        std::stringstream ss;
-        ss << NC_CREATE_ROOM << NC_SEPARATOR;
-        ss << roomManager.getRoomSerialized(id);
-        sendMessage(ss.str(), clientSocket);
-
-        logger::print((logger::getPrinter() << "SERVER: created room with id" << id << "").str());
-
-        if (onRoomCreated != nullptr)
-        {
-            onRoomCreated(roomManager.getRoom(id));
-        }
-    }
-
-    void server::listRoom(const std::string& message, SOCKET clientSocket)
-    {
-        logger::print("SERVER: listing rooms");
-        std::string str = roomManager.listRooms();
-        sendMessage(str, clientSocket);
-    }
-
     void server::getRoom(const std::string& message, SOCKET clientSocket)
     {
         std::vector<std::string> data = stringUtils::splitString(message);
@@ -494,83 +464,6 @@ namespace netcode
         broadcastToRoom(ss.str(), clientSocket);
 
         logger::print((logger::getPrinter() << "SERVER: sent to all clients in room [" << id << "]").str());
-    }
-
-    void server::exitRoom(const std::string& message, SOCKET clientSocket)
-    {
-        logger::print("SERVER: client exiting room");
-
-        auto client = getClient(clientSocket);
-        if (nullptr == client.get())
-        {
-            logger::printError(
-                (logger::getPrinter() << "Could not find client with socket [" << clientSocket << "]").str()
-            );
-        }
-        else
-        {
-            roomManager.exitRoom(client.get());
-        }
-
-        sendMessage(NC_EXIT_ROOM, clientSocket);
-    }
-
-    void server::updateRoomStatus(const std::string& message, SOCKET clientSocket)
-    {
-        auto data = stringUtils::splitString(message);
-        bool ready = data[1] == "1";
-
-        std::stringstream ss;
-        ss << NC_ROOM_READY_STATUS << NC_SEPARATOR;
-
-        auto client = getClient(clientSocket).get();
-
-        auto room = roomManager.getRoom(client);
-        if (room == nullptr || room->isLocked())
-        {
-            ss << 0;
-            broadcastToRoom(ss.str(), clientSocket);
-            return;
-        }
-
-        client->ready = ready;
-
-        ss << 1;
-        broadcastToRoom(ss.str(), clientSocket);
-
-        if (roomManager.roomClientsAreReady(room->getId()))
-        {
-            broadcastToRoom(NC_ROOM_ALL_READY, clientSocket);
-        }
-        else
-        {
-            broadcastToRoom(NC_ROOM_NOT_READY, clientSocket);
-        }
-    }
-
-    void server::updateClientName(const std::string& message, SOCKET clientSocket)
-    {
-        std::vector<std::string> data = stringUtils::splitString(message);
-        logger::print("SERVER: updating client name");
-        auto client = getClient(clientSocket);
-        client->name = data[1];
-        sendMessage(NC_SET_NAME, clientSocket);
-    }
-
-    void server::getSeed(const std::string& message, SOCKET clientSocket)
-    {
-        logger::print("SERVER: getting seed");
-        std::stringstream ss;
-        ss << NC_GET_SEED << NC_SEPARATOR << seed;
-        std::string str = ss.str();
-        const char* responseData = str.c_str();
-        sendMessage(responseData, clientSocket);
-    }
-
-    void server::setSeed(const std::string& message, SOCKET clientSocket)
-    {
-        std::vector<std::string> data = stringUtils::splitString(message);
-        this->seed = std::stoull(data[1]);
     }
 
     bool server::sendMessage(std::string message, SOCKET clientSocket) const

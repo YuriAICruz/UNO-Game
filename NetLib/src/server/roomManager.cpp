@@ -9,6 +9,7 @@ namespace netcode
     void roomManager::createRoom(int id, std::string roomName)
     {
         auto r = room(id, roomName);
+        count++;
         rooms.insert(std::make_pair(id, r));
     }
 
@@ -39,7 +40,7 @@ namespace netcode
 
     void roomManager::exitRoom(clientInfo* client)
     {
-        if(client == nullptr)
+        if (client == nullptr)
         {
             logger::printError("null client, can't exit a null client");
             return;
@@ -58,10 +59,15 @@ namespace netcode
         return rooms[id].addClient(client);
     }
 
-    std::string roomManager::listRooms() const
+    uint16_t roomManager::roomsCount() const
+    {
+        return count;
+    }
+
+    std::string roomManager::listRooms(const std::string& cmdKey) const
     {
         std::stringstream ss;
-        ss << NC_LIST_ROOMS << NC_SEPARATOR << rooms.size() << NC_SEPARATOR;
+        ss << cmdKey << NC_SEPARATOR << rooms.size() << NC_SEPARATOR;
 
         int i = 0;
         for (auto pair : rooms)
@@ -85,7 +91,7 @@ namespace netcode
     void roomManager::clientDisconnected(clientInfo* client)
     {
         auto room = getRoom(client);
-        if(room == nullptr)
+        if (room == nullptr)
         {
             return;
         }
@@ -97,7 +103,7 @@ namespace netcode
         room* room = getRoom(roomId);
         for (auto client : room->clients())
         {
-            if(!client->ready)
+            if (!client->ready)
             {
                 return false;
             }
