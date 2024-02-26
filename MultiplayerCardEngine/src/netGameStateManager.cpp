@@ -224,12 +224,6 @@ void netGameStateManager::createClientCustomCommands()
 {
     std::map<std::string, std::function<void (std::string&)>> commands = {
         {
-            CORE_NC_PLAYCARD, [this](std::string& msg)
-            {
-                netPlayerActionCallback(msg);
-            },
-        },
-        {
             CORE_NC_GAME_START, [this](std::string& msg)
             {
                 gameStartCallback(msg);
@@ -289,12 +283,6 @@ void netGameStateManager::createServerCustomCommands()
 {
     std::map<std::string, std::function<void (std::string&, SOCKET)>> commands = {
         {
-            CORE_NC_PLAYCARD, [this](std::string& msg, SOCKET cs)
-            {
-                tryExecuteNetPlayerAction(msg, cs);
-            }
-        },
-        {
             CORE_NC_GAME_START, [this](std::string& msg, SOCKET cs)
             {
                 tryStartGame(msg, cs);
@@ -351,6 +339,11 @@ turnSystem::IPlayer* netGameStateManager::getLocalPlayer() const
 
 bool netGameStateManager::tryExecutePlayerAction(cards::ICard* card)
 {
+    if (isServer)
+    {
+        return gameStateManager::tryExecutePlayerAction(card);
+    }
+
     throw std::exception("passing card unsupported, pass index instead");
 }
 
@@ -359,47 +352,6 @@ void netGameStateManager::checkIsServer() const
     if (isServer && !isHost)
     {
         throw std::exception("invalid action, server can't execute this");
-    }
-}
-
-bool netGameStateManager::tryExecutePlayerAction(int index)
-{
-    checkIsServer();
-
-    if (!isCurrentPlayer())
-    {
-        return false;
-    }
-
-    if (tryExecuteActionCallback != nullptr)
-    {
-        tryExecuteActionCallback->get_future().wait();
-    }
-    std::promise<bool> promise;
-    tryExecuteActionCallback = &promise;
-    auto future = promise.get_future();
-    std::stringstream ss;
-    ss << CORE_NC_PLAYCARD << NC_SEPARATOR << index;
-    std::string str = ss.str();
-    netClient->sendMessage(str.c_str());
-    future.wait();
-    tryExecuteActionCallback = nullptr;
-    return future.get();
-}
-
-void netGameStateManager::netPlayerActionCallback(const std::string& msg)
-{
-    std::vector<std::string> data = stringUtils::splitString(msg);
-    if (tryExecuteActionCallback != nullptr)
-    {
-        int r = stoi(data[1]);
-        tryExecuteActionCallback->set_value(r > 0);
-
-        // server can respond 2 if the game has ended in this turn
-        if (r == 2)
-        {
-            showClientEndGame(msg);
-        }
     }
 }
 
@@ -473,41 +425,6 @@ void netGameStateManager::encryptStateBuffer(std::tuple<const char*, size_t> dat
     std::memcpy(ptr, std::get<0>(data), std::get<1>(data));
     ptr += std::get<1>(data);
     std::memcpy(ptr, &endCmd, sizeof(char));
-}
-
-void netGameStateManager::tryExecuteNetPlayerAction(const std::string& msg, SOCKET cs)
-{
-    logger::print("received player action");
-    std::vector<std::string> data = stringUtils::splitString(msg);
-    int index = std::stoi(data[1]);
-    turnSystem::IPlayer* currentPlayer = getCurrentPlayer();
-
-    std::stringstream ss;
-    ss << CORE_NC_PLAYCARD << NC_SEPARATOR;
-
-    auto card = currentPlayer->pickCard(index);
-    if (gameStateManager::tryExecutePlayerAction(card))
-    {
-        logger::print("player action executed successful");
-        broadcastServerStateData(cs);
-        if (running)
-        {
-            ss << 1;
-        }
-        else
-        {
-            ss << 2;
-        }
-    }
-    else
-    {
-        logger::print("player action not executed");
-        currentPlayer->receiveCard(card);
-        ss << 0;
-    }
-    std::string str = ss.str();
-    const char* response = str.c_str();
-    send(cs, response, strlen(response), 0);
 }
 
 void netGameStateManager::setStateNet(char* buffer, size_t size)

@@ -159,6 +159,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="src\commands\client\executePlayerActionCmd.cpp" />
+    <ClCompile Include="src\commands\server\executePlayerActionServerCmd.cpp" />
     <ClCompile Include="src\netGameStateManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -173,6 +175,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
+    <ClInclude Include="src\commands\client\executePlayerActionCmd.h" />
+    <ClInclude Include="src\commands\server\executePlayerActionServerCmd.h" />
     <ClInclude Include="src\gameVarIds.h" />
     <ClInclude Include="src\netGameStateManager.h" />
   </ItemGroup>
