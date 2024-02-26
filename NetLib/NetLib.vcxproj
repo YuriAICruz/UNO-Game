@@ -177,9 +177,11 @@
     <ClCompile Include="src\commands\server\getRoomServerCmd.cpp" />
     <ClCompile Include="src\commands\server\getSeedServerCmd.cpp" />
     <ClCompile Include="src\commands\server\getRoomsServerCmd.cpp" />
+    <ClCompile Include="src\commands\server\lockRoomServerCmd.cpp" />
     <ClCompile Include="src\commands\server\serverCommand.cpp" />
     <ClCompile Include="src\commands\server\setNameServerCmd.cpp" />
     <ClCompile Include="src\commands\server\setSeedServerCmd.cpp" />
+    <ClCompile Include="src\commands\server\unlockRoomServerCmd.cpp" />
     <ClCompile Include="src\commands\server\updateRoomStatusServerCmd.cpp" />
     <ClCompile Include="src\logger.cpp" />
     <ClCompile Include="src\server\clientInfo.cpp" />
@@ -212,9 +214,11 @@
     <ClInclude Include="src\commands\server\getRoomServerCmd.h" />
     <ClInclude Include="src\commands\server\getSeedServerCmd.h" />
     <ClInclude Include="src\commands\server\getRoomsServerCmd.h" />
+    <ClInclude Include="src\commands\server\lockRoomServerCmd.h" />
     <ClInclude Include="src\commands\server\serverCommand.h" />
     <ClInclude Include="src\commands\server\setNameServerCmd.h" />
     <ClInclude Include="src\commands\server\setSeedServerCmd.h" />
+    <ClInclude Include="src\commands\server\unlockRoomServerCmd.h" />
     <ClInclude Include="src\commands\server\updateRoomStatusServerCmd.h" />
     <ClInclude Include="src\logger.h" />
     <ClInclude Include="src\serverCommands.h" />

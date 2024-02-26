@@ -8,6 +8,7 @@
 #include "logger.h"
 #include "netCommands.h"
 #include "stringUtils.h"
+#include "commands/server/lockRoomServerCmd.h"
 #include "StateManager/gameEventData.h"
 
 #define STATE_SYNC_DELAY 20
@@ -140,7 +141,8 @@ void netGameStateManager::decryptGameSettingsAndSetup(const std::string& msg)
 
         if (!isServer || isHost)
         {
-            auto room = netClient->getRoom();
+            netcode::room* room;
+            netClient->executeCommand<commands::getRoomCmd>(room);
             names[i] = room->getClientName(ids[i]);
         }
         else
@@ -196,7 +198,7 @@ void netGameStateManager::tryStartGame(const std::string& msg, SOCKET cs)
     {
         gameStateManager::startGame();
     }
-    netServer->lockRoom(cs);
+    netServer->executeServerCommand<commands::lockRoomServerCmd>(cs);
     netServer->broadcastToRoom(CORE_NC_GAME_START, cs);
     broadcastServerStateData(cs);
 }
@@ -726,7 +728,9 @@ netcode::room* netGameStateManager::getRoom() const
         return serverRoom;
     }
 
-    return netClient->getRoom();
+    netcode::room* room;
+    netClient->executeCommand<commands::getRoomCmd>(room);
+    return room;
 }
 
 void netGameStateManager::setSyncVar(int id, int value)
@@ -819,7 +823,7 @@ void netGameStateManager::drawCardsCallback(const std::string& msg) const
 
 bool netGameStateManager::canYellUno() const
 {
-    if(isServer)
+    if (isServer)
     {
         return gameStateManager::canYellUno();
     }

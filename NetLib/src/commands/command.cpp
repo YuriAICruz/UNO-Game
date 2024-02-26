@@ -8,13 +8,6 @@ namespace commands
         return promise.get_future();
     }
 
-    std::future<bool> command::createPromise()
-    {
-        std::promise<bool> promise;
-        callbackResponse = &promise;
-        return promise.get_future();
-    }
-
     bool command::waitAndReturnPromise(std::future<bool>& future)
     {
         future.wait();

@@ -157,16 +157,6 @@ namespace netcode
         return 0;
     }
 
-    void server::lockRoom(SOCKET cs)
-    {
-        roomManager.getRoom(getClient(cs).get())->lock();
-    }
-
-    void server::unlockRoom(SOCKET cs)
-    {
-        roomManager.getRoom(getClient(cs).get())->unlock();
-    }
-
     bool server::isRoomReady(int roomId)
     {
         return roomManager.roomClientsAreReady(roomId);
