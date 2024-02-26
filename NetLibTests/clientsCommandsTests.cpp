@@ -16,14 +16,11 @@ TEST(clientsCmd, enterRoomCmd)
     clB->start();
     clB->connectToServer();
 
-    while (!clA->isConnected() || !clB->isConnected())
-    {
-        
-    }
-
     std::string roomName = "test";
     clA->executeCommand<commands::createRoomCmd>(roomName);
     clB->executeCommand<commands::enterRoomCmd>(0);
 
-    ASSERT_EQ(clB->getRoom()->getName(), roomName);
+    netcode::room* r;
+    clB->executeCommand<commands::getRoomCmd>(r);
+    ASSERT_EQ(r->getName(), roomName);
 }

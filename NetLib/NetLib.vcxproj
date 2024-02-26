@@ -232,6 +232,15 @@
     </ClCompile>
     <ClCompile Include="src\commands\client\createRoomCmd.cpp" />
     <ClCompile Include="src\commands\client\enterRoomCmd.cpp" />
+    <ClCompile Include="src\commands\client\exitRoomCmd.cpp" />
+    <ClCompile Include="src\commands\client\getRoomCmd.cpp" />
+    <ClCompile Include="src\commands\client\getRoomsCmd.cpp" />
+    <ClCompile Include="src\commands\client\getSeedCmd.cpp" />
+    <ClCompile Include="src\commands\client\getUpdatedRoomCmd.cpp" />
+    <ClCompile Include="src\commands\client\hasRoomCmd.cpp" />
+    <ClCompile Include="src\commands\client\sendRoomReadyStatusCmd.cpp" />
+    <ClCompile Include="src\commands\client\setNotReadyCmd.cpp" />
+    <ClCompile Include="src\commands\client\setReadyCmd.cpp" />
     <ClCompile Include="src\commands\command.cpp" />
     <ClCompile Include="src\commands\server\serverCommand.cpp">
       <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
@@ -320,6 +329,15 @@
     <ClInclude Include="src\commands\client\clientCommand.h" />
     <ClInclude Include="src\commands\client\createRoomCmd.h" />
     <ClInclude Include="src\commands\client\enterRoomCmd.h" />
+    <ClInclude Include="src\commands\client\exitRoomCmd.h" />
+    <ClInclude Include="src\commands\client\getRoomCmd.h" />
+    <ClInclude Include="src\commands\client\getRoomsCmd.h" />
+    <ClInclude Include="src\commands\client\getSeedCmd.h" />
+    <ClInclude Include="src\commands\client\getUpdatedRoomCmd.h" />
+    <ClInclude Include="src\commands\client\hasRoomCmd.h" />
+    <ClInclude Include="src\commands\client\sendRoomReadyStatusCmd.h" />
+    <ClInclude Include="src\commands\client\setNotReadyCmd.h" />
+    <ClInclude Include="src\commands\client\setReadyCmd.h" />
     <ClInclude Include="src\commands\command.h" />
     <ClInclude Include="src\commands\server\serverCommand.h" />
     <ClInclude Include="src\logger.h" />

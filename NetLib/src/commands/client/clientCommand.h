@@ -25,15 +25,25 @@ namespace commands
         virtual bool execute() = 0;
         virtual void callback(const std::string& message) = 0;
 
+        bool isPending() const
+        {
+            return pending;
+        }
+
         bool isPending(const std::string& key)
         {
-            if(!pending)
+            if (!pending)
             {
                 return false;
             }
 
-            pending = false;
-            return std::strcmp(cmdKey, key.c_str()) == 0;
+            if (std::strcmp(cmdKey, key.c_str()) == 0)
+            {
+                pending = false;
+                return true;
+            }
+
+            return false;
         }
     };
 }

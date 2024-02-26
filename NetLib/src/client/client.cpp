@@ -13,6 +13,11 @@ namespace netcode
     void client::setRoom(const room& room)
     {
         currentRoom = room;
+
+        if (onRoomUpdate != nullptr)
+        {
+            onRoomUpdate(&currentRoom);
+        }
     }
 
     int client::initializeWinsock()
@@ -45,7 +50,7 @@ namespace netcode
     {
         for (const std::unique_ptr<commands::clientCommand>& cmd : commandsHistory)
         {
-            if(cmd->isPending(key))
+            if (cmd->isPending(key))
             {
                 cmd->callback(message);
             }
@@ -250,177 +255,6 @@ namespace netcode
         return 0;
     }
 
-    room* client::createRoom(const std::string& roomName)
-    {
-        std::promise<room*> promise;
-        roomCallback = &promise;
-        auto future = promise.get_future();
-        std::stringstream ss;
-        ss << NC_CREATE_ROOM << NC_SEPARATOR << roomName;
-        std::string str = ss.str();
-        sendMessage(ss.str().c_str());
-        future.wait();
-        roomCallback = nullptr;
-        return future.get();
-    }
-
-    void client::exitRoom()
-    {
-        std::promise<room*> promise;
-        roomCallback = &promise;
-        auto future = promise.get_future();
-        sendMessage(NC_EXIT_ROOM);
-        future.wait();
-        roomCallback = nullptr;
-    }
-
-    void client::enterRoom(int id)
-    {
-        std::promise<room*> promise;
-        roomCallback = &promise;
-        auto future = promise.get_future();
-        std::stringstream ss;
-        ss << NC_ENTER_ROOM << NC_SEPARATOR << id;
-        std::string str = ss.str();
-        sendMessage(ss.str().c_str());
-        future.wait();
-        roomCallback = nullptr;
-    }
-
-    bool client::hasRoom()
-    {
-        return currentRoom.count() > 0;
-    }
-
-    bool client::setReady()
-    {
-        if (!hasId)
-        {
-            return false;
-        }
-
-        return sendRoomReadyStatus(true);
-    }
-
-    bool client::setNotReady()
-    {
-        if (!hasId)
-        {
-            return false;
-        }
-
-        return sendRoomReadyStatus(false);
-    }
-
-    bool client::sendRoomReadyStatus(bool ready)
-    {
-        std::promise<bool> promise;
-        roomReadyCallback = &promise;
-        auto future = promise.get_future();
-
-        bool lastState = currentRoom.isClientReady();
-        if (ready)
-        {
-            currentRoom.setClientReady();
-        }
-        else
-        {
-            currentRoom.setClientNotReady();
-        }
-
-        std::stringstream ss;
-        ss << NC_ROOM_READY_STATUS << NC_SEPARATOR << (ready ? 1 : 0);
-        std::string str = ss.str();
-        sendMessage(str.c_str());
-
-        future.wait();
-        roomReadyCallback = nullptr;
-
-        bool result = future.get();
-
-        if (!result)
-        {
-            if (lastState)
-            {
-                currentRoom.setClientReady();
-            }
-            else
-            {
-                currentRoom.setClientNotReady();
-            }
-        }
-
-        return result;
-    }
-
-    room* client::getRoom()
-    {
-        return &currentRoom;
-    }
-
-    room* client::getUpdatedRoom(bool wait)
-    {
-        std::promise<room*> promise;
-        if (wait)
-        {
-            roomCallback = &promise;
-        }
-        std::future<room*> future = promise.get_future();
-
-        std::stringstream ss;
-        ss << NC_GET_ROOM << NC_SEPARATOR << currentRoom.getId();
-        std::string str = ss.str();
-        sendMessage(ss.str().c_str());
-
-        if (wait)
-        {
-            future.wait();
-            roomCallback = nullptr;
-            return future.get();
-        }
-
-        return &currentRoom;
-    }
-
-    int client::getSeed()
-    {
-        std::promise<int> promise;
-        seedCallback = &promise;
-        std::future<int> future = promise.get_future();
-
-        sendMessage(NC_GET_SEED);
-
-        future.wait();
-        return future.get();
-    }
-
-    std::vector<room> client::getRooms()
-    {
-        std::promise<std::vector<room>> promise;
-        roomsCallback = &promise;
-        auto future = promise.get_future();
-
-        sendMessage(NC_LIST_ROOMS);
-        future.wait();
-        roomsCallback = nullptr;
-        return future.get();
-    }
-
-    std::string& client::getRoomName()
-    {
-        return currentRoom.getName();
-    }
-
-    int client::getRoomCount()
-    {
-        return currentRoom.count();
-    }
-
-    int client::getRoomId()
-    {
-        return currentRoom.getId();
-    }
-
     void client::listenToServer()
     {
         isListening = true;
@@ -529,133 +363,6 @@ namespace netcode
         if (connectingCallback != nullptr)
         {
             connectingCallback->set_value(0);
-        }
-    }
-
-    void client::updateRoom(const std::string& message)
-    {
-        auto data = stringUtils::splitString(message);
-        std::stringstream ss;
-        for (int i = 1, n = data.size(); i < n; ++i)
-        {
-            ss << data[i];
-            if (i < n - 1)
-            {
-                ss << NC_SEPARATOR;
-            }
-        }
-
-        currentRoom = room::constructRoom(ss.str());
-
-        if (onRoomUpdate != nullptr)
-        {
-            onRoomUpdate(&currentRoom);
-        }
-
-        if (roomCallback != nullptr)
-        {
-            roomCallback->set_value(&currentRoom);
-        }
-    }
-
-    void client::createRoomCallback(const std::string& message)
-    {
-        updateRoom(message);
-    }
-
-    void client::listRoomsCallback(const std::string& message)
-    {
-        auto data = stringUtils::splitString(message);
-        int size = std::stoi(data[1]);
-        lastRoomsList.resize(size);
-        int pos = 2;
-        for (int i = 0; i < size; ++i)
-        {
-            std::stringstream ss;
-            bool first = true;
-            for (int n = data.size(); pos < n; ++pos)
-            {
-                if (!first)
-                {
-                    ss << NC_SEPARATOR;
-                }
-                if (data[pos] == NC_OBJECT_SEPARATOR)
-                {
-                    pos++;
-                    break;
-                }
-                ss << data[pos];
-                first = false;
-            }
-            std::string str = ss.str();
-            lastRoomsList[i] = room::constructRoom(str);
-        }
-
-        if (roomsCallback != nullptr)
-        {
-            roomsCallback->set_value(lastRoomsList);
-        }
-    }
-
-    void client::getRoomCallback(const std::string& message)
-    {
-        updateRoom(message);
-    }
-
-    void client::getSeedCallback(const std::string& message)
-    {
-        auto data = stringUtils::splitString(message);
-        seed = std::stoi(data[1]);
-        if (seedCallback != nullptr)
-        {
-            seedCallback->set_value(seed);
-            seedCallback = nullptr;
-        }
-    }
-
-    void client::enterRoomCallback(const std::string& message)
-    {
-        //updateRoom(message);
-    }
-
-    void client::roomStatusCallback(const std::string& message)
-    {
-        auto data = stringUtils::splitString(message);
-
-        if (roomReadyCallback != nullptr)
-        {
-            roomReadyCallback->set_value(data[1] == "1");
-        }
-    }
-
-    void client::exitRoomCallback(const std::string& message)
-    {
-        currentRoom = room();
-
-        if (onRoomUpdate != nullptr)
-        {
-            onRoomUpdate(&currentRoom);
-        }
-
-        if (roomCallback != nullptr)
-        {
-            roomCallback->set_value(&currentRoom);
-        }
-    }
-
-    void client::roomIsReadyCallback(const std::string& message) const
-    {
-        if (onRoomReady != nullptr)
-        {
-            onRoomReady(true);
-        }
-    }
-
-    void client::roomIsNotReadyCallback(const std::string& message) const
-    {
-        if (onRoomReady != nullptr)
-        {
-            onRoomReady(false);
         }
     }
 }

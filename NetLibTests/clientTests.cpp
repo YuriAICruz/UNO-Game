@@ -4,6 +4,11 @@
 #include "gtest/gtest.h"
 #include "server/server.h"
 #include "logger.h"
+#include "commands/client/createRoomCmd.h"
+#include "commands/client/enterRoomCmd.h"
+#include "commands/client/exitRoomCmd.h"
+#include "commands/client/getRoomsCmd.h"
+#include "commands/client/hasRoomCmd.h"
 
 bool running;
 
@@ -92,15 +97,13 @@ TEST(ClientTests, RequestRoomCreaion)
     auto sv = std::get<1>(t);
 
     std::string roomName = "MyRoom";
-    cl->createRoom(roomName);
+    cl->executeCommand<commands::createRoomCmd>(roomName);
 
-    while (!cl->hasRoom() && !cl->hasError())
-    {
-    }
+    EXPECT_TRUE(cl->executeCommand<commands::hasRoomCmd>());
+    netcode::room* r;
+    cl->executeCommand<commands::getRoomCmd>(r);
 
-    EXPECT_TRUE(cl->hasRoom());
-    EXPECT_EQ(roomName, cl->getRoomName());
-
+    EXPECT_EQ(roomName, r->getName());
     closeClient(cl.get(), sv.get());
 }
 
@@ -111,18 +114,11 @@ TEST(ClientTests, ExitRoom)
     auto sv = std::get<1>(t);
 
     std::string roomName = "MyRoom";
-    cl->createRoom(roomName);
+    cl->executeCommand<commands::createRoomCmd>(roomName);
 
-    while (!cl->hasRoom() && !cl->hasError())
-    {
-    }
-
-    EXPECT_TRUE(cl->hasRoom());
-    cl->exitRoom();
-    while (cl->hasRoom() && !cl->hasError())
-    {
-    }
-    EXPECT_FALSE(cl->hasRoom());
+    EXPECT_TRUE(cl->executeCommand<commands::hasRoomCmd>());
+    cl->executeCommand<commands::exitRoomCmd>();
+    EXPECT_FALSE(cl->executeCommand<commands::hasRoomCmd>());
 
     closeClient(cl.get(), sv.get());
 }
@@ -139,33 +135,22 @@ TEST(ClientTests, ListRooms)
         std::stringstream ss;
         ss << "Room " << i;
         std::string roomName = ss.str();
-        cl->createRoom(roomName);
+        cl->executeCommand<commands::createRoomCmd>(roomName);
 
-        while (!cl->hasRoom() && !cl->hasError())
-        {
-        }
-
-        EXPECT_TRUE(cl->hasRoom());
-        cl->exitRoom();
-        while (cl->hasRoom() && !cl->hasError())
-        {
-        }
-        EXPECT_FALSE(cl->hasRoom());
+        EXPECT_TRUE(cl->executeCommand<commands::hasRoomCmd>());
+        cl->executeCommand<commands::exitRoomCmd>();
+        EXPECT_FALSE(cl->executeCommand<commands::hasRoomCmd>());
     }
 
-    running = true;
-    std::vector<netcode::room> rooms = cl->getRooms();
-    
-    for (netcode::room r : rooms)
+    std::vector<netcode::room> rooms;
+    cl->executeCommand<commands::getRoomsCmd>(rooms);
+
+    for (const netcode::room& r : rooms)
     {
         std::cout << "Room Name: " << r.getName() << "\n";
     }
-    running = false;
-    EXPECT_EQ(roomsCount, rooms.size());
 
-    while (running)
-    {
-    }
+    EXPECT_EQ(roomsCount, rooms.size());
 
     closeClient(cl.get(), sv.get());
 }
@@ -177,30 +162,21 @@ TEST(ClientTests, EnterRoom)
     auto sv = std::get<1>(t);
 
     std::string roomName = "MyRoom";
-    cl->createRoom(roomName);
+    cl->executeCommand<commands::createRoomCmd>(roomName);
     int roomId = -1;
 
-    while (!cl->hasRoom() && !cl->hasError())
-    {
-    }
+    EXPECT_TRUE(cl->executeCommand<commands::hasRoomCmd>());
+    netcode::room* r;
+    cl->executeCommand<commands::getRoomCmd>(r);
+    roomId = r->getId();
+    cl->executeCommand<commands::exitRoomCmd>();
+    EXPECT_FALSE(cl->executeCommand<commands::hasRoomCmd>());
 
-    EXPECT_TRUE(cl->hasRoom());
-    roomId = cl->getRoomId();
-    cl->exitRoom();
-    while (cl->hasRoom() && !cl->hasError())
-    {
-    }
-    EXPECT_FALSE(cl->hasRoom());
+    cl->executeCommand<commands::enterRoomCmd>(roomId);
 
-    cl->enterRoom(roomId);
-
-    while (!cl->hasRoom() && !cl->hasError())
-    {
-    }
-
-    EXPECT_TRUE(cl->hasRoom());
-    EXPECT_EQ(roomId, cl->getRoomId());
+    EXPECT_TRUE(cl->executeCommand<commands::hasRoomCmd>());
+    cl->executeCommand<commands::getRoomCmd>(r);
+    EXPECT_EQ(roomId, r->getId());
 
     closeClient(cl.get(), sv.get());
 }
-

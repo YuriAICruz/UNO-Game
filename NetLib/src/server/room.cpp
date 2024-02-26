@@ -203,7 +203,7 @@ namespace netcode
 
     room room::constructRoom(std::vector<std::string> splitData)
     {
-        int id = std::stoi(splitData[0]);
+        uint16_t id = std::stoi(splitData[0]);
         std::string name = splitData[1];
         std::vector<clientInfo> clients;
         for (int i = 2, n = splitData.size(); i < n; i += 2)
