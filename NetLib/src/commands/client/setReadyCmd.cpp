@@ -13,6 +13,7 @@ namespace commands
         {
             netClient->onRoomReady(true);
         }
+        pending = false;
 
         return result;
     }

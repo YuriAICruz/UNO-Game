@@ -8,18 +8,25 @@
 #include "../../framework.h"
 #include "../server/room.h"
 #include "../commands/client/clientCommand.h"
-#include "../commands/client/createRoomCmd.h"
-#include "../commands/client/enterRoomCmd.h"
-#include "../commands/client/exitRoomCmd.h"
-#include "../commands/client/getRoomCmd.h"
-#include "../commands/client/getSeedCmd.h"
-#include "../commands/client/getUpdatedRoomCmd.h"
 
 #ifdef _DEBUG
 #define CLIENT_KEY "server_debug"
 #else
 #define CLIENT_KEY "s_p_56489135"
 #endif //_DEBUG
+
+namespace commands
+{
+    class createRoomCmd;
+    class enterRoomCmd;
+    class exitRoomCmd;
+    class hasRoomCmd;
+    class getUpdatedRoomCmd;
+    class getSeedCmd;
+    class getRoomCmd;
+    class setNameCmd;
+    class validateKeyCmd;
+}
 
 namespace netcode
 {
@@ -29,43 +36,26 @@ namespace netcode
         WSADATA wsaData;
         SOCKET clientSocket;
         sockaddr_in serverAddr;
+
         std::atomic<bool> running{false};
         std::atomic<bool> connected{false};
         std::atomic<bool> error{false};
         std::atomic<bool> isListening{false};
+        friend class commands::validateKeyCmd;
+
         std::string clientName = "Player";
+        friend class commands::setNameCmd;
         room currentRoom;
         friend class commands::getRoomCmd;
         int seed = 1234;
         friend class commands::getSeedCmd;
-        int id = 0;
+
+        uint16_t id = 0;
         bool hasId = false;
         std::string lastResponse;
         struct addrinfo* addr_info;
-        std::promise<int>* connectingCallback;
-        std::promise<std::vector<room>>* roomsCallback;
-        std::promise<room*>* roomCallback;
-        std::promise<bool>* roomReadyCallback;
-        std::promise<int>* seedCallback;
 
         std::vector<std::unique_ptr<commands::clientCommand>> commandsHistory;
-        std::map<std::string, std::function<void (std::string&)>> customCommands;
-        std::map<std::string, std::function<void (char*, size_t)>> customRawCommands;
-        std::map<std::string, std::function<void (std::string&)>> commands = std::map<
-            std::string, std::function<void (std::string&)>>{
-            {
-                NC_VALID_KEY, [this](std::string& message)
-                {
-                    this->validKeyCallback(message);
-                }
-            },
-            {
-                NC_INVALID_KEY, [this](std::string& message)
-                {
-                    this->invalidKeyCallback(message);
-                }
-            },
-        };
 
     public:
         std::function<void (room*)> onRoomUpdate;
@@ -74,13 +64,12 @@ namespace netcode
 
         int start(std::string addr = "ftp://127.0.0.1:8080");
         int connectToServer();
-        void setName(const std::string& name);
         std::string& getPlayerName();
         int sendMessage(std::string str);
         int sendMessage(const char* str);
         int close();
 
-        int getId() const
+        uint16_t getId() const
         {
             return id;
         }
@@ -100,16 +89,6 @@ namespace netcode
             return error;
         }
 
-        void addCustomCommands(const std::map<std::string, std::function<void(std::string&)>>& cmds)
-        {
-            customCommands = cmds;
-        }
-
-        void addCustomRawCommands(const std::map<std::string, std::function<void(char*, size_t)>>& cmds)
-        {
-            customRawCommands = cmds;
-        }
-
         template <typename T, typename... Args>
         bool NETCODE_API executeCommand(Args&&... args)
         {
@@ -123,16 +102,11 @@ namespace netcode
         friend class commands::enterRoomCmd;
         friend class commands::exitRoomCmd;
         friend class commands::getUpdatedRoomCmd;
+        friend class commands::hasRoomCmd;
 
         int initializeWinsock();
         int createSocket();
         void callbackPendingCommands(const std::string& key, const std::string& message) const;
         void listenToServer();
-        bool containsCommand(const std::string& string);
-        bool containsCustomCommand(const std::string& command);
-        bool containsCustomRawCommand(const std::string& command);
-
-        void invalidKeyCallback(const std::string& message);
-        void validKeyCallback(const std::string& message);
     };
 }

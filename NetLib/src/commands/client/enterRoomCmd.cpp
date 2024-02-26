@@ -22,6 +22,16 @@ namespace commands
     {
         std::vector<std::string> data = stringUtils::splitString(message);
 
+        if (data.size() == 1)
+        {
+            pending = false;
+            if (callbackResponse != nullptr)
+            {
+                callbackResponse->set_value(false);
+            }
+            return;
+        }
+
         if (!data.empty())
         {
             data.erase(data.begin());
@@ -29,6 +39,7 @@ namespace commands
 
         netClient->setRoom(netcode::room::constructRoom(data));
 
+        pending = false;
         if (callbackResponse != nullptr)
         {
             callbackResponse->set_value(true);

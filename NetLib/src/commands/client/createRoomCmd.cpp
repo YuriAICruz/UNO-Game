@@ -23,8 +23,10 @@ namespace commands
         if (!data.empty())
         {
             data.erase(data.begin());
-        }else
+        }
+        else
         {
+            pending = false;
             if (callbackResponse != nullptr)
             {
                 callbackResponse->set_value(false);
@@ -34,6 +36,7 @@ namespace commands
 
         netClient->setRoom(netcode::room::constructRoom(data));
 
+        pending = false;
         if (callbackResponse != nullptr)
         {
             callbackResponse->set_value(true);

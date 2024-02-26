@@ -7,6 +7,7 @@ namespace commands
         callbackResponse = &promise;
         return promise.get_future();
     }
+
     std::future<bool> command::createPromise()
     {
         std::promise<bool> promise;

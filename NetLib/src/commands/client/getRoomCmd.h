@@ -1,7 +1,11 @@
 ﻿#pragma once
 #include "clientCommand.h"
 #include "../../serverCommands.h"
-#include "../../server/room.h"
+
+namespace netcode
+{
+    class room;
+}
 
 namespace commands
 {

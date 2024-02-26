@@ -7,6 +7,8 @@
 #include "../logger.h"
 #include "../serverCommands.h"
 #include "../stringUtils.h"
+#include "../commands/client/validateKeyCmd.h"
+#include "../commands/client/setNameCmd.h"
 
 namespace netcode
 {
@@ -153,43 +155,11 @@ namespace netcode
         });
         clientThread.detach();
 
-        std::promise<int> promise;
-        connectingCallback = &promise;
-        auto future = promise.get_future();
+        std::string key = CLIENT_KEY;
+        bool success = executeCommand<commands::validateKeyCmd>(key, id, hasId);
+        executeCommand<commands::setNameCmd>(clientName);
 
-        int result = 0;
-        if (hasId)
-        {
-            std::stringstream ss;
-            ss << CLIENT_KEY << NC_SEPARATOR << id;
-            std::string str = ss.str();
-            result = sendMessage(str.c_str());
-        }
-        else
-        {
-            result = sendMessage(CLIENT_KEY);
-        }
-
-        if (result != 0)
-        {
-            connectingCallback = nullptr;
-            return result;
-        }
-
-        future.wait();
-        connectingCallback = nullptr;
-        result = future.get();
-
-        return result;
-    }
-
-    void client::setName(const std::string& name)
-    {
-        clientName = name;
-        std::stringstream ss;
-        ss << NC_SET_NAME << NC_SEPARATOR << name;
-        std::string str = ss.str();
-        sendMessage(str.c_str());
+        return success ? 0 : 1;
     }
 
     std::string& client::getPlayerName()
@@ -300,69 +270,9 @@ namespace netcode
             {
                 auto data = stringUtils::splitString(command);
                 callbackPendingCommands(data[0], command);
-                if (containsCommand(data[0]))
-                {
-                    commands[data[0]](command);
-                }
-
-                if (containsCustomCommand(data[0]))
-                {
-                    customCommands[data[0]](command);
-                }
-
-                if (containsCustomRawCommand(data[0]))
-                {
-                    customRawCommands[data[0]](recvData, recvSize);
-                }
             }
         }
 
         isListening = false;
-    }
-
-    bool client::containsCommand(const std::string& command)
-    {
-        auto it = commands.find(command);
-
-        return it != commands.end();
-    }
-
-    bool client::containsCustomCommand(const std::string& command)
-    {
-        auto it = customCommands.find(command);
-
-        return it != customCommands.end();
-    }
-
-    bool client::containsCustomRawCommand(const std::string& command)
-    {
-        auto it = customRawCommands.find(command);
-
-        return it != customRawCommands.end();
-    }
-
-    void client::invalidKeyCallback(const std::string& message)
-    {
-        connected = false;
-        if (connectingCallback != nullptr)
-        {
-            connectingCallback->set_value(1);
-        }
-        close();
-    }
-
-    void client::validKeyCallback(const std::string& message)
-    {
-        auto data = stringUtils::splitString(message);
-        connected = true;
-        hasId = true;
-        id = std::stoul(data[1]);
-
-        setName(clientName);
-
-        if (connectingCallback != nullptr)
-        {
-            connectingCallback->set_value(0);
-        }
     }
 }
