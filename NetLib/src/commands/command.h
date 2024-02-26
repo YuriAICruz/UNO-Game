@@ -40,7 +40,6 @@ namespace commands
 
     protected:
         std::future<bool> setPromise(std::promise<bool>& promise);
-        std::future<bool> createPromise();
         bool waitAndReturnPromise(std::future<bool>& future);
     };
 }

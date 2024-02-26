@@ -11,11 +11,6 @@ class NET_ENGINE_API netGameStateManager : public gameStateManager
 private:
     std::shared_ptr<netcode::client> netClient;
     std::shared_ptr<netcode::server> netServer;
-    std::promise<bool>* tryExecuteActionCallback = nullptr;
-    std::promise<bool>* tryStartGameCallback = nullptr;
-    std::promise<bool>* trySetGameSettingsCallback = nullptr;
-    std::promise<bool>* gameStateUpdatedCallback = nullptr;
-    std::promise<bool>* executeCommandCallback = nullptr;
     std::map<int, int> syncValuesDictionary;
     bool isHost = false;
     bool isServer = false;
@@ -59,14 +54,11 @@ public:
     void trySetGameSettings(const std::string& msg, SOCKET cs);
     void gameSettingsCallback(const std::string& msg);
     void startGame() override;
-    void tryStartGame(const std::string& msg, SOCKET cs);
-    void gameStartCallback(const std::string& msg);
     void createClientCustomCommands();
     bool isCurrentPlayer();
     turnSystem::IPlayer* getLocalPlayer() const;
     bool tryExecutePlayerAction(cards::ICard* card) override;
     void checkIsServer() const;
-    bool tryExecutePlayerAction(int index);
     void broadcastServerStateData(SOCKET cs);
     void encryptStateBuffer(std::tuple<const char*, size_t> data, char* ptr);
     void sendToClientServerStateData(SOCKET cs);

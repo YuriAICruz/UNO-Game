@@ -26,6 +26,8 @@ namespace commands
     void executePlayerActionCmd::callback(const std::string& message)
     {
         std::vector<std::string> data = stringUtils::splitString(message);
+
+        pending = false;
         if (callbackResponse != nullptr)
         {
             int r = stoi(data[1]);

@@ -177,58 +177,11 @@ void netGameStateManager::gameSettingsCallback(const std::string& msg)
 
 void netGameStateManager::startGame()
 {
-    if (!isServer && !running)
-    {
-        std::promise<bool> promise;
-        tryStartGameCallback = &promise;
-        auto future = promise.get_future();
-        netClient->sendMessage(CORE_NC_GAME_START);
-        future.wait();
-        tryStartGameCallback = nullptr;
-    }
-}
-
-void netGameStateManager::tryStartGame(const std::string& msg, SOCKET cs)
-{
-    if (!isServer)
-    {
-        return;
-    }
-    if (!running)
-    {
-        gameStateManager::startGame();
-    }
-    netServer->executeServerCommand<commands::lockRoomServerCmd>(cs);
-    netServer->broadcastToRoom(CORE_NC_GAME_START, cs);
-    broadcastServerStateData(cs);
-}
-
-void netGameStateManager::gameStartCallback(const std::string& msg)
-{
-    if (!running)
-    {
-        gameStateManager::startGame();
-    }
-
-    if (onRoomGameStarted != nullptr)
-    {
-        onRoomGameStarted();
-    }
-    if (tryStartGameCallback != nullptr)
-    {
-        tryStartGameCallback->set_value(true);
-    }
 }
 
 void netGameStateManager::createClientCustomCommands()
 {
     std::map<std::string, std::function<void (std::string&)>> commands = {
-        {
-            CORE_NC_GAME_START, [this](std::string& msg)
-            {
-                gameStartCallback(msg);
-            },
-        },
         {
             CORE_NC_GAME_SETTINGS, [this](std::string& msg)
             {
@@ -282,12 +235,6 @@ void netGameStateManager::createClientCustomCommands()
 void netGameStateManager::createServerCustomCommands()
 {
     std::map<std::string, std::function<void (std::string&, SOCKET)>> commands = {
-        {
-            CORE_NC_GAME_START, [this](std::string& msg, SOCKET cs)
-            {
-                tryStartGame(msg, cs);
-            }
-        },
         {
             CORE_NC_GAME_SETTINGS, [this](std::string& msg, SOCKET cs)
             {
