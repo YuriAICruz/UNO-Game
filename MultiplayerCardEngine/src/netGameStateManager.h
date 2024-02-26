@@ -59,7 +59,6 @@ public:
     bool isCurrentPlayer();
     turnSystem::IPlayer* getLocalPlayer() const;
     bool tryExecutePlayerAction(cards::ICard* card) override;
-    void checkIsServer() const;
     void broadcastServerStateData(SOCKET cs);
     void encryptStateBuffer(std::tuple<const char*, size_t> data, char* ptr);
     void sendToClientServerStateData(SOCKET cs);
@@ -80,16 +79,21 @@ public:
     template <typename T, typename... Args>
     bool NETCODE_API executeGameCommand(Args&&... args)
     {
+        checkIsServer();
         return netClient->executeCommand<T>(std::forward<Args>(args)..., this);
     }
 
     template <typename T, typename... Args>
     bool NETCODE_API executeGameServerCommand(Args&&... args)
     {
+        checkIsClient();
         return netServer->executeServerCommand<T>(std::forward<Args>(args)..., this);
     }
 
 private:
+    void checkIsServer() const;
+    void checkIsClient() const;
+
     bool isInRoom(SOCKET sc) const;
     void onClientReconnected(netcode::clientInfo* client);
     void showClientEndGame(const std::string& msg);

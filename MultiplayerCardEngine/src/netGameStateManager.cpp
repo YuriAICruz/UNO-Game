@@ -146,17 +146,12 @@ void netGameStateManager::decryptGameSettingsAndSetup(const std::vector<std::str
 
 void netGameStateManager::startGame()
 {
+    throw std::exception("start game not implemented");
 }
 
 void netGameStateManager::createClientCustomCommands()
 {
     std::map<std::string, std::function<void (std::string&)>> commands = {
-        {
-            CORE_NC_SKIP_TURN, [this](std::string& msg)
-            {
-                skipTurnCallback(msg);
-            },
-        },
         {
             CORE_NC_YELL_UNO, [this](std::string& msg)
             {
@@ -202,12 +197,6 @@ void netGameStateManager::createServerCustomCommands()
             CORE_NC_GAME_SETTINGS, [this](std::string& msg, SOCKET cs)
             {
                 trySetGameSettings(msg, cs);
-            }
-        },
-        {
-            CORE_NC_SKIP_TURN, [this](std::string& msg, SOCKET cs)
-            {
-                trySkipTurn(msg, cs);
             }
         },
         {
@@ -262,6 +251,14 @@ void netGameStateManager::checkIsServer() const
     if (isServer && !isHost)
     {
         throw std::exception("invalid action, server can't execute this");
+    }
+}
+
+void netGameStateManager::checkIsClient() const
+{
+    if (!isServer)
+    {
+        throw std::exception("invalid action, client can't execute this");
     }
 }
 
@@ -400,6 +397,11 @@ void netGameStateManager::endGame()
     serverRoom->unlock();
 }
 
+bool netGameStateManager::skipTurn()
+{
+    throw std::exception("skip turn not implemented");
+}
+
 void netGameStateManager::onClientReconnected(netcode::clientInfo* client)
 {
     if (running)
@@ -414,51 +416,6 @@ void netGameStateManager::showClientEndGame(const std::string& msg)
 
     running = false;
     events->fireEvent(GAME_END, gameEventData(getCurrentPlayer(), true));
-}
-
-bool netGameStateManager::skipTurn()
-{
-    checkIsServer();
-
-    if (!isCurrentPlayer())
-    {
-        return false;
-    }
-
-    std::promise<bool> promiseCmd;
-    executeCommandCallback = &promiseCmd;
-    auto futureCmd = promiseCmd.get_future();
-    netClient->sendMessage(CORE_NC_SKIP_TURN);
-    futureCmd.wait();
-    executeCommandCallback = nullptr;
-    return futureCmd.get();
-}
-
-void netGameStateManager::trySkipTurn(const std::string& msg, SOCKET cs)
-{
-    if (!isServer)
-    {
-        return;
-    }
-
-    bool canSkip = canSkipTurn();
-    if (canSkip)
-    {
-        gameStateManager::skipTurn();
-    }
-
-    std::stringstream ss;
-    ss << CORE_NC_SKIP_TURN << NC_SEPARATOR << (canSkip ? 1 : 0);
-    std::string str = ss.str();
-    const char* resonse = str.c_str();
-    send(cs, resonse, strlen(resonse), 0);
-
-    broadcastServerStateData(cs);
-}
-
-void netGameStateManager::skipTurnCallback(const std::string& msg)
-{
-    commandCallbackResponse(msg);
 }
 
 bool netGameStateManager::yellUno()
@@ -660,9 +617,4 @@ bool netGameStateManager::canYellUno() const
 
 void netGameStateManager::commandCallbackResponse(const std::string& msg) const
 {
-    if (executeCommandCallback != nullptr)
-    {
-        auto data = stringUtils::splitString(msg);
-        executeCommandCallback->set_value(data[1] == "1");
-    }
 }
