@@ -27,8 +27,6 @@ public:
 
     ~netGameStateManager() override;
 
-    void createServerCustomCommands();
-
     void setupGame(
         netcode::room* room,
         int handSize,
@@ -53,7 +51,6 @@ public:
     void decryptGameSettingsAndSetup(const std::vector<std::string>& data);
 
     void startGame() override;
-    void createClientCustomCommands();
     bool isCurrentPlayer();
     turnSystem::IPlayer* getLocalPlayer() const;
     bool tryExecutePlayerAction(cards::ICard* card) override;
@@ -61,7 +58,6 @@ public:
     void encryptStateBuffer(std::tuple<const char*, size_t> data, char* ptr);
     void sendToClientServerStateData(SOCKET cs);
     void setStateNet(char* buffer, size_t size);
-    void waitForStateSync();
     void cheatWin() override;
     void endGame() override;
     bool skipTurn() override;
@@ -69,31 +65,31 @@ public:
     bool makePlayerDraw(turnSystem::IPlayer* player, int count) override;
     void setRoom(netcode::room* room);
     netcode::room* getRoom() const;
-    void setSyncVar(int id, int value);
     int getSyncVar(int id) const;
-    void trySyncVar(const std::string& msg, SOCKET cs);
-    void syncVarCallback(const std::string& msg);
     bool canYellUno() const override;
 
     template <typename T, typename... Args>
-    bool NETCODE_API executeGameCommand(Args&&... args)
+    bool NET_ENGINE_API executeGameCommand(Args&&... args)
     {
         checkIsServer();
         return netClient->executeCommand<T>(std::forward<Args>(args)..., this);
     }
 
     template <typename T, typename... Args>
-    bool NETCODE_API executeGameServerCommand(Args&&... args)
+    bool NET_ENGINE_API executeGameServerCommand(Args&&... args)
     {
         checkIsClient();
         return netServer->executeServerCommand<T>(std::forward<Args>(args)..., this);
     }
 
+    netcode::room* getServerRoom() const;
+
+    bool isInRoom(SOCKET sc) const;
+    void updateVarsDictionary(int id, int value);
+
 private:
     void checkIsServer() const;
     void checkIsClient() const;
 
-    bool isInRoom(SOCKET sc) const;
     void onClientReconnected(netcode::clientInfo* client);
-    void showClientEndGame(const std::string& msg);
 };

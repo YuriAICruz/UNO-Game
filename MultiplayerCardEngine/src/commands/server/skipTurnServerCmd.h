@@ -5,7 +5,7 @@
 
 namespace commands
 {
-    class NETCODE_API skipTurnServerCmd : public serverCommand
+    class NET_ENGINE_API skipTurnServerCmd : public serverCommand
     {
     private:
         netGameStateManager* gameManager;

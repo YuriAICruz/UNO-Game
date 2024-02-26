@@ -5,7 +5,7 @@
 
 namespace commands
 {
-    class NETCODE_API executePlayerActionCmd : public clientCommand
+    class NET_ENGINE_API executePlayerActionCmd : public clientCommand
     {
     private:
         int index;

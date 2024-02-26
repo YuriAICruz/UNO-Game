@@ -19,6 +19,6 @@ namespace commands
 
         std::string path = data[2];
         std::string str = gameManager->encryptGameSettings(path, cmdKey);
-        netServer->broadcastToRoom(str, clientSocket);
+        return netServer->broadcastToRoom(str, clientSocket);
     }
 }

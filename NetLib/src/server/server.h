@@ -11,7 +11,6 @@
 #include "roomManager.h"
 #include "../../framework.h"
 #include "../winSockImp.h"
-#include "../serverCommands.h"
 #include "../commands/server/serverCommand.h"
 
 namespace netcode
@@ -37,7 +36,6 @@ namespace netcode
         std::atomic<bool> error{false};
 
         std::vector<std::unique_ptr<commands::serverCommand>> commandsHistory;
-        std::map<std::string, std::function<void (std::string&, SOCKET)>> customCommands;
 
     public:
         std::function<void(clientInfo*)> onClientReconnected;
@@ -48,7 +46,6 @@ namespace netcode
         int start(int port = 8080);
         int close();
         void broadcastUpdatedRoom(SOCKET clientSocket);
-        void sendRoomData(SOCKET clientSocket, int id);
         std::shared_ptr<clientInfo> getClient(SOCKET uint);
         bool broadcast(std::string msg) const;
         bool broadcastToRoom(std::string msg, SOCKET cs);
@@ -77,11 +74,6 @@ namespace netcode
             return error;
         }
 
-        void addCustomCommands(const std::map<std::string, std::function<void(std::string&, SOCKET)>>& cmds)
-        {
-            customCommands = cmds;
-        }
-
         template <typename T, typename... Args>
         bool NETCODE_API executeServerCommand(Args&&... args)
         {
@@ -90,8 +82,6 @@ namespace netcode
         }
 
     private:
-        void lockRoom(SOCKET cs);
-        void unlockRoom(SOCKET cs);
         bool isRoomReady(int roomId);
 
         void listening();
@@ -99,8 +89,6 @@ namespace netcode
         void clientReconnected(const std::shared_ptr<clientInfo>& client, SOCKET uint);
         void callbackPendingCommands(const std::string& key, std::vector<std::string>& data, SOCKET clientSocket) const;
         void clientHandler(SOCKET clientSocket);
-        bool containsCommand(const std::string& command);
-        bool containsCustomCommand(const std::string& command);
         bool validateKey(SOCKET clientSocket, int& id) const;
         std::shared_ptr<clientInfo> getClientFromId(size_t id) const;
 

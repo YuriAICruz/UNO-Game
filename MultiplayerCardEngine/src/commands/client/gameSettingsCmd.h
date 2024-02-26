@@ -5,7 +5,7 @@
 
 namespace commands
 {
-    class NETCODE_API gameSettingsCmd : public clientCommand
+    class NET_ENGINE_API gameSettingsCmd : public clientCommand
     {
     private:
         netGameStateManager* gameManager;

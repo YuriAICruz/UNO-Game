@@ -9,6 +9,7 @@
 #include "../stringUtils.h"
 #include "../commands/client/validateKeyCmd.h"
 #include "../commands/client/setNameCmd.h"
+#include "../commands/client/clientRawCommand.h"
 
 namespace netcode
 {
@@ -48,11 +49,17 @@ namespace netcode
         return 0;
     }
 
-    void client::callbackPendingCommands(const std::string& key, const std::string& message) const
+    void client::callbackPendingCommands(
+        const std::string& key, const std::string& message, char* rawStr, int strSize) const
     {
         for (const std::unique_ptr<commands::clientCommand>& cmd : commandsHistory)
         {
-            if (cmd->isPending(key))
+            if (cmd->acceptRaw())
+            {
+                commands::clientRawCommand* raw = dynamic_cast<commands::clientRawCommand*>(cmd.get());
+                raw->rawCallback(rawStr, strSize);
+            }
+            else if (cmd->isPending(key))
             {
                 cmd->callback(message);
             }
@@ -269,7 +276,7 @@ namespace netcode
             for (auto& command : commandsBuffer)
             {
                 auto data = stringUtils::splitString(command);
-                callbackPendingCommands(data[0], command);
+                callbackPendingCommands(data[0], command, recvData, recvSize);
             }
         }
 

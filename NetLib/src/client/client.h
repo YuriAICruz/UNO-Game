@@ -17,6 +17,7 @@
 
 namespace commands
 {
+    class clientRawCommand;
     class createRoomCmd;
     class enterRoomCmd;
     class exitRoomCmd;
@@ -106,7 +107,7 @@ namespace netcode
 
         int initializeWinsock();
         int createSocket();
-        void callbackPendingCommands(const std::string& key, const std::string& message) const;
+        void callbackPendingCommands(const std::string& key, const std::string& message, char* rawStr, int strSize) const;
         void listenToServer();
     };
 }

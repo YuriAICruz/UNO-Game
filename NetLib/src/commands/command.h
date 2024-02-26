@@ -38,6 +38,11 @@ namespace commands
             return false;
         }
 
+        virtual bool acceptRaw()
+        {
+            return false;
+        }
+
     protected:
         std::future<bool> setPromise(std::promise<bool>& promise);
         bool waitAndReturnPromise(std::future<bool>& future);

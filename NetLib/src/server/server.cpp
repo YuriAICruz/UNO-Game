@@ -320,11 +320,6 @@ namespace netcode
             {
                 std::vector<std::string> data = stringUtils::splitString(command);
                 callbackPendingCommands(data[0], data, clientSocket);
-
-                if (containsCustomCommand(data[0]))
-                {
-                    customCommands[data[0]](command, clientSocket);
-                }
             }
         }
 
@@ -345,13 +340,6 @@ namespace netcode
 
         logger::print((logger::getPrinter() << "SERVER: closing client connection [" << clientSocket << "]").str());
         disconnectClient(clientSocket);
-    }
-
-    bool server::containsCustomCommand(const std::string& command)
-    {
-        auto it = customCommands.find(command);
-
-        return it != customCommands.end();
     }
 
     bool server::validateKey(SOCKET clientSocket, int& id) const

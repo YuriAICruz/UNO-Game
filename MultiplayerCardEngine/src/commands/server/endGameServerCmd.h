@@ -1,18 +1,18 @@
 ﻿#pragma once
 #include "netCommands.h"
-#include "commands/server/serverCommand.h"
 #include "../../netGameStateManager.h"
+#include "commands/server/serverCommand.h"
 
 namespace commands
 {
-    class NET_ENGINE_API drawCardsServerCmd : public serverCommand
+    class NET_ENGINE_API endGameServerCmd : public serverCommand
     {
     private:
         netGameStateManager* gameManager;
         
     public:
-        explicit drawCardsServerCmd(netGameStateManager* gameManager, netcode::roomManager* manager, netcode::server* server)
-            : serverCommand(CORE_NC_DRAW_CARDS, manager, server), gameManager(gameManager)
+        explicit endGameServerCmd(netGameStateManager* gameManager, netcode::roomManager* manager, netcode::server* server)
+            : serverCommand(CORE_NC_GAME_END, manager, server), gameManager(gameManager)
         {
         }
 

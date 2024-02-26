@@ -5,7 +5,7 @@
 
 namespace commands
 {
-    class NETCODE_API executePlayerActionServerCmd final : public serverCommand
+    class NET_ENGINE_API executePlayerActionServerCmd final : public serverCommand
     {
     private:
         netGameStateManager* gameManager;

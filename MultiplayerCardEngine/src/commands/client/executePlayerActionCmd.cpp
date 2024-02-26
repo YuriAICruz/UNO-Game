@@ -36,7 +36,7 @@ namespace commands
             // server can respond 2 if the game has ended in this turn
             if (r == 2)
             {
-                netClient->showClientEndGame(message);
+                gameManager->endGame();
             }
         }
     }

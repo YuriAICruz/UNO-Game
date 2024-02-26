@@ -5,14 +5,14 @@
 
 namespace commands
 {
-    class NET_ENGINE_API unoYellCmd : public clientCommand
+    class NET_ENGINE_API endGameCmd : public clientCommand
     {
     private:
         netGameStateManager* gameManager;
-        
+
     public:
-        unoYellCmd(netGameStateManager* gameManager, netcode::client* client)
-            : clientCommand(CORE_NC_YELL_UNO, client), gameManager(gameManager)
+        endGameCmd(netGameStateManager* gameManager, netcode::client* client)
+            : clientCommand(CORE_NC_GAME_END, client), gameManager(gameManager)
         {
         }
 

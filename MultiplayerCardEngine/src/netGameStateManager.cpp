@@ -20,7 +20,6 @@ netGameStateManager::netGameStateManager(
 ) :
     gameStateManager(events), netClient(cl), isHost(false)
 {
-    createClientCustomCommands();
 }
 
 netGameStateManager::netGameStateManager(
@@ -31,9 +30,6 @@ netGameStateManager::netGameStateManager(
     gameStateManager(events), netClient(cl),
     netServer(sv), isHost(true), isServer(true)
 {
-    createClientCustomCommands();
-    createServerCustomCommands();
-
     sv->onClientReconnected = [this](netcode::clientInfo* client)
     {
         onClientReconnected(client);
@@ -46,8 +42,6 @@ netGameStateManager::netGameStateManager(
     gameStateManager(events),
     netServer(sv), isHost(false), isServer(true)
 {
-    createServerCustomCommands();
-
     sv->onClientReconnected = [this](netcode::clientInfo* client)
     {
         onClientReconnected(client);
@@ -147,49 +141,6 @@ void netGameStateManager::decryptGameSettingsAndSetup(const std::vector<std::str
 void netGameStateManager::startGame()
 {
     throw std::exception("start game not implemented");
-}
-
-void netGameStateManager::createClientCustomCommands()
-{
-    std::map<std::string, std::function<void (std::string&)>> commands = {
-        {
-            CORE_NC_GAME_END, [this](std::string& msg)
-            {
-                showClientEndGame(msg);
-            },
-        },
-        {
-            NC_SYNC_VAR, [this](std::string& msg)
-            {
-                syncVarCallback(msg);
-            },
-        }
-    };
-    std::map<std::string, std::function<void (char*, size_t)>> rawCommands = {
-        {
-            CORE_NC_UPDATE_STATE, [this](char* buffer, size_t size)
-            {
-                setStateNet(buffer, size);
-            }
-        }
-    };
-
-    netClient->addCustomCommands(commands);
-    netClient->addCustomRawCommands(rawCommands);
-}
-
-void netGameStateManager::createServerCustomCommands()
-{
-    std::map<std::string, std::function<void (std::string&, SOCKET)>> commands = {
-        {
-            NC_SYNC_VAR, [this](std::string& msg, SOCKET cs)
-            {
-                trySyncVar(msg, cs);
-            }
-        }
-    };
-
-    netServer->addCustomCommands(commands);
 }
 
 bool netGameStateManager::isCurrentPlayer()
@@ -316,25 +267,6 @@ void netGameStateManager::setStateNet(char* buffer, size_t size)
     ptr += sizeof(char);
 
     setState(ptr, bufferSize);
-
-    if (gameStateUpdatedCallback != nullptr)
-    {
-        gameStateUpdatedCallback->set_value(true);
-    }
-}
-
-void netGameStateManager::waitForStateSync()
-{
-    if (gameStateUpdatedCallback != nullptr)
-    {
-        gameStateUpdatedCallback->get_future().wait();
-    }
-
-    std::promise<bool> promise;
-    gameStateUpdatedCallback = &promise;
-    auto future = promise.get_future();
-    future.wait();
-    gameStateUpdatedCallback = nullptr;
 }
 
 void netGameStateManager::cheatWin()
@@ -350,21 +282,9 @@ void netGameStateManager::endGame()
 {
     if (!isServer)
     {
-        return;
+        running = false;
+        events->fireEvent(GAME_END, gameEventData(getCurrentPlayer(), true));
     }
-
-    gameStateManager::endGame();
-
-    SOCKET sc = *serverRoom->clients()[0]->connection;
-
-    if (!isInRoom(sc))
-    {
-        return;
-    }
-
-    netServer->broadcastToRoom(CORE_NC_GAME_END, sc);
-
-    serverRoom->unlock();
 }
 
 bool netGameStateManager::skipTurn()
@@ -378,14 +298,6 @@ void netGameStateManager::onClientReconnected(netcode::clientInfo* client)
     {
         sendToClientServerStateData(*client->connection);
     }
-}
-
-void netGameStateManager::showClientEndGame(const std::string& msg)
-{
-    checkIsServer();
-
-    running = false;
-    events->fireEvent(GAME_END, gameEventData(getCurrentPlayer(), true));
 }
 
 bool netGameStateManager::yellUno()
@@ -423,17 +335,6 @@ netcode::room* netGameStateManager::getRoom() const
     return room;
 }
 
-void netGameStateManager::setSyncVar(int id, int value)
-{
-    checkIsServer();
-    syncValuesDictionary.insert_or_assign(id, value);
-
-    std::stringstream ss;
-    ss << NC_SYNC_VAR << NC_SEPARATOR << id << NC_SEPARATOR << value;
-    std::string str = ss.str();
-    netClient->sendMessage(str.c_str());
-}
-
 int netGameStateManager::getSyncVar(int id) const
 {
     auto it = syncValuesDictionary.find(id);
@@ -445,39 +346,21 @@ int netGameStateManager::getSyncVar(int id) const
     return 0;
 }
 
-void netGameStateManager::trySyncVar(const std::string& msg, SOCKET cs)
+netcode::room* netGameStateManager::getServerRoom() const
 {
-    if (!isServer)
-    {
-        return;
-    }
-
-    auto data = stringUtils::splitString(msg);
-    int id = stoi(data[1]);
-    int value = stoi(data[2]);
-    syncValuesDictionary.insert_or_assign(id, value);
-
-    std::stringstream ss;
-    ss << NC_SYNC_VAR << NC_SEPARATOR << id << NC_SEPARATOR << value;
-    netServer->broadcastToRoom(ss.str(), cs);
-}
-
-void netGameStateManager::syncVarCallback(const std::string& msg)
-{
-    auto data = stringUtils::splitString(msg);
-    int id = stoi(data[1]);
-    int value = stoi(data[2]);
-    syncValuesDictionary.insert_or_assign(id, value);
+    checkIsClient();
+    return serverRoom;
 }
 
 bool netGameStateManager::isInRoom(SOCKET sc) const
 {
-    if (!isServer)
-    {
-        return false;
-    }
-
+    checkIsClient();
     return serverRoom->hasClientConnection(sc);
+}
+
+void netGameStateManager::updateVarsDictionary(int id, int value)
+{
+    syncValuesDictionary.insert_or_assign(id, value);
 }
 
 bool netGameStateManager::canYellUno() const

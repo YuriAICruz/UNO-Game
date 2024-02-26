@@ -5,7 +5,7 @@
 
 namespace commands
 {
-    class NETCODE_API unoYellServerCmd : public serverCommand
+    class NET_ENGINE_API unoYellServerCmd : public serverCommand
     {
     private:
         netGameStateManager* gameManager;
