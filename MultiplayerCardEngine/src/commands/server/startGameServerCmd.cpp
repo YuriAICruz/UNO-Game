@@ -13,7 +13,7 @@ namespace commands
     {
         if (!gameManager->isGameRunning())
         {
-            gameManager->startGame();
+            gameManager->baseStartGame();
         }
 
         netServer->executeServerCommand<commands::lockRoomServerCmd>(clientSocket);

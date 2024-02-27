@@ -7,9 +7,20 @@
 #include "coreEventIds.h"
 #include "netCommands.h"
 #include "stringUtils.h"
-#include "commands/client/gameSettingsCmd.h"
 #include "commands/client/getRoomCmd.h"
+#include "commands/client/skipTurnCmd.h"
+#include "commands/client/updateStateCmd.h"
 #include "commands/server/lockRoomServerCmd.h"
+#include "commands/server/drawCardsServerCmd.h"
+#include "commands/server/endGameServerCmd.h"
+#include "commands/server/executePlayerActionServerCmd.h"
+#include "commands/client/gameSettingsCmd.h"
+#include "commands/client/startGameCmd.h"
+#include "commands/server/gameSettingsServerCmd.h"
+#include "commands/server/skipTurnServerCmd.h"
+#include "commands/server/startGameServerCmd.h"
+#include "commands/server/syncVarServerCmd.h"
+#include "commands/server/unoYellServerCmd.h"
 #include "StateManager/gameEventData.h"
 
 #define STATE_SYNC_DELAY 20
@@ -20,6 +31,7 @@ netGameStateManager::netGameStateManager(
 ) :
     gameStateManager(events), netClient(cl), isHost(false)
 {
+    addClientCommands();
 }
 
 netGameStateManager::netGameStateManager(
@@ -30,6 +42,8 @@ netGameStateManager::netGameStateManager(
     gameStateManager(events), netClient(cl),
     netServer(sv), isHost(true), isServer(true)
 {
+    addClientCommands();
+    addServerCommands();
     sv->onClientReconnected = [this](netcode::clientInfo* client)
     {
         onClientReconnected(client);
@@ -42,6 +56,7 @@ netGameStateManager::netGameStateManager(
     gameStateManager(events),
     netServer(sv), isHost(false), isServer(true)
 {
+    addServerCommands();
     sv->onClientReconnected = [this](netcode::clientInfo* client)
     {
         onClientReconnected(client);
@@ -140,7 +155,20 @@ void netGameStateManager::decryptGameSettingsAndSetup(const std::vector<std::str
 
 void netGameStateManager::startGame()
 {
-    throw std::exception("start game not implemented");
+    if(isServer)
+    {
+        baseStartGame();
+        return;
+    }
+    if((!isServer || isHost)  && !running)
+    {
+        executeGameCommand<commands::startGameCmd>();
+    }
+}
+
+void netGameStateManager::baseStartGame()
+{
+    gameStateManager::startGame();
 }
 
 bool netGameStateManager::isCurrentPlayer()
@@ -165,6 +193,23 @@ bool netGameStateManager::tryExecutePlayerAction(cards::ICard* card)
     }
 
     throw std::exception("passing card unsupported, pass index instead");
+}
+
+void netGameStateManager::addServerCommands()
+{
+    executeGameServerCommand<commands::drawCardsServerCmd>();
+    executeGameServerCommand<commands::endGameServerCmd>();
+    executeGameServerCommand<commands::executePlayerActionServerCmd>();
+    executeGameServerCommand<commands::gameSettingsServerCmd>();
+    executeGameServerCommand<commands::skipTurnServerCmd>();
+    executeGameServerCommand<commands::startGameServerCmd>();
+    executeGameServerCommand<commands::syncVarServerCmd>();
+    executeGameServerCommand<commands::unoYellServerCmd>();
+}
+
+void netGameStateManager::addClientCommands()
+{
+    executeGameCommand<commands::updateStateCmd>();
 }
 
 void netGameStateManager::checkIsServer() const

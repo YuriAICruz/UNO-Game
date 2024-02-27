@@ -51,6 +51,7 @@ public:
     void decryptGameSettingsAndSetup(const std::vector<std::string>& data);
 
     void startGame() override;
+    void baseStartGame();
     bool isCurrentPlayer();
     turnSystem::IPlayer* getLocalPlayer() const;
     bool tryExecutePlayerAction(cards::ICard* card) override;
@@ -69,18 +70,19 @@ public:
     bool canYellUno() const override;
 
     template <typename T, typename... Args>
-    bool NET_ENGINE_API executeGameCommand(Args&&... args)
+    bool executeGameCommand(Args&&... args)
     {
         checkIsServer();
         return netClient->executeCommand<T>(std::forward<Args>(args)..., this);
     }
 
     template <typename T, typename... Args>
-    bool NET_ENGINE_API executeGameServerCommand(Args&&... args)
+    bool executeGameServerCommand(Args&&... args)
     {
         checkIsClient();
         return netServer->executeServerCommand<T>(std::forward<Args>(args)..., this);
     }
+
 
     netcode::room* getServerRoom() const;
 
@@ -88,6 +90,9 @@ public:
     void updateVarsDictionary(int id, int value);
 
 private:
+    void addClientCommands();
+    void addServerCommands();
+
     void checkIsServer() const;
     void checkIsClient() const;
 

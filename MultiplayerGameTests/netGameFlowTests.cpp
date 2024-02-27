@@ -13,8 +13,14 @@
 #include "commands/client/setNotReadyCmd.h"
 #include "commands/client/setReadyCmd.h"
 #include "commands/client/syncVarCmd.h"
+#include "commands/client/setNameCmd.h"
+#include "commands/client/hasRoomCmd.h"
+#include "commands/client/getRoomCmd.h"
+#include "commands/client/getUpdatedRoomCmd.h"
+#include "commands/client/enterRoomCmd.h"
+#include "commands/client/createRoomCmd.h"
+#include "commands/client/getSeedCmd.h"
 #include "commands/server/executePlayerActionServerCmd.h"
-#include "commands/server/getRoomServerCmd.h"
 #include "server/server.h"
 #include "StateManager/gameStateManager.h"
 
@@ -31,6 +37,7 @@ std::shared_ptr<netcode::server> startServer()
     {
     }
     EXPECT_TRUE(sv->isRunning());
+    EXPECT_FALSE(sv->hasError());
 
     return sv;
 }
@@ -76,7 +83,7 @@ std::shared_ptr<netcode::client> startClient(std::string name)
     return cl;
 }
 
-void createRoom(std::string roomName, std::shared_ptr<netcode::client> client)
+void createRoom(const std::string& roomName, std::shared_ptr<netcode::client> client)
 {
     client->executeCommand<commands::createRoomCmd>(roomName);
     while (!client->executeCommand<commands::hasRoomCmd>() && !client->hasError())
@@ -114,7 +121,9 @@ std::shared_ptr<netGameStateManager> createHostGameManager(std::shared_ptr<netco
                                                            int handInitialSize, int seed)
 {
     netcode::room* room;
-    client->executeCommand<commands::getUpdatedRoomCmd>(room);
+    client->executeCommand<commands::getRoomCmd>(room);
+    client->executeCommand<commands::getUpdatedRoomCmd>(room->getId());
+    client->executeCommand<commands::getRoomCmd>(room);
     int players = room->count();
     std::vector<std::string> playersList = std::vector<std::string>(players);
     std::vector<uint16_t> playersIds = std::vector<uint16_t>(players);
@@ -156,11 +165,11 @@ std::shared_ptr<netGameStateManager> createServerGameManager(netcode::room* room
     return manager;
 }
 
-std::shared_ptr<netGameStateManager> createClientGameManager(std::shared_ptr<netcode::client> client,
-                                                             int handInitialSize)
+std::shared_ptr<netGameStateManager> createClientGameManager(
+    std::shared_ptr<netcode::client> client, int handInitialSize)
 {
     netcode::room* r;
-    client->executeCommand<commands::getUpdatedRoomCmd>(r);
+    client->executeCommand<commands::getRoomCmd>(r);
     size_t seed;
     client->executeCommand<commands::getSeedCmd>(seed);
 
@@ -190,18 +199,18 @@ TEST(NetGameFlowTests, Begin)
 
     std::shared_ptr<netcode::client> clA = startClient("Player A");
     std::shared_ptr<netcode::client> clB = startClient("Player B");
-
+    
     createRoom("GameRoom", clA);
-
+    
     netcode::room* roomA;
     clA->executeCommand<commands::getRoomCmd>(roomA);
-
+    
     joinRoom(roomA->getId(), clB);
-
+    
     int handSize = 7;
-    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA);
+    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA->getId());
     auto manager = createGameManager(roomA, handSize);
-
+    
     for (int i = 0, players = roomA->count(); i < players; ++i)
     {
         EXPECT_EQ(handSize, manager->getPlayer(i)->getHand().size());
@@ -211,6 +220,7 @@ TEST(NetGameFlowTests, Begin)
     closeClient(clB.get());
     closeServer(sv.get());
 }
+
 
 TEST(NetGameFlowTests, PlayRightCard)
 {
@@ -228,7 +238,7 @@ TEST(NetGameFlowTests, PlayRightCard)
     joinRoom(roomA->getId(), clB);
 
     int handSize = 7;
-    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA);
+    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA->getId());
     auto manager = createGameManager(roomA, handSize);
 
     dynamic_cast<netGameStateManager*>(manager.get())->
@@ -366,7 +376,7 @@ TEST(NetGameFlowTests, PlayCardFromManagerDedicatedServer)
     joinRoom(roomA->getId(), clB);
 
     int handSize = 7;
-    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA);
+    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA->getId());
     auto serverManager = createServerGameManager(roomA, sv, handSize, 12345);
     auto clientManagerA = createClientGameManager(clA, handSize);
     auto clientManagerB = createClientGameManager(clB, handSize);
@@ -439,7 +449,7 @@ TEST(NetGameFlowTests, StartSessionWithDedicatedServer)
     auto clientManagerB = std::make_unique<netGameStateManager>(events, clB);
     serverManager->bindGameEvents();
 
-    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA);
+    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA->getId());
     clientManagerA->setupGame(roomA, handSize, "Data\\deck_setup.json", 12345);
 
     clientManagerA->startGame();
@@ -518,7 +528,7 @@ TEST(NetGameFlowTests, EnteringOnLockedRoom)
     auto clientManagerB = std::make_shared<netGameStateManager>(events, clB);
     serverManager->bindGameEvents();
 
-    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA);
+    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA->getId());
     clientManagerA->setupGame(roomA, handSize, "Data\\deck_setup.json", 12345);
 
     clientManagerA->startGame();
@@ -554,7 +564,7 @@ TEST(NetGameFlowTests, ReconnectToRunningGame)
     auto clientManagerB = std::make_shared<netGameStateManager>(events, clB);
     serverManager->bindGameEvents();
 
-    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA);
+    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA->getId());
     clientManagerA->setupGame(roomA, handSize, "Data\\deck_setup.json", 12345);
 
     auto startingPlayer = serverManager->getCurrentPlayer();
@@ -600,7 +610,7 @@ TEST(NetGameFlowTests, CallUno)
     auto clientManagerB = std::make_shared<netGameStateManager>(events, clB);
     serverManager->bindGameEvents();
 
-    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA);
+    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA->getId());
     clientManagerA->setupGame(roomA, handSize, "Data\\deck_setup.json", 12345);
     clientManagerA->startGame();
     EXPECT_FALSE(clientManagerA->yellUno());
@@ -653,7 +663,7 @@ TEST(NetGameFlowTests, SyncVar)
     handSize = clientManagerA->getSyncVar(CG_VAR_HAND_SIZE);
     EXPECT_EQ(initialHandSize, handSize);
 
-    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA);
+    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA->getId());
     clientManagerA->setupGame(roomA, handSize, "Data\\deck_setup.json", 12345);
     clientManagerA->startGame();
 
@@ -691,7 +701,7 @@ TEST(NetGameFlowTests, RoomReady)
     clB->executeCommand<commands::setNotReadyCmd>(roomB);
     EXPECT_FALSE(sv->isRoomReady(roomA->getId()));
 
-    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA);
+    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA->getId());
     clientManagerA->setupGame(roomA, handSize, "Data\\deck_setup.json", 12345);
     clientManagerA->startGame();
 

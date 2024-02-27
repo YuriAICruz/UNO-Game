@@ -16,7 +16,7 @@ namespace commands
     {
         if (!gameManager->isGameRunning())
         {
-            gameManager->startGame();
+            gameManager->baseStartGame();
         }
 
         pending = false;

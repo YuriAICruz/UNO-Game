@@ -52,11 +52,18 @@ namespace netcode
     void client::callbackPendingCommands(
         const std::string& key, const std::string& message, char* rawStr, int strSize) const
     {
-        for (const std::unique_ptr<commands::clientCommand>& cmd : commandsHistory)
+        for (int i = 0, n = commandsHistory.size(); i < n; ++i)
         {
-            if (cmd->acceptRaw())
+            const std::unique_ptr<commands::clientCommand>& cmd = commandsHistory[i];
+            if (cmd->acceptRaw() && cmd->isPending(key))
             {
                 commands::clientRawCommand* raw = dynamic_cast<commands::clientRawCommand*>(cmd.get());
+                auto pos = message.find(key);
+                if (pos != std::string::npos)
+                {
+                    rawStr += pos;
+                    strSize -= pos;
+                }
                 raw->rawCallback(rawStr, strSize);
             }
             else if (cmd->isPending(key))
