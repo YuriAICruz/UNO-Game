@@ -35,10 +35,7 @@ namespace screens
             ""
         );
 
-        if (winnerPlayer != nullptr)
-        {
-            updateWinningPlayerName();
-        }
+        updateWinningPlayerName();
 
         rdr->setDirty();
     }
@@ -98,12 +95,12 @@ namespace screens
         hide();
     }
 
-    void gameOverScreen::updateWinningPlayerName()
+    void gameOverScreen::updateWinningPlayerName() const
     {
         auto text = dynamic_cast<elements::text*>(rdr->getElement(winnerPlayerNameId));
 
         std::stringstream ss;
-        ss << "The Player \"" << winnerPlayer->getName() << "\" Won!";
+        ss << "The Player \"" << winnerPlayerName << "\" Won!";
         std::string winText = ss.str();
 
         COORD windowSize = rdr->getWindowSize();
