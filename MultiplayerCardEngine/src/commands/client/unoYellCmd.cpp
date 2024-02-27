@@ -24,10 +24,7 @@ namespace commands
         auto data = stringUtils::splitString(message);
 
         bool canYell = data[1] == "1";
-        if (callbackResponse != nullptr)
-        {
-            callbackResponse->set_value(canYell);
-        }
+        setCallback(canYell);
 
         if (canYell)
         {

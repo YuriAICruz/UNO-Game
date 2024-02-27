@@ -17,10 +17,6 @@ namespace commands
     {
         netClient->setRoom(netcode::room());
 
-        pending = false;
-        if (callbackResponse != nullptr)
-        {
-            callbackResponse->set_value(true);
-        }
+        setCallback(true);
     }
 }

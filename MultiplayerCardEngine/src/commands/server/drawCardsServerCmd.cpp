@@ -24,7 +24,7 @@ namespace commands
         }
 
         std::stringstream ss;
-        ss << CORE_NC_DRAW_CARDS << NC_SEPARATOR << (canDraw ? 1 : 0);
+        ss << cmdKey << NC_SEPARATOR << (canDraw ? 1 : 0);
         bool result = netServer->sendMessage(ss.str(), clientSocket);
 
         gameManager->broadcastServerStateData(clientSocket);

@@ -10,6 +10,7 @@ namespace commands
     bool skipTurnServerCmd::callback(std::vector<std::string>& data, SOCKET clientSocket)
     {
         bool canSkip = gameManager->canSkipTurn();
+
         if (canSkip)
         {
             gameManager->skipTurn();

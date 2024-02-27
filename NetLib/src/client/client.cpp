@@ -54,10 +54,10 @@ namespace netcode
     {
         for (int i = 0, n = commandsHistory.size(); i < n; ++i)
         {
-            const std::unique_ptr<commands::clientCommand>& cmd = commandsHistory[i];
+            commands::clientCommand* cmd = commandsHistory[i].get();
             if (cmd->acceptRaw() && cmd->isPending(key))
             {
-                commands::clientRawCommand* raw = dynamic_cast<commands::clientRawCommand*>(cmd.get());
+                commands::clientRawCommand* raw = dynamic_cast<commands::clientRawCommand*>(cmd);
                 auto pos = message.find(key);
                 if (pos != std::string::npos)
                 {
@@ -67,6 +67,29 @@ namespace netcode
                 raw->rawCallback(rawStr, strSize);
             }
             else if (cmd->isPending(key))
+            {
+                cmd->callback(message);
+            }
+        }
+    }
+
+    void client::callRegisteredCallbacks(
+        const std::string& key, const std::string& message, char* rawStr, int strSize) const
+    {
+        for (int i = 0, n = callbacks.size(); i < n; ++i)
+        {
+            commands::clientCommand* cmd = callbacks[i].get();
+            if (cmd->acceptRaw() && cmd->hasKey(key))
+            {
+                commands::clientRawCommand* raw = dynamic_cast<commands::clientRawCommand*>(cmd);
+                char* newPos = stringUtils::findWordStart(rawStr, strSize, key.c_str());
+                if (newPos != nullptr)
+                {
+                    rawStr = newPos;
+                }
+                raw->rawCallback(rawStr, strSize);
+            }
+            else if (cmd->hasKey(key))
             {
                 cmd->callback(message);
             }
@@ -284,6 +307,7 @@ namespace netcode
             {
                 auto data = stringUtils::splitString(command);
                 callbackPendingCommands(data[0], command, recvData, recvSize);
+                callRegisteredCallbacks(data[0], command, recvData, recvSize);
             }
         }
 

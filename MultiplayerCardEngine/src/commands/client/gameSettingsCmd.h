@@ -18,7 +18,6 @@ namespace commands
         }
 
         bool execute() override;
-        std::string encryptGameSettings(std::string path) const;
         void callback(const std::string& message) override;
     };
 }

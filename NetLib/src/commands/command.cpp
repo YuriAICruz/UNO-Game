@@ -15,4 +15,15 @@ namespace commands
 
         return future.get();
     }
+
+    void command::setCallback(bool value)
+    {
+        if (callbackOnly) return;
+
+        pending = false;
+        if (callbackResponse != nullptr)
+        {
+            callbackResponse->set_value(value);
+        }
+    }
 }

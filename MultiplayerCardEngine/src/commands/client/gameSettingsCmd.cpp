@@ -16,10 +16,6 @@ namespace commands
     {
         gameManager->decryptGameSettingsAndSetup(message);
 
-        pending = false;
-        if (callbackResponse != nullptr)
-        {
-            callbackResponse->set_value(true);
-        }
+        setCallback(true);
     }
 }

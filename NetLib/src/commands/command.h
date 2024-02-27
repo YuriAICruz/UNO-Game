@@ -9,6 +9,7 @@ namespace commands
     protected:
         std::promise<bool>* callbackResponse = nullptr;
         bool pending = true;
+        bool callbackOnly = false;
         const char* cmdKey;
 
     public:
@@ -23,6 +24,20 @@ namespace commands
             return pending;
         }
 
+        void setAsCallbackOnly()
+        {
+            callbackOnly = true;
+        }
+
+        bool hasKey(const std::string& key) const
+        {
+            if (std::strcmp(cmdKey, key.c_str()) == 0)
+            {
+                return true;
+            }
+            return false;
+        }
+
         virtual bool isPending(const std::string& key) const
         {
             if (!pending)
@@ -30,7 +45,7 @@ namespace commands
                 return false;
             }
 
-            if (std::strcmp(cmdKey, key.c_str()) == 0)
+            if (hasKey(key))
             {
                 return true;
             }
@@ -46,5 +61,6 @@ namespace commands
     protected:
         std::future<bool> setPromise(std::promise<bool>& promise);
         bool waitAndReturnPromise(std::future<bool>& future);
+        void setCallback(bool value);
     };
 }

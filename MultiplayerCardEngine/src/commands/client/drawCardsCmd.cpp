@@ -24,10 +24,10 @@ namespace commands
 
     void drawCardsCmd::callback(const std::string& message)
     {
-        if (callbackResponse != nullptr)
+        if (!callbackOnly)
         {
             std::vector<std::string> data = stringUtils::splitString(message);
-            callbackResponse->set_value(data[1] == "1");
+            setCallback(data[1] == "1");
         }
     }
 }

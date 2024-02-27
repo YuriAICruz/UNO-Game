@@ -24,11 +24,7 @@ namespace commands
 
         if (data.size() == 1)
         {
-            pending = false;
-            if (callbackResponse != nullptr)
-            {
-                callbackResponse->set_value(false);
-            }
+            setCallback(false);
             return;
         }
 
@@ -39,10 +35,6 @@ namespace commands
 
         netClient->setRoom(netcode::room::constructRoom(data));
 
-        pending = false;
-        if (callbackResponse != nullptr)
-        {
-            callbackResponse->set_value(true);
-        }
+        setCallback(true);
     }
 }

@@ -24,24 +24,17 @@ namespace commands
     {
         std::vector<std::string> data = stringUtils::splitString(message);
 
-        pending = false;
         if (!data.empty())
         {
             data.erase(data.begin());
         }else
         {
-            if (callbackResponse != nullptr)
-            {
-                callbackResponse->set_value(false);
-            }
+            setCallback(false);
             return;
         }
 
         netClient->setRoom(netcode::room::constructRoom(data));
 
-        if (callbackResponse != nullptr)
-        {
-            callbackResponse->set_value(true);
-        }
+        setCallback(true);
     }
 }

@@ -17,6 +17,7 @@
 
 namespace commands
 {
+    class callback;
     class clientRawCommand;
     class createRoomCmd;
     class enterRoomCmd;
@@ -57,6 +58,7 @@ namespace netcode
         struct addrinfo* addr_info;
 
         std::vector<std::unique_ptr<commands::clientCommand>> commandsHistory;
+        std::vector<std::unique_ptr<commands::clientCommand>> callbacks;
 
     public:
         std::function<void (room*)> onRoomUpdate;
@@ -97,6 +99,13 @@ namespace netcode
             return commandsHistory.back()->execute();
         }
 
+        template <typename T, typename... Args>
+        void NETCODE_API addCallback(Args&&... args)
+        {
+            callbacks.push_back(std::make_unique<T>(std::forward<Args>(args)..., this));
+            callbacks.back()->setAsCallbackOnly();
+        }
+
     private:
         void setRoom(const room& room);
         friend class commands::createRoomCmd;
@@ -107,7 +116,10 @@ namespace netcode
 
         int initializeWinsock();
         int createSocket();
-        void callbackPendingCommands(const std::string& key, const std::string& message, char* rawStr, int strSize) const;
+        void callbackPendingCommands(const std::string& key, const std::string& message, char* rawStr,
+                                     int strSize) const;
+        void callRegisteredCallbacks(const std::string& key, const std::string& message, char* rawStr,
+                                     int strSize) const;
         void listenToServer();
     };
 }

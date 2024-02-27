@@ -11,7 +11,7 @@ namespace commands
     {
         gameManager->endGame();
 
-        SOCKET sc = *gameManager->getServerRoom()->clients()[0]->connection;
+        SOCKET sc = gameManager->getServerRoom()->clients()[0]->connection;
 
         if (!gameManager->isInRoom(sc))
         {

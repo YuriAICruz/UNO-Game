@@ -48,10 +48,6 @@ namespace commands
 
         bool success = data[1] == "1";
 
-        pending = false;
-        if (callbackResponse != nullptr)
-        {
-            callbackResponse->set_value(success);
-        }
+        setCallback(success);
     }
 }

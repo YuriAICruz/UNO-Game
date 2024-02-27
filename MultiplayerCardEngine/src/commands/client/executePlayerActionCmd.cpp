@@ -27,17 +27,13 @@ namespace commands
     {
         std::vector<std::string> data = stringUtils::splitString(message);
 
-        pending = false;
-        if (callbackResponse != nullptr)
-        {
-            int r = stoi(data[1]);
-            callbackResponse->set_value(r > 0);
+        int r = stoi(data[1]);
+        setCallback(r > 0);
 
-            // server can respond 2 if the game has ended in this turn
-            if (r == 2)
-            {
-                gameManager->endGame();
-            }
+        // server can respond 2 if the game has ended in this turn
+        if (r == 2)
+        {
+            gameManager->endGame();
         }
     }
 }

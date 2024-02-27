@@ -34,25 +34,17 @@ namespace commands
 
         if (std::strcmp(NC_VALID_KEY, key) == 0)
         {
-            pending = false;
             netClient->connected = true;
             netClient->hasId = true;
             netClient->id = std::stoi(data[1]);
 
-            if (callbackResponse != nullptr)
-            {
-                callbackResponse->set_value(true);
-            }
+            setCallback(true);
             return;
         }
 
         if (std::strcmp(NC_INVALID_KEY, key) == 0)
         {
-            pending = false;
-            if (callbackResponse != nullptr)
-            {
-                callbackResponse->set_value(false);
-            }
+            setCallback(false);
             netClient->connected = false;
             netClient->close();
             return;

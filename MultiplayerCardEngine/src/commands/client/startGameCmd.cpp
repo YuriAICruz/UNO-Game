@@ -19,10 +19,6 @@ namespace commands
             gameManager->baseStartGame();
         }
 
-        pending = false;
-        if (callbackResponse != nullptr)
-        {
-            callbackResponse->set_value(true);
-        }
+        setCallback(true);
     }
 }
