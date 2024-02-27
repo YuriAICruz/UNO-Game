@@ -19,7 +19,7 @@ namespace commands
 
         auto client = netServer->getClient(clientSocket).get();
 
-        auto room = manager->getRoom(client);
+        auto room = roomManager->getRoom(client);
         if (room == nullptr || room->isLocked())
         {
             ss << 0;
@@ -32,7 +32,7 @@ namespace commands
         ss << 1;
         netServer->broadcastToRoom(ss.str(), clientSocket);
 
-        if (manager->roomClientsAreReady(room->getId()))
+        if (roomManager->roomClientsAreReady(room->getId()))
         {
             netServer->broadcastToRoom(NC_ROOM_ALL_READY, clientSocket);
         }

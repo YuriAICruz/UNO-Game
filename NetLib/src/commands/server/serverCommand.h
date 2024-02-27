@@ -16,11 +16,11 @@ namespace commands
     {
     protected:
         netcode::server* netServer;
-        netcode::roomManager* manager;
+        netcode::roomManager* roomManager;
 
     public:
         serverCommand(const char* key, netcode::roomManager* manager, netcode::server* server) :
-            command(key), netServer(server), manager(manager)
+            command(key), netServer(server), roomManager(manager)
         {
         }
 

@@ -5,10 +5,10 @@
 #include <tuple>
 
 #include "coreEventIds.h"
-#include "logger.h"
 #include "netCommands.h"
 #include "stringUtils.h"
 #include "commands/client/gameSettingsCmd.h"
+#include "commands/client/getRoomCmd.h"
 #include "commands/server/lockRoomServerCmd.h"
 #include "StateManager/gameEventData.h"
 

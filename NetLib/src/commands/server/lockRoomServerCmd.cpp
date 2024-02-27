@@ -5,7 +5,7 @@ namespace commands
 {
     bool lockRoomServerCmd::execute()
     {
-        manager->getRoom(netServer->getClient(clientSocket).get())->lock();
+        roomManager->getRoom(netServer->getClient(clientSocket).get())->lock();
         return true;
     }
 

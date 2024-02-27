@@ -23,7 +23,7 @@ namespace commands
         }
         else
         {
-            manager->exitRoom(client.get());
+            roomManager->exitRoom(client.get());
         }
 
         return netServer->sendMessage(cmdKey, clientSocket);

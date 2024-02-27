@@ -13,7 +13,7 @@ namespace commands
     bool getRoomsServerCmd::callback(std::vector<std::string>& data, SOCKET clientSocket)
     {
         logger::print("SERVER: listing rooms");
-        std::string str = manager->listRooms(cmdKey);
+        std::string str = roomManager->listRooms(cmdKey);
         return netServer->sendMessage(str, clientSocket);
     }
 }

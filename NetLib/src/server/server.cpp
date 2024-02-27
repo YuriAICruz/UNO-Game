@@ -94,23 +94,23 @@ namespace netcode
         return 0;
     }
 
-    bool server::broadcast(std::string msg) const
+    bool server::broadcast(std::string message) const
     {
         bool result = true;
         for (auto pair : clients)
         {
             if (pair.second->isConnected)
             {
-                result = result && sendMessage(msg.c_str(), *pair.second->connection);
+                result = result && sendMessage(message.c_str(), *pair.second->connection);
             }
         }
         return result;
     }
 
-    bool server::broadcastToRoom(std::string msg, SOCKET cs)
+    bool server::broadcastToRoom(std::string message, SOCKET clientSocket)
     {
         bool result = true;
-        auto room = roomManager.getRoom(getClient(cs).get());
+        auto room = roomManager.getRoom(getClient(clientSocket).get());
         if (room == nullptr)
         {
             logger::printError("Room Not found");
@@ -120,16 +120,16 @@ namespace netcode
         {
             if (pair->isConnected)
             {
-                result = result && sendMessage(msg, *pair->connection);
+                result = result && sendMessage(message, *pair->connection);
             }
         }
         return result;
     }
 
-    bool server::broadcastToRoomRaw(const char* responseData, size_t size, SOCKET cs)
+    bool server::broadcastToRoomRaw(const char* responseData, size_t size, SOCKET clientSocket)
     {
         bool result = true;
-        auto room = roomManager.getRoom(getClient(cs).get());
+        auto room = roomManager.getRoom(getClient(clientSocket).get());
         for (auto pair : room->clients())
         {
             if (pair->isConnected)
@@ -412,20 +412,6 @@ namespace netcode
         }
 
         return nullptr;
-    }
-
-    void server::getRoom(const std::string& message, SOCKET clientSocket)
-    {
-        std::vector<std::string> data = stringUtils::splitString(message);
-        logger::print((logger::printer() << "SERVER: getting room [" << data[1] << "] information").str());
-        int id = stoi(data[1]);
-
-        std::stringstream ss;
-        ss << NC_GET_ROOM << NC_SEPARATOR;
-        ss << roomManager.getRoomSerialized(id);
-        sendMessage(ss.str(), clientSocket);
-
-        logger::print((logger::getPrinter() << "SERVER: sent to client room updated data [" << id << "]").str());
     }
 
     void server::broadcastUpdatedRoom(SOCKET clientSocket)

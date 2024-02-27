@@ -30,4 +30,9 @@ TEST(ServerCmd, enterRoomCmd)
 
     cl->close();
     sv->close();
+    while (sv->isRunning())
+    {
+        
+    }
+    EXPECT_FALSE(sv->isRunning());
 }

@@ -21,10 +21,10 @@ namespace commands
         std::stringstream ss;
         ss << cmdKey;
 
-        if (manager->enterRoom(id, netServer->getClient(clientSocket)))
+        if (roomManager->enterRoom(id, netServer->getClient(clientSocket)))
         {
             ss << NC_SEPARATOR;
-            ss << manager->getRoomSerialized(id);
+            ss << roomManager->getRoomSerialized(id);
 
             logger::print((logger::getPrinter() << "SERVER: added client to room with id [" << id << "]").str());
             return netServer->broadcastToRoom(ss.str(), clientSocket);

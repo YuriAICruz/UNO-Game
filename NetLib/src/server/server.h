@@ -47,12 +47,13 @@ namespace netcode
         int close();
         void broadcastUpdatedRoom(SOCKET clientSocket);
         std::shared_ptr<clientInfo> getClient(SOCKET uint);
-        bool broadcast(std::string msg) const;
-        bool broadcastToRoom(std::string msg, SOCKET cs);
-        bool broadcastToRoomRaw(const char* responseData, size_t size, SOCKET cs);
+        bool broadcast(std::string message) const;
+        bool broadcastToRoom(std::string message, SOCKET clientSocket);
+        bool broadcastToRoomRaw(const char* responseData, size_t size, SOCKET clientSocket);
         bool sendMessage(std::string message, SOCKET clientSocket) const;
         bool sendMessage(const char* message, SOCKET clientSocket) const;
         bool sendMessageRaw(SOCKET clientSocket, const char* responseData, int len, int flags) const;
+        bool isRoomReady(int roomId);
 
         int getSeed() const
         {
@@ -82,8 +83,6 @@ namespace netcode
         }
 
     private:
-        bool isRoomReady(int roomId);
-
         void listening();
         void disconnectClient(SOCKET clientSocket);
         void clientReconnected(const std::shared_ptr<clientInfo>& client, SOCKET uint);
@@ -91,7 +90,5 @@ namespace netcode
         void clientHandler(SOCKET clientSocket);
         bool validateKey(SOCKET clientSocket, int& id) const;
         std::shared_ptr<clientInfo> getClientFromId(size_t id) const;
-
-        void getRoom(const std::string& message, SOCKET clientSocket);
     };
 }
