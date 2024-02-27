@@ -4,6 +4,13 @@
 
 #include "../renderer/elements/card.h"
 #include "../renderer/elements/text.h"
+#include "commands/client/exitRoomCmd.h"
+#include "commands/client/setNameCmd.h"
+#include "commands/client/getRoomCmd.h"
+#include "commands/client/getUpdatedRoomCmd.h"
+#include "commands/client/getSeedCmd.h"
+#include "commands/client/setNotReadyCmd.h"
+#include "commands/client/setReadyCmd.h"
 
 namespace screens
 {
@@ -14,8 +21,10 @@ namespace screens
 
         isRoomReady = false;
 
+        netcode::room* room;
+        netClient->executeCommand<commands::getRoomCmd>(room);
         std::stringstream ss;
-        ss << "Room: " << netClient->getRoomName() << ", waiting for players";
+        ss << "Room: " << room->getName() << ", waiting for players";
         std::string titleText = ss.str();
 
         COORD windowSize = rdr->getWindowSize();
@@ -167,7 +176,12 @@ namespace screens
             tryExitRoom();
         };
 
-        updateStartButton(netClient->getUpdatedRoom());
+        netcode::room* r;
+        netClient->executeCommand<commands::getRoomCmd>(r);
+        netClient->executeCommand<commands::getUpdatedRoomCmd>(r->getId());
+        netClient->executeCommand<commands::getRoomCmd>(r);
+        updateStartButton(r);
+
         netClient->onRoomUpdate = [this](netcode::room* r)
         {
             updateStartButton(r);
@@ -323,7 +337,7 @@ namespace screens
 
     void roomWaitingScreen::setSeed()
     {
-        seed = netClient->getSeed();
+        netClient->executeCommand<commands::getSeedCmd>(seed);
         box.openSizeTEditBox("Random Seed: ", seed, [this](std::string)
         {
             updateSeed();
@@ -341,15 +355,16 @@ namespace screens
 
     void roomWaitingScreen::toggleReady() const
     {
-        netcode::room* room = netClient->getRoom();
+        netcode::room* room;
+        netClient->executeCommand<commands::getRoomCmd>(room);
 
         if (room->isClientReady())
         {
-            netClient->setNotReady();
+            netClient->executeCommand<commands::setNotReadyCmd>(room);
         }
         else
         {
-            netClient->setReady();
+            netClient->executeCommand<commands::setReadyCmd>(room);
         }
 
         updateReadyState();
@@ -363,7 +378,10 @@ namespace screens
         }
 
         auto button = dynamic_cast<elements::card*>(rdr->getElement(buttons[3].id));
-        netcode::room* room = netClient->getRoom();
+
+        netcode::room* room;
+        netClient->executeCommand<commands::getRoomCmd>(room);
+
         std::stringstream ss;
 
         if (room->isClientReady())
@@ -414,9 +432,9 @@ namespace screens
         popup.openWarningPopup("Are you sure you want to return to the main menu?");
     }
 
-    void roomWaitingScreen::exitRoomAndReturnToMainScreen()
+    void roomWaitingScreen::exitRoomAndReturnToMainScreen() const
     {
-        netClient->exitRoom();
+        netClient->executeCommand<commands::exitRoomCmd>();
         events->fireEvent(NAVIGATION_MAIN_MENU, transitionData());
     }
 
@@ -434,7 +452,9 @@ namespace screens
             return;
         }
 
-        if (netClient->getRoomCount() <= 1)
+        netcode::room* room;
+        netClient->executeCommand<commands::getRoomCmd>(room);
+        if (room->count() <= 1)
         {
             popup.clearActions();
             popup.openWarningPopup("Not enough players available");
@@ -442,7 +462,11 @@ namespace screens
         }
 
         blockInputs = true;
-        netGameManager->setupGame(netClient->getUpdatedRoom(), handSize, cardsPath, seed);
+
+        netClient->executeCommand<commands::getUpdatedRoomCmd>(room->getId());
+        netClient->executeCommand<commands::getRoomCmd>(room);
+
+        netGameManager->setupGame(room, handSize, cardsPath, seed);
         events->fireEvent(NAVIGATION_ONLINE_GAME, transitionData());
     }
 
@@ -494,7 +518,7 @@ namespace screens
         std::string name = netClient->getPlayerName();
         box.openStringEditBox("Player Name", name, [this](std::string newName)
         {
-            netClient->setName(newName);
+            netClient->executeCommand<commands::setNameCmd>(newName);
             updatePlayerName();
         });
     }

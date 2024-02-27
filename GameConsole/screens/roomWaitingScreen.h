@@ -112,7 +112,7 @@ namespace screens
     private:
         void updateStartButton(netcode::room* room, bool ready = false);
         void tryExitRoom();
-        void exitRoomAndReturnToMainScreen();
+        void exitRoomAndReturnToMainScreen() const;
         void startRoomGame();
         void goToGameScreen();
         void updateStatingCardsCount();

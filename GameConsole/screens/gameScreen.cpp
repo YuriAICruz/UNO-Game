@@ -8,6 +8,7 @@
 #include "Cards/ActionTypes/base.h"
 #include "Cards/ActionTypes/draw.h"
 #include "../renderer/elements/fileRead.h"
+#include "commands/client/executePlayerActionCmd.h"
 
 namespace elements
 {
@@ -761,7 +762,7 @@ namespace screens
             }
             else
             {
-                if (manager->tryExecutePlayerAction(index))
+                if (manager->executeGameCommand<commands::executePlayerActionCmd>(index))
                 {
                     if (gameManager->isGameRunning())
                     {
