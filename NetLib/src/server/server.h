@@ -36,6 +36,7 @@ namespace netcode
         std::atomic<bool> error{false};
 
         std::vector<std::unique_ptr<commands::serverCommand>> commandsHistory;
+        std::vector<std::unique_ptr<commands::serverCommand>> callbacks;
 
     public:
         std::function<void(clientInfo*)> onClientReconnected;
@@ -81,12 +82,19 @@ namespace netcode
             commandsHistory.push_back(std::make_unique<T>(std::forward<Args>(args)..., &roomManager, this));
             return commandsHistory.back()->execute();
         }
+        template <typename T, typename... Args>
+        void NETCODE_API addServerCallback(Args&&... args)
+        {
+            callbacks.push_back(std::make_unique<T>(std::forward<Args>(args)..., &roomManager, this));
+            callbacks.back()->setAsCallbackOnly();
+        }
 
     private:
         void listening();
         void disconnectClient(SOCKET clientSocket);
-        void clientReconnected(const std::shared_ptr<clientInfo>& client, SOCKET uint);
+        void clientReconnected(const std::shared_ptr<clientInfo>& client, SOCKET clientConnection);
         void callbackPendingCommands(const std::string& key, std::vector<std::string>& data, SOCKET clientSocket) const;
+        void callRegisteredCallbacks(const std::string& key, std::vector<std::string>& data, SOCKET clientSocket) const;
         void clientHandler(SOCKET clientSocket);
         bool validateKey(SOCKET clientSocket, int& id) const;
         std::shared_ptr<clientInfo> getClientFromId(size_t id) const;

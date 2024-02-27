@@ -187,7 +187,7 @@ std::shared_ptr<netGameStateManager> createClientGameManager(
     auto manager = std::make_shared<netGameStateManager>(events, client);
     manager->bindGameEvents();
     manager->setupGame(playersList, playersIds, handInitialSize, "Data\\deck_setup.json", seed);
-    manager->startGame();
+    //skipping game start, must be called directly from one client after all are retup
     return manager;
 }
 
@@ -237,6 +237,8 @@ TEST(NetGameFlowTests, PlayCardFromManager)
     int handSize = 7;
     auto hostManager = createHostGameManager(clA, sv, handSize, 12345);
     auto clientManager = createClientGameManager(clB, handSize);
+    
+    clientManager->startGame();
 
     EXPECT_EQ(hostManager->getCurrentPlayer()->Id(), clientManager->getCurrentPlayer()->Id());
 
@@ -269,8 +271,8 @@ TEST(NetGameFlowTests, PlayCardFromManager)
     EXPECT_FALSE(hostManager->executeGameCommand<commands::executePlayerActionCmd>(invalidIndex));
     EXPECT_TRUE(hostManager->executeGameCommand<commands::executePlayerActionCmd>(validIndex));
 
-    EXPECT_NE(*currentPlayer, *hostManager->getCurrentPlayer());
-    EXPECT_NE(*currentPlayer, *clientManager->getCurrentPlayer());
+    EXPECT_NE(currentPlayer->Id(), hostManager->getCurrentPlayer()->Id());
+    EXPECT_NE(currentPlayer->Id(), clientManager->getCurrentPlayer()->Id());
     EXPECT_LT(currentPlayer->getHand().size(), handSize);
     EXPECT_LT(clientCurrentPlayer->getHand().size(), handSize);
 
@@ -298,6 +300,9 @@ TEST(NetGameFlowTests, PlayCardFromManagerDedicatedServer)
     auto clientManagerA = createClientGameManager(clA, handSize);
     auto clientManagerB = createClientGameManager(clB, handSize);
 
+    clientManagerA->startGame();
+    std::this_thread::sleep_for(std::chrono::milliseconds(STATE_SYNC_DELAY));
+    
     EXPECT_EQ(serverManager->getCurrentPlayer()->Id(), clientManagerA->getCurrentPlayer()->Id());
     EXPECT_EQ(serverManager->getCurrentPlayer()->Id(), clientManagerB->getCurrentPlayer()->Id());
 
@@ -494,11 +499,15 @@ TEST(NetGameFlowTests, ReconnectToRunningGame)
 
     clB->start();
     clB->connectToServer();
-    // clientManagerB->waitForStateSync();
 
+    //wait a little for the server data to be received by the client.
+    std::this_thread::sleep_for(std::chrono::milliseconds(STATE_SYNC_DELAY));
+    
     EXPECT_NE(serverManager->getCurrentPlayer()->Id(), startingPlayer->Id());
     EXPECT_EQ(serverManager->getCurrentPlayer()->Id(), clientManagerB->getCurrentPlayer()->Id());
 
+    ASSERT_FALSE(clientManagerA->isCurrentPlayer());
+    ASSERT_TRUE(clientManagerB->isCurrentPlayer());
     EXPECT_TRUE(clientManagerB->makePlayerDraw(clientManagerB->getCurrentPlayer(), 1));
     EXPECT_TRUE(clientManagerB->skipTurn());
 
@@ -612,6 +621,7 @@ TEST(NetGameFlowTests, RoomReady)
     netcode::room* roomB;
     EXPECT_TRUE(clA->executeCommand<commands::setReadyCmd>(roomA));
     std::this_thread::sleep_for(std::chrono::milliseconds(STATE_SYNC_DELAY));
+    clB->executeCommand<commands::getRoomCmd>(roomB);
     EXPECT_TRUE(clB->executeCommand<commands::setReadyCmd>(roomB));
 
     EXPECT_TRUE(sv->isRoomReady(roomA->getId()));

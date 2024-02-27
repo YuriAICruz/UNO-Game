@@ -19,6 +19,7 @@ protected:
     std::shared_ptr<eventBus::eventBus> events;
     bool running = false;
     uint8_t currentPlayerCardsDraw = 0;
+    std::string currentDeckConfigFilePath;
 
 public:
     gameStateManager(std::shared_ptr<eventBus::eventBus> events);

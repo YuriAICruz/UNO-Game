@@ -253,7 +253,7 @@ namespace netcode
             WSACleanup();
         }
 
-        if (connected)
+        if (connected && running)
         {
             freeaddrinfo(addr_info);
         }

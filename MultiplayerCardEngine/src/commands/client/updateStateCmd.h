@@ -9,11 +9,10 @@ namespace commands
     {
     private:
         netGameStateManager* gameManager;
-        std::function<void()> onUpdated = nullptr;
 
     public:
-        updateStateCmd(std::function<void()> onUpdated, netGameStateManager* gameManager, netcode::client* client)
-            : clientRawCommand(CORE_NC_UPDATE_STATE, client), gameManager(gameManager), onUpdated(onUpdated)
+        updateStateCmd(netGameStateManager* gameManager, netcode::client* client)
+            : clientRawCommand(CORE_NC_UPDATE_STATE, client), gameManager(gameManager)
         {
         }
 

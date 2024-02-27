@@ -20,15 +20,15 @@ namespace netcode
 {
     server::server()
     {
-        executeServerCommand<commands::createRoomServerCmd>();
-        executeServerCommand<commands::enterRoomServerCmd>();
-        executeServerCommand<commands::exitRoomServerCmd>();
-        executeServerCommand<commands::getRoomServerCmd>();
-        executeServerCommand<commands::getRoomsServerCmd>();
-        executeServerCommand<commands::getSeedServerCmd>();
-        executeServerCommand<commands::setSeedServerCmd>();
-        executeServerCommand<commands::setNameServerCmd>();
-        executeServerCommand<commands::updateRoomStatusServerCmd>();
+        addServerCallback<commands::createRoomServerCmd>();
+        addServerCallback<commands::enterRoomServerCmd>();
+        addServerCallback<commands::exitRoomServerCmd>();
+        addServerCallback<commands::getRoomServerCmd>();
+        addServerCallback<commands::getRoomsServerCmd>();
+        addServerCallback<commands::getSeedServerCmd>();
+        addServerCallback<commands::setSeedServerCmd>();
+        addServerCallback<commands::setNameServerCmd>();
+        addServerCallback<commands::updateRoomStatusServerCmd>();
     }
 
     int server::start(int port)
@@ -101,7 +101,7 @@ namespace netcode
         {
             if (pair.second->isConnected)
             {
-                result = result && sendMessage(message.c_str(), *pair.second->connection);
+                result = result && sendMessage(message.c_str(), pair.second->connection);
             }
         }
         return result;
@@ -120,7 +120,7 @@ namespace netcode
         {
             if (pair->isConnected)
             {
-                result = result && sendMessage(message, *pair->connection);
+                result = result && sendMessage(message, pair->connection);
             }
         }
         return result;
@@ -134,7 +134,7 @@ namespace netcode
         {
             if (pair->isConnected)
             {
-                result = result && sendMessageRaw(*pair->connection, responseData, size, 0);
+                result = result && sendMessageRaw(pair->connection, responseData, size, 0);
             }
         }
         return result;
@@ -244,10 +244,12 @@ namespace netcode
         }
     }
 
-    void server::clientReconnected(const std::shared_ptr<clientInfo>& client, SOCKET uint)
+    void server::clientReconnected(const std::shared_ptr<clientInfo>& client, SOCKET clientConnection)
     {
-        client->connection = &uint;
+        client->connection = clientConnection;
         client->reconnect();
+
+        broadcastUpdatedRoom(clientConnection);
 
         if (onClientReconnected != nullptr)
         {
@@ -259,6 +261,18 @@ namespace netcode
                                          SOCKET clientSocket) const
     {
         for (const std::unique_ptr<commands::serverCommand>& cmd : commandsHistory)
+        {
+            if (cmd->isPending(key))
+            {
+                cmd->callback(data, clientSocket);
+                break;
+            }
+        }
+    }
+    void server::callRegisteredCallbacks(const std::string& key, std::vector<std::string>& data,
+                                         SOCKET clientSocket) const
+    {
+        for (const std::unique_ptr<commands::serverCommand>& cmd : callbacks)
         {
             if (cmd->isPending(key))
             {
@@ -289,7 +303,7 @@ namespace netcode
         else
         {
             std::shared_ptr<clientInfo> client = std::make_shared<clientInfo>(id);
-            client->connection = &clientSocket;
+            client->connection = clientSocket;
             clients.insert(std::make_pair(id, client));
         }
 
@@ -320,6 +334,7 @@ namespace netcode
             {
                 std::vector<std::string> data = stringUtils::splitString(command);
                 callbackPendingCommands(data[0], data, clientSocket);
+                callRegisteredCallbacks(data[0], data, clientSocket);
             }
         }
 
@@ -381,8 +396,7 @@ namespace netcode
 
             std::stringstream ss;
             ss << NC_VALID_KEY << NC_SEPARATOR << id;
-            sendMessage(ss.str(), clientSocket);
-            return true;
+            return sendMessage(ss.str(), clientSocket);
         }
 
         return false;
@@ -392,7 +406,7 @@ namespace netcode
     {
         for (auto& pair : clients)
         {
-            if (pair.second->connection != nullptr && *pair.second->connection == clientSocket)
+            if (pair.second->connection == clientSocket)
             {
                 return clients[pair.first];
             }

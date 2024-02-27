@@ -122,7 +122,7 @@ namespace netcode
     {
         for (auto connectedClient : connectedClients)
         {
-            if (connectedClient->connection != nullptr && *connectedClient->connection == clientSocket)
+            if (connectedClient->connection == clientSocket)
             {
                 return true;
             }

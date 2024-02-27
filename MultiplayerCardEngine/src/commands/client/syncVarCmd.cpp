@@ -29,10 +29,6 @@ namespace commands
 
         gameManager->updateVarsDictionary(id, value);
 
-        pending = false;
-        if(callbackResponse == nullptr)
-        {
-            callbackResponse->set_value(true);
-        }
+        setCallback(true);
     }
 }

@@ -7,6 +7,8 @@
 #include "coreEventIds.h"
 #include "netCommands.h"
 #include "stringUtils.h"
+#include "commands/client/drawCardsCmd.h"
+#include "commands/client/endGameCmd.h"
 #include "commands/client/getRoomCmd.h"
 #include "commands/client/skipTurnCmd.h"
 #include "commands/client/updateStateCmd.h"
@@ -16,6 +18,8 @@
 #include "commands/server/executePlayerActionServerCmd.h"
 #include "commands/client/gameSettingsCmd.h"
 #include "commands/client/startGameCmd.h"
+#include "commands/client/syncVarCmd.h"
+#include "commands/client/unoYellCmd.h"
 #include "commands/server/gameSettingsServerCmd.h"
 #include "commands/server/skipTurnServerCmd.h"
 #include "commands/server/startGameServerCmd.h"
@@ -155,12 +159,12 @@ void netGameStateManager::decryptGameSettingsAndSetup(const std::vector<std::str
 
 void netGameStateManager::startGame()
 {
-    if(isServer)
+    if (isServer)
     {
         baseStartGame();
         return;
     }
-    if((!isServer || isHost)  && !running)
+    if ((!isServer || isHost) && !running)
     {
         executeGameCommand<commands::startGameCmd>();
     }
@@ -197,19 +201,23 @@ bool netGameStateManager::tryExecutePlayerAction(cards::ICard* card)
 
 void netGameStateManager::addServerCommands()
 {
-    executeGameServerCommand<commands::drawCardsServerCmd>();
-    executeGameServerCommand<commands::endGameServerCmd>();
-    executeGameServerCommand<commands::executePlayerActionServerCmd>();
-    executeGameServerCommand<commands::gameSettingsServerCmd>();
-    executeGameServerCommand<commands::skipTurnServerCmd>();
-    executeGameServerCommand<commands::startGameServerCmd>();
-    executeGameServerCommand<commands::syncVarServerCmd>();
-    executeGameServerCommand<commands::unoYellServerCmd>();
+    addGameServerCallback<commands::drawCardsServerCmd>();
+    addGameServerCallback<commands::endGameServerCmd>();
+    addGameServerCallback<commands::executePlayerActionServerCmd>();
+    addGameServerCallback<commands::gameSettingsServerCmd>();
+    addGameServerCallback<commands::skipTurnServerCmd>();
+    addGameServerCallback<commands::startGameServerCmd>();
+    addGameServerCallback<commands::syncVarServerCmd>();
+    addGameServerCallback<commands::unoYellServerCmd>();
 }
 
 void netGameStateManager::addClientCommands()
 {
-    executeGameCommand<commands::updateStateCmd>();
+    addGameCallback<commands::endGameCmd>();
+    addGameCallback<commands::gameSettingsCmd>("");
+    addGameCallback<commands::startGameCmd>();
+    addGameCallback<commands::syncVarCmd>(0, 0);
+    addGameCallback<commands::updateStateCmd>();
 }
 
 void netGameStateManager::checkIsServer() const
@@ -251,8 +259,6 @@ void netGameStateManager::broadcastServerStateData(SOCKET cs)
 
     netServer->broadcastToRoomRaw(buffer, bufferSize, cs);
     delete std::get<0>(data);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(STATE_SYNC_DELAY));
 }
 
 void netGameStateManager::sendToClientServerStateData(SOCKET cs)
@@ -278,8 +284,6 @@ void netGameStateManager::sendToClientServerStateData(SOCKET cs)
 
     netServer->sendMessageRaw(cs, buffer, bufferSize, 0);
     delete std::get<0>(data);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(STATE_SYNC_DELAY));
 }
 
 void netGameStateManager::encryptStateBuffer(std::tuple<const char*, size_t> data, char* ptr)
@@ -334,33 +338,43 @@ void netGameStateManager::endGame()
 
 bool netGameStateManager::skipTurn()
 {
-    throw std::exception("skip turn not implemented");
+    if (!isServer)
+    {
+        return executeGameCommand<commands::skipTurnCmd>();
+    }
+
+    return gameStateManager::skipTurn();
 }
 
 void netGameStateManager::onClientReconnected(netcode::clientInfo* client)
 {
     if (running)
     {
-        sendToClientServerStateData(*client->connection);
+        // std::string path = currentDeckConfigFilePath;
+        // std::string str = encryptGameSettings(path, CORE_NC_GAME_SETTINGS);
+        // netServer->broadcastToRoom(str, client->connection);
+        sendToClientServerStateData(client->connection);
     }
 }
 
 bool netGameStateManager::yellUno()
 {
-    if (isServer)
+    if (!isServer)
     {
-        gameStateManager::yellUno();
-        return true;
+        return executeGameCommand<commands::unoYellCmd>();
     }
+
+    return gameStateManager::yellUno();
 }
 
 bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
 {
-    if (isServer)
+    if (!isServer)
     {
-        gameStateManager::makePlayerDraw(player, count);
-        return true;
+        return executeGameCommand<commands::drawCardsCmd>(player->Id(), count);
     }
+
+    return gameStateManager::makePlayerDraw(player, count);
 }
 
 void netGameStateManager::setRoom(netcode::room* room)

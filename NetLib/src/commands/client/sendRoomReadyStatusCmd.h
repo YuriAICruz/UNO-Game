@@ -7,6 +7,7 @@ namespace commands
 {
     class sendRoomReadyStatusCmd : public clientCommand
     {
+    private:
         netcode::room* room;
         bool ready;
 

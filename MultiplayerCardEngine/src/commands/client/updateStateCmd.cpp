@@ -14,10 +14,5 @@ namespace commands
     void updateStateCmd::rawCallback(char* rawStr, int strSize)
     {
         gameManager->setStateNet(rawStr, strSize);
-
-        if (onUpdated != nullptr)
-        {
-            onUpdated();
-        }
     }
 }

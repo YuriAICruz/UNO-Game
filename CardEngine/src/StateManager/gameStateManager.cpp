@@ -72,6 +72,7 @@ bool gameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
 void gameStateManager::setupGame(std::vector<std::string>& players, int handSize,
                                  std::string deckConfigFilePath, size_t seed)
 {
+    currentDeckConfigFilePath = deckConfigFilePath;
     running = false;
     this->seed = seed;
     this->handSize = handSize;
@@ -87,6 +88,7 @@ void gameStateManager::setupGame(std::vector<std::string>& players, int handSize
 void gameStateManager::setupGame(std::vector<std::string> players, std::vector<uint16_t> playersIds, int handSize,
                                  std::string deckConfigFilePath, size_t seed)
 {
+    currentDeckConfigFilePath = deckConfigFilePath;
     running = false;
     this->seed = seed;
     this->handSize = handSize;

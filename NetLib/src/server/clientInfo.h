@@ -12,7 +12,7 @@ namespace netcode
     {
         int id;
         std::string name = "John Doe";
-        SOCKET* connection;
+        SOCKET connection;
         bool isConnected = true;
         bool ready = false;
 
@@ -51,14 +51,13 @@ namespace netcode
                     (logger::getPrinter() << "Client is already connected [" << id << ":" << name << "]").str()
                 );
             }
-
             isConnected = true;
         }
 
         void disconnect()
         {
             isConnected = false;
-            connection = nullptr;
+            connection = 0;
         }
     };
 }

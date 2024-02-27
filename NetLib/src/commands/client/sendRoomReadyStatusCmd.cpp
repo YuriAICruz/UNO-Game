@@ -22,7 +22,7 @@ namespace commands
         }
 
         std::stringstream ss;
-        ss << NC_ROOM_READY_STATUS << NC_SEPARATOR << (ready ? 1 : 0);
+        ss << cmdKey << NC_SEPARATOR << (ready ? 1 : 0);
         netClient->sendMessage(ss.str());
 
         bool result = waitAndReturnPromise(future);

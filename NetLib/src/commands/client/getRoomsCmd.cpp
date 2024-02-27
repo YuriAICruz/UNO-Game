@@ -44,10 +44,6 @@ namespace commands
             roomList[i] = netcode::room::constructRoom(str);
         }
 
-        pending = false;
-        if (callbackResponse != nullptr)
-        {
-            callbackResponse->set_value(true);
-        }
+        setCallback(true);
     }
 }

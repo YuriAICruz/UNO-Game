@@ -77,10 +77,24 @@ public:
     }
 
     template <typename T, typename... Args>
+    void addGameCallback(Args&&... args)
+    {
+        checkIsServer();
+        netClient->addCallback<T>(std::forward<Args>(args)..., this);
+    }
+
+    template <typename T, typename... Args>
     bool executeGameServerCommand(Args&&... args)
     {
         checkIsClient();
         return netServer->executeServerCommand<T>(std::forward<Args>(args)..., this);
+    }
+
+    template <typename T, typename... Args>
+    void addGameServerCallback(Args&&... args)
+    {
+        checkIsClient();
+        netServer->addServerCallback<T>(std::forward<Args>(args)..., this);
     }
 
 
@@ -88,6 +102,7 @@ public:
 
     bool isInRoom(SOCKET sc) const;
     void updateVarsDictionary(int id, int value);
+    void waitForStateSync();
 
 private:
     void addClientCommands();
