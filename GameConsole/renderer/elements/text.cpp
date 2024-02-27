@@ -16,8 +16,12 @@ void elements::text::draw(std::vector<std::vector<renderer::bufferData>>* buffer
             if (y == position.Y &&
                 x >= position.X && x < position.X + length)
             {
-                buffer->at(y).at(x).c = textValue[x - position.X];
-                buffer->at(y).at(x).color = color;
+                size_t strPos = max(0, x - position.X);
+                if (strPos < textValue.length())
+                {
+                    buffer->at(y).at(x).c = textValue[strPos];
+                    buffer->at(y).at(x).color = color;
+                }
             }
         }
     }
