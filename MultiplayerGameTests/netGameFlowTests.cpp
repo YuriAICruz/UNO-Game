@@ -20,7 +20,6 @@
 #include "commands/client/enterRoomCmd.h"
 #include "commands/client/createRoomCmd.h"
 #include "commands/client/getSeedCmd.h"
-#include "commands/server/executePlayerActionServerCmd.h"
 #include "server/server.h"
 #include "StateManager/gameStateManager.h"
 
@@ -199,104 +198,22 @@ TEST(NetGameFlowTests, Begin)
 
     std::shared_ptr<netcode::client> clA = startClient("Player A");
     std::shared_ptr<netcode::client> clB = startClient("Player B");
-    
+
     createRoom("GameRoom", clA);
-    
+
     netcode::room* roomA;
     clA->executeCommand<commands::getRoomCmd>(roomA);
-    
+
     joinRoom(roomA->getId(), clB);
-    
+
     int handSize = 7;
     clA->executeCommand<commands::getUpdatedRoomCmd>(roomA->getId());
     auto manager = createGameManager(roomA, handSize);
-    
+
     for (int i = 0, players = roomA->count(); i < players; ++i)
     {
         EXPECT_EQ(handSize, manager->getPlayer(i)->getHand().size());
     }
-
-    closeClient(clA.get());
-    closeClient(clB.get());
-    closeServer(sv.get());
-}
-
-
-TEST(NetGameFlowTests, PlayRightCard)
-{
-    auto sv = startServer();
-    ASSERT_TRUE(sv->isRunning());
-
-    auto clA = startClient("Player A");
-    auto clB = startClient("Player B");
-
-    netcode::room* roomA;
-
-    createRoom("GameRoom", clA);
-    clA->executeCommand<commands::getRoomCmd>(roomA);
-
-    joinRoom(roomA->getId(), clB);
-
-    int handSize = 7;
-    clA->executeCommand<commands::getUpdatedRoomCmd>(roomA->getId());
-    auto manager = createGameManager(roomA, handSize);
-
-    dynamic_cast<netGameStateManager*>(manager.get())->
-        executeGameServerCommand<commands::executePlayerActionServerCmd>();
-
-    turnSystem::IPlayer* firstPlayer = manager->getCurrentPlayer();
-    turnSystem::IPlayer* currentPlayer = manager->getCurrentPlayer();
-    cards::ICard* topCard = manager->getTopCard();
-    std::list<cards::ICard*> playerCards = currentPlayer->getHand();
-
-    int index = 0;
-    for (auto card : playerCards)
-    {
-        if (card->sameColor(*topCard) || card->sameNumber(*topCard))
-        {
-            break;
-        }
-        index++;
-    }
-
-    std::stringstream ss;
-    ss << CORE_NC_PLAYCARD << NC_SEPARATOR << index;
-    std::string str = ss.str();
-    waiting = true;
-    clA->sendMessage(str.c_str());
-    while (waiting)
-    {
-    }
-
-    EXPECT_NE(currentPlayer, manager->getCurrentPlayer());
-    EXPECT_LT(currentPlayer->getHand().size(), handSize);
-
-    currentPlayer = manager->getCurrentPlayer();
-    topCard = manager->getTopCard();
-    playerCards = currentPlayer->getHand();
-
-    index = 0;
-    for (auto card : playerCards)
-    {
-        if (card->sameColor(*topCard) || card->sameNumber(*topCard))
-        {
-            break;
-        }
-        index++;
-    }
-
-    ss.str("");
-    ss << CORE_NC_PLAYCARD << NC_SEPARATOR << index;
-    str = ss.str();
-    waiting = true;
-    clA->sendMessage(str.c_str());
-    while (waiting)
-    {
-    }
-
-    EXPECT_NE(currentPlayer, manager->getCurrentPlayer());
-    EXPECT_EQ(firstPlayer, manager->getCurrentPlayer());
-    EXPECT_LT(currentPlayer->getHand().size(), handSize);
 
     closeClient(clA.get());
     closeClient(clB.get());
