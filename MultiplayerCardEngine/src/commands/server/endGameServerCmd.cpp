@@ -4,12 +4,7 @@ namespace commands
 {
     bool endGameServerCmd::execute()
     {
-        return true;
-    }
-
-    bool endGameServerCmd::callback(std::vector<std::string>& data, SOCKET clientSocket)
-    {
-        gameManager->endGame();
+        gameManager->baseEndGame();
 
         SOCKET sc = gameManager->getServerRoom()->clients()[0]->connection;
 
@@ -21,6 +16,11 @@ namespace commands
         netServer->broadcastToRoom(cmdKey, sc);
 
         gameManager->getServerRoom()->unlock();
+        return true;
+    }
+
+    bool endGameServerCmd::callback(std::vector<std::string>& data, SOCKET clientSocket)
+    {
         return true;
     }
 }

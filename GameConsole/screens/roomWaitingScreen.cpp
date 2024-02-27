@@ -21,10 +21,12 @@ namespace screens
 
         isRoomReady = false;
 
-        netcode::room* room;
-        netClient->executeCommand<commands::getRoomCmd>(room);
+        netClient->executeCommand<commands::getRoomCmd>(currentRoom);
+        netClient->executeCommand<commands::getUpdatedRoomCmd>(currentRoom->getId());
+        netClient->executeCommand<commands::getRoomCmd>(currentRoom);
+
         std::stringstream ss;
-        ss << "Room: " << room->getName() << ", waiting for players";
+        ss << "Room: " << currentRoom->getName() << ", waiting for players";
         std::string titleText = ss.str();
 
         COORD windowSize = rdr->getWindowSize();
@@ -176,11 +178,7 @@ namespace screens
             tryExitRoom();
         };
 
-        netcode::room* r;
-        netClient->executeCommand<commands::getRoomCmd>(r);
-        netClient->executeCommand<commands::getUpdatedRoomCmd>(r->getId());
-        netClient->executeCommand<commands::getRoomCmd>(r);
-        updateStartButton(r);
+        updateStartButton(currentRoom);
 
         netClient->onRoomUpdate = [this](netcode::room* r)
         {
@@ -189,7 +187,7 @@ namespace screens
         };
         netClient->onRoomReady = [this](bool ready)
         {
-            updateStartButton(netGameManager->getRoom(), ready);
+            updateStartButton(currentRoom, ready);
             updateReadyState();
         };
         netGameManager->onRoomGameStarted = [this]()
@@ -209,6 +207,22 @@ namespace screens
     {
         IScreen::hide();
         popup.hide();
+
+        for (auto button : buttons)
+        {
+            buttons->action = nullptr;
+            buttons->actionLeft = nullptr;
+            buttons->actionRight = nullptr;
+        }
+        if (netClient)
+        {
+            netClient->onRoomUpdate = nullptr;
+            netClient->onRoomReady = nullptr;
+        }
+        if (netGameManager)
+        {
+            netGameManager->onRoomGameStarted = nullptr;
+        }
     }
 
     void roomWaitingScreen::moveUp(input::inputData data)
@@ -329,7 +343,7 @@ namespace screens
         netGameManager = gameManager;
     }
 
-    void roomWaitingScreen::setGameSettings(std::string cardsPath, size_t seed)
+    void roomWaitingScreen::setGameSettings(const std::string& cardsPath, size_t seed)
     {
         this->cardsPath = cardsPath;
         this->seed = seed;
@@ -353,38 +367,36 @@ namespace screens
         rdr->setDirty();
     }
 
-    void roomWaitingScreen::toggleReady() const
+    void roomWaitingScreen::toggleReady()
     {
-        netcode::room* room;
-        netClient->executeCommand<commands::getRoomCmd>(room);
+        netClient->executeCommand<commands::getRoomCmd>(currentRoom);
 
-        if (room->isClientReady())
+        if (currentRoom->isClientReady())
         {
-            netClient->executeCommand<commands::setNotReadyCmd>(room);
+            netClient->executeCommand<commands::setNotReadyCmd>(currentRoom);
         }
         else
         {
-            netClient->executeCommand<commands::setReadyCmd>(room);
+            netClient->executeCommand<commands::setReadyCmd>(currentRoom);
         }
 
         updateReadyState();
     }
 
-    void roomWaitingScreen::updateReadyState() const
+    void roomWaitingScreen::updateReadyState()
     {
         if (blockInputs || box.isBlocking())
         {
             return;
         }
 
-        auto button = dynamic_cast<elements::card*>(rdr->getElement(buttons[3].id));
+        netClient->executeCommand<commands::getRoomCmd>(currentRoom);
 
-        netcode::room* room;
-        netClient->executeCommand<commands::getRoomCmd>(room);
+        auto button = dynamic_cast<elements::card*>(rdr->getElement(buttons[3].id));
 
         std::stringstream ss;
 
-        if (room->isClientReady())
+        if (currentRoom->isClientReady())
         {
             ss << "Ready! [Cancel]";
         }
@@ -452,9 +464,7 @@ namespace screens
             return;
         }
 
-        netcode::room* room;
-        netClient->executeCommand<commands::getRoomCmd>(room);
-        if (room->count() <= 1)
+        if (currentRoom->count() <= 1)
         {
             popup.clearActions();
             popup.openWarningPopup("Not enough players available");
@@ -463,10 +473,10 @@ namespace screens
 
         blockInputs = true;
 
-        netClient->executeCommand<commands::getUpdatedRoomCmd>(room->getId());
-        netClient->executeCommand<commands::getRoomCmd>(room);
+        netClient->executeCommand<commands::getUpdatedRoomCmd>(currentRoom->getId());
+        netClient->executeCommand<commands::getRoomCmd>(currentRoom);
 
-        netGameManager->setupGame(room, handSize, cardsPath, seed);
+        netGameManager->setupGame(currentRoom, handSize, cardsPath, seed);
         events->fireEvent(NAVIGATION_ONLINE_GAME, transitionData());
     }
 

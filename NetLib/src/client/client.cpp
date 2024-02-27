@@ -7,12 +7,26 @@
 #include "../logger.h"
 #include "../serverCommands.h"
 #include "../stringUtils.h"
+#include "../commands/client/allReadyCmd.h"
 #include "../commands/client/validateKeyCmd.h"
 #include "../commands/client/setNameCmd.h"
 #include "../commands/client/clientRawCommand.h"
+#include "../commands/client/getUpdatedRoomCmd.h"
+#include "../commands/client/setNotReadyCmd.h"
+#include "../commands/client/setReadyCmd.h"
+#include "../commands/client/enterRoomCmd.h"
 
 namespace netcode
 {
+    client::client()
+    {
+        addCallback<commands::getUpdatedRoomCmd>(0);
+        addCallback<commands::enterRoomCmd>(0);
+        addCallback<commands::setReadyCmd>(nullptr);
+        addCallback<commands::setNotReadyCmd>(nullptr);
+        addCallback<commands::allReadyCmd>(nullptr);
+    }
+
     void client::setRoom(const room& room)
     {
         currentRoom = room;
@@ -202,6 +216,14 @@ namespace netcode
     std::string& client::getPlayerName()
     {
         return clientName;
+    }
+
+    void client::roomReady(bool ready) const
+    {
+        if(onRoomReady != nullptr)
+        {
+            onRoomReady(ready);
+        }
     }
 
     int client::sendMessage(std::string str)

@@ -64,7 +64,7 @@ namespace netcode
             return name;
         }
 
-        int getId()
+        uint16_t getId() const
         {
             return id;
         }

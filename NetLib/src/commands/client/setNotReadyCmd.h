@@ -16,7 +16,7 @@ namespace commands
 
     public:
         setNotReadyCmd(netcode::room* room, netcode::client* client) :
-            clientCommand(NC_ROOM_READY_STATUS, client), room(room)
+            clientCommand(NC_ROOM_NOT_READY, client), room(room)
         {
         }
 

@@ -24,11 +24,12 @@ namespace commands
         auto data = stringUtils::splitString(message);
 
         bool canYell = data[1] == "1";
-        setCallback(canYell);
 
         if (canYell)
         {
-            gameManager->yellUno();
+            gameManager->baseYellUno();
         }
+
+        setCallback(canYell);
     }
 }

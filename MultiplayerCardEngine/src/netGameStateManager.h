@@ -60,12 +60,13 @@ public:
     void sendToClientServerStateData(SOCKET cs);
     void setStateNet(char* buffer, size_t size);
     void cheatWin() override;
+    void baseEndGame();
     void endGame() override;
     bool skipTurn() override;
+    bool baseYellUno();
     bool yellUno() override;
     bool makePlayerDraw(turnSystem::IPlayer* player, int count) override;
     void setRoom(netcode::room* room);
-    netcode::room* getRoom() const;
     int getSyncVar(int id) const;
     bool canYellUno() const override;
 
@@ -102,7 +103,7 @@ public:
 
     bool isInRoom(SOCKET sc) const;
     void updateVarsDictionary(int id, int value);
-    void waitForStateSync();
+    void roomGameStarted() const;
 
 private:
     void addClientCommands();

@@ -18,6 +18,11 @@ namespace commands
         {
             gameManager->baseStartGame();
         }
+        
+        if (callbackOnly)
+        {
+            gameManager->roomGameStarted();
+        }
 
         setCallback(true);
     }

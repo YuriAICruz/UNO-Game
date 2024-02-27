@@ -156,6 +156,7 @@
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="src\client\client.cpp" />
+    <ClCompile Include="src\commands\client\allReadyCmd.cpp" />
     <ClCompile Include="src\commands\client\clientCommand.cpp" />
     <ClCompile Include="src\commands\client\clientRawCommand.cpp" />
     <ClCompile Include="src\commands\client\createRoomCmd.cpp" />
@@ -194,6 +195,7 @@
   <ItemGroup>
     <ClInclude Include="framework.h" />
     <ClInclude Include="src\client\client.h" />
+    <ClInclude Include="src\commands\client\allReadyCmd.h" />
     <ClInclude Include="src\commands\client\clientCommand.h" />
     <ClInclude Include="src\commands\client\clientRawCommand.h" />
     <ClInclude Include="src\commands\client\createRoomCmd.h" />

@@ -202,7 +202,6 @@ bool netGameStateManager::tryExecutePlayerAction(cards::ICard* card)
 void netGameStateManager::addServerCommands()
 {
     addGameServerCallback<commands::drawCardsServerCmd>();
-    addGameServerCallback<commands::endGameServerCmd>();
     addGameServerCallback<commands::executePlayerActionServerCmd>();
     addGameServerCallback<commands::gameSettingsServerCmd>();
     addGameServerCallback<commands::skipTurnServerCmd>();
@@ -216,6 +215,7 @@ void netGameStateManager::addClientCommands()
     addGameCallback<commands::endGameCmd>();
     addGameCallback<commands::gameSettingsCmd>("");
     addGameCallback<commands::startGameCmd>();
+    addGameCallback<commands::unoYellCmd>();
     addGameCallback<commands::syncVarCmd>(0, 0);
     addGameCallback<commands::updateStateCmd>();
 }
@@ -327,13 +327,21 @@ void netGameStateManager::cheatWin()
     gameStateManager::cheatWin();
 }
 
+void netGameStateManager::baseEndGame()
+{
+    gameStateManager::endGame();
+}
+
 void netGameStateManager::endGame()
 {
     if (!isServer)
     {
         running = false;
         events->fireEvent(GAME_END, gameEventData(getCurrentPlayer(), true));
+        return;
     }
+
+    executeGameServerCommand<commands::endGameServerCmd>();
 }
 
 bool netGameStateManager::skipTurn()
@@ -350,11 +358,13 @@ void netGameStateManager::onClientReconnected(netcode::clientInfo* client)
 {
     if (running)
     {
-        // std::string path = currentDeckConfigFilePath;
-        // std::string str = encryptGameSettings(path, CORE_NC_GAME_SETTINGS);
-        // netServer->broadcastToRoom(str, client->connection);
         sendToClientServerStateData(client->connection);
     }
+}
+
+bool netGameStateManager::baseYellUno()
+{
+    return gameStateManager::yellUno();
 }
 
 bool netGameStateManager::yellUno()
@@ -364,7 +374,7 @@ bool netGameStateManager::yellUno()
         return executeGameCommand<commands::unoYellCmd>();
     }
 
-    return gameStateManager::yellUno();
+    return baseYellUno();
 }
 
 bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
@@ -380,18 +390,6 @@ bool netGameStateManager::makePlayerDraw(turnSystem::IPlayer* player, int count)
 void netGameStateManager::setRoom(netcode::room* room)
 {
     serverRoom = room;
-}
-
-netcode::room* netGameStateManager::getRoom() const
-{
-    if (isServer)
-    {
-        return serverRoom;
-    }
-
-    netcode::room* room;
-    netClient->executeCommand<commands::getRoomCmd>(room);
-    return room;
 }
 
 int netGameStateManager::getSyncVar(int id) const
@@ -420,6 +418,14 @@ bool netGameStateManager::isInRoom(SOCKET sc) const
 void netGameStateManager::updateVarsDictionary(int id, int value)
 {
     syncValuesDictionary.insert_or_assign(id, value);
+}
+
+void netGameStateManager::roomGameStarted() const
+{
+    if (onRoomGameStarted != nullptr)
+    {
+        onRoomGameStarted();
+    }
 }
 
 bool netGameStateManager::canYellUno() const

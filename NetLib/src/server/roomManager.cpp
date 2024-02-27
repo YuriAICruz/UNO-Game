@@ -45,7 +45,12 @@ namespace netcode
             logger::printError("null client, can't exit a null client");
             return;
         }
-        auto room = getRoom(client);
+        room* room = getRoom(client);
+        if(room == nullptr)
+        {
+            logger::printError("null room, could not find client in this room");
+            return;
+        }
         room->removeClient(client);
     }
 

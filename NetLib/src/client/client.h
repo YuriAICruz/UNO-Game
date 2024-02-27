@@ -36,7 +36,7 @@ namespace netcode
     {
     private:
         WSADATA wsaData;
-        SOCKET clientSocket;
+        SOCKET clientSocket = 0;
         sockaddr_in serverAddr;
 
         std::atomic<bool> running{false};
@@ -54,8 +54,8 @@ namespace netcode
 
         uint16_t id = 0;
         bool hasId = false;
-        std::string lastResponse;
-        struct addrinfo* addr_info;
+        std::string lastResponse = "";
+        struct addrinfo* addr_info = nullptr;
 
         std::vector<std::unique_ptr<commands::clientCommand>> commandsHistory;
         std::vector<std::unique_ptr<commands::clientCommand>> callbacks;
@@ -63,14 +63,16 @@ namespace netcode
     public:
         std::function<void (room*)> onRoomUpdate;
         std::function<void (bool)> onRoomReady;
-        client() = default;
+        client();
 
         int start(std::string addr = "ftp://127.0.0.1:8080");
         int connectToServer();
         std::string& getPlayerName();
+        void roomReady(bool ready) const;
         int sendMessage(std::string str);
         int sendMessage(const char* str);
         int close();
+
 
         uint16_t getId() const
         {
