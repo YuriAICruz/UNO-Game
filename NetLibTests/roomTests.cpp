@@ -74,7 +74,8 @@ TEST(RoomTests, Serialization)
     r.addClient(client);
 
     auto str = r.getRoomSerialized(0);
-    auto room = r.constructRoom(str);
+    netcode::room room;
+    r.constructRoom(str, room);
     EXPECT_EQ(1, room.count());
     EXPECT_EQ(roomName, room.getName());
     auto c = room.getClient(clientId);

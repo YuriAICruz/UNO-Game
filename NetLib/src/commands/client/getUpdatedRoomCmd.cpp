@@ -33,7 +33,11 @@ namespace commands
             return;
         }
 
-        netClient->setRoom(netcode::room::constructRoom(data));
+        netcode::room r;
+        if(netcode::room::constructRoom(data, r))
+        {
+            netClient->setRoom(r);
+        }
 
         setCallback(true);
     }

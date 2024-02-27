@@ -41,7 +41,12 @@ namespace commands
                 first = false;
             }
             std::string str = ss.str();
-            roomList[i] = netcode::room::constructRoom(str);
+
+            netcode::room r;
+            if (netcode::room::constructRoom(str, r))
+            {
+                roomList[i] = r;
+            }
         }
 
         setCallback(true);
