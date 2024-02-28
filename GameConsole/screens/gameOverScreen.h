@@ -10,8 +10,8 @@ namespace screens
     {
     private:
         int returnCount;
-        turnSystem::IPlayer* winnerPlayer = nullptr;
-        size_t winnerPlayerNameId;
+        std::string winnerPlayerName;
+        size_t winnerPlayerNameId = 0;
         bool isOnline;
 
         std::map<int, eventBus::delegate<transitionData>> transitionsMap = {
@@ -105,7 +105,7 @@ namespace screens
 
         void onGameEnded(gameEventData data)
         {
-            winnerPlayer = data.player;
+            winnerPlayerName = data.player->getName();
             isOnline = data.isOnline;
 
             if (!blockInputs)
@@ -114,6 +114,6 @@ namespace screens
             }
         }
 
-        void updateWinningPlayerName();
+        void updateWinningPlayerName() const;
     };
 }

@@ -1,6 +1,9 @@
 ﻿#include "roomCreationScreen.h"
 #include "../renderer/elements/text.h"
 #include "../renderer/elements/card.h"
+#include "commands/client/getRoomsCmd.h"
+#include "commands/client/createRoomCmd.h"
+#include "commands/client/enterRoomCmd.h"
 
 namespace screens
 {
@@ -185,7 +188,7 @@ namespace screens
         std::string roomName = "New Room";
         box.openStringEditBox("Enter Room Name", roomName, [this, roomName](const std::string& newValue)
         {
-            netClient->createRoom(newValue);
+            netClient->executeCommand<commands::createRoomCmd>(newValue);
             moveToNextRoom();
         });
     }
@@ -195,7 +198,8 @@ namespace screens
         blockInputs = true;
         rdr->blank();
 
-        std::vector<netcode::room> rooms = netClient->getRooms();
+        std::vector<netcode::room> rooms;
+        netClient->executeCommand<commands::getRoomsCmd>(rooms);
 
         std::cout << "Rooms available on the server:" << "\n";
         int index = 0;
@@ -235,7 +239,7 @@ namespace screens
             }
         }
 
-        netClient->enterRoom(rooms[index].getId());
+        netClient->executeCommand<commands::enterRoomCmd>(rooms[index].getId());
         clearRoomsList();
 
         moveToNextRoom();

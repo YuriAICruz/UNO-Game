@@ -18,9 +18,10 @@ namespace screens
         button buttons[6];
         popupWindow popup;
         editBox box;
+        netcode::room* currentRoom = nullptr;
         std::shared_ptr<netcode::client> netClient;
         netGameStateManager* netGameManager = nullptr;
-        std::string cardsPath;
+        std::string cardsPath = "";
         bool isRoomReady = false;
         size_t seed;
 
@@ -103,16 +104,16 @@ namespace screens
         void accept(input::inputData data) override;
         void cancel(input::inputData data) override;
         void setGameManager(netGameStateManager* gameManager);
-        void setGameSettings(std::string cardsPath, size_t seed);
+        void setGameSettings(const std::string& cardsPath, size_t seed);
         void setSeed();
         void updateSeed() const;
-        void toggleReady() const;
-        void updateReadyState() const;
+        void toggleReady();
+        void updateReadyState();
 
     private:
         void updateStartButton(netcode::room* room, bool ready = false);
         void tryExitRoom();
-        void exitRoomAndReturnToMainScreen();
+        void exitRoomAndReturnToMainScreen() const;
         void startRoomGame();
         void goToGameScreen();
         void updateStatingCardsCount();

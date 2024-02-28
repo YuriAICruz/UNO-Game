@@ -1,16 +1,10 @@
 ﻿#pragma once
 
-#ifndef NET_WinSock2
-#define NET_WinSock2
-#include <WinSock2.h>
-#include <WS2tcpip.h>
-#pragma comment(lib, "ws2_32.lib")
-#endif
-
 #include <string>
 
 #include "../logger.h"
 #include "../../framework.h"
+#include "../winSockImp.h"
 
 namespace netcode
 {
@@ -18,7 +12,7 @@ namespace netcode
     {
         int id;
         std::string name = "John Doe";
-        SOCKET* connection;
+        SOCKET connection;
         bool isConnected = true;
         bool ready = false;
 
@@ -57,14 +51,13 @@ namespace netcode
                     (logger::getPrinter() << "Client is already connected [" << id << ":" << name << "]").str()
                 );
             }
-
             isConnected = true;
         }
 
         void disconnect()
         {
             isConnected = false;
-            connection = nullptr;
+            connection = 0;
         }
     };
 }

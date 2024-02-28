@@ -4,6 +4,13 @@
 
 #include "../renderer/elements/card.h"
 #include "../renderer/elements/text.h"
+#include "commands/client/exitRoomCmd.h"
+#include "commands/client/setNameCmd.h"
+#include "commands/client/getRoomCmd.h"
+#include "commands/client/getUpdatedRoomCmd.h"
+#include "commands/client/getSeedCmd.h"
+#include "commands/client/setNotReadyCmd.h"
+#include "commands/client/setReadyCmd.h"
 
 namespace screens
 {
@@ -14,8 +21,12 @@ namespace screens
 
         isRoomReady = false;
 
+        netClient->executeCommand<commands::getRoomCmd>(currentRoom);
+        netClient->executeCommand<commands::getUpdatedRoomCmd>(currentRoom->getId());
+        netClient->executeCommand<commands::getRoomCmd>(currentRoom);
+
         std::stringstream ss;
-        ss << "Room: " << netClient->getRoomName() << ", waiting for players";
+        ss << "Room: " << currentRoom->getName() << ", waiting for players";
         std::string titleText = ss.str();
 
         COORD windowSize = rdr->getWindowSize();
@@ -167,7 +178,8 @@ namespace screens
             tryExitRoom();
         };
 
-        updateStartButton(netClient->getUpdatedRoom());
+        updateStartButton(currentRoom);
+
         netClient->onRoomUpdate = [this](netcode::room* r)
         {
             updateStartButton(r);
@@ -175,7 +187,7 @@ namespace screens
         };
         netClient->onRoomReady = [this](bool ready)
         {
-            updateStartButton(netGameManager->getRoom(), ready);
+            updateStartButton(currentRoom, ready);
             updateReadyState();
         };
         netGameManager->onRoomGameStarted = [this]()
@@ -195,6 +207,22 @@ namespace screens
     {
         IScreen::hide();
         popup.hide();
+
+        for (auto button : buttons)
+        {
+            buttons->action = nullptr;
+            buttons->actionLeft = nullptr;
+            buttons->actionRight = nullptr;
+        }
+        if (netClient)
+        {
+            netClient->onRoomUpdate = nullptr;
+            netClient->onRoomReady = nullptr;
+        }
+        if (netGameManager)
+        {
+            netGameManager->onRoomGameStarted = nullptr;
+        }
     }
 
     void roomWaitingScreen::moveUp(input::inputData data)
@@ -315,7 +343,7 @@ namespace screens
         netGameManager = gameManager;
     }
 
-    void roomWaitingScreen::setGameSettings(std::string cardsPath, size_t seed)
+    void roomWaitingScreen::setGameSettings(const std::string& cardsPath, size_t seed)
     {
         this->cardsPath = cardsPath;
         this->seed = seed;
@@ -323,7 +351,7 @@ namespace screens
 
     void roomWaitingScreen::setSeed()
     {
-        seed = netClient->getSeed();
+        netClient->executeCommand<commands::getSeedCmd>(seed);
         box.openSizeTEditBox("Random Seed: ", seed, [this](std::string)
         {
             updateSeed();
@@ -339,34 +367,36 @@ namespace screens
         rdr->setDirty();
     }
 
-    void roomWaitingScreen::toggleReady() const
+    void roomWaitingScreen::toggleReady()
     {
-        netcode::room* room = netClient->getRoom();
+        netClient->executeCommand<commands::getRoomCmd>(currentRoom);
 
-        if (room->isClientReady())
+        if (currentRoom->isClientReady())
         {
-            netClient->setNotReady();
+            netClient->executeCommand<commands::setNotReadyCmd>(currentRoom);
         }
         else
         {
-            netClient->setReady();
+            netClient->executeCommand<commands::setReadyCmd>(currentRoom);
         }
 
         updateReadyState();
     }
 
-    void roomWaitingScreen::updateReadyState() const
+    void roomWaitingScreen::updateReadyState()
     {
         if (blockInputs || box.isBlocking())
         {
             return;
         }
 
+        netClient->executeCommand<commands::getRoomCmd>(currentRoom);
+
         auto button = dynamic_cast<elements::card*>(rdr->getElement(buttons[3].id));
-        netcode::room* room = netClient->getRoom();
+
         std::stringstream ss;
 
-        if (room->isClientReady())
+        if (currentRoom->isClientReady())
         {
             ss << "Ready! [Cancel]";
         }
@@ -414,9 +444,9 @@ namespace screens
         popup.openWarningPopup("Are you sure you want to return to the main menu?");
     }
 
-    void roomWaitingScreen::exitRoomAndReturnToMainScreen()
+    void roomWaitingScreen::exitRoomAndReturnToMainScreen() const
     {
-        netClient->exitRoom();
+        netClient->executeCommand<commands::exitRoomCmd>();
         events->fireEvent(NAVIGATION_MAIN_MENU, transitionData());
     }
 
@@ -434,7 +464,7 @@ namespace screens
             return;
         }
 
-        if (netClient->getRoomCount() <= 1)
+        if (currentRoom->count() <= 1)
         {
             popup.clearActions();
             popup.openWarningPopup("Not enough players available");
@@ -442,7 +472,11 @@ namespace screens
         }
 
         blockInputs = true;
-        netGameManager->setupGame(netClient->getUpdatedRoom(), handSize, cardsPath, seed);
+
+        netClient->executeCommand<commands::getUpdatedRoomCmd>(currentRoom->getId());
+        netClient->executeCommand<commands::getRoomCmd>(currentRoom);
+
+        netGameManager->setupGame(currentRoom, handSize, cardsPath, seed);
         events->fireEvent(NAVIGATION_ONLINE_GAME, transitionData());
     }
 
@@ -494,7 +528,7 @@ namespace screens
         std::string name = netClient->getPlayerName();
         box.openStringEditBox("Player Name", name, [this](std::string newName)
         {
-            netClient->setName(newName);
+            netClient->executeCommand<commands::setNameCmd>(newName);
             updatePlayerName();
         });
     }
