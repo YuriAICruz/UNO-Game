@@ -159,6 +159,23 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="src\commands\client\drawCardsCmd.cpp" />
+    <ClCompile Include="src\commands\client\endGameCmd.cpp" />
+    <ClCompile Include="src\commands\client\executePlayerActionCmd.cpp" />
+    <ClCompile Include="src\commands\client\gameSettingsCmd.cpp" />
+    <ClCompile Include="src\commands\client\skipTurnCmd.cpp" />
+    <ClCompile Include="src\commands\client\startGameCmd.cpp" />
+    <ClCompile Include="src\commands\client\syncVarCmd.cpp" />
+    <ClCompile Include="src\commands\client\unoYellCmd.cpp" />
+    <ClCompile Include="src\commands\client\updateStateCmd.cpp" />
+    <ClCompile Include="src\commands\server\drawCardsServerCmd.cpp" />
+    <ClCompile Include="src\commands\server\endGameServerCmd.cpp" />
+    <ClCompile Include="src\commands\server\executePlayerActionServerCmd.cpp" />
+    <ClCompile Include="src\commands\server\gameSettingsServerCmd.cpp" />
+    <ClCompile Include="src\commands\server\skipTurnServerCmd.cpp" />
+    <ClCompile Include="src\commands\server\startGameServerCmd.cpp" />
+    <ClCompile Include="src\commands\server\syncVarServerCmd.cpp" />
+    <ClCompile Include="src\commands\server\unoYellServerCmd.cpp" />
     <ClCompile Include="src\netGameStateManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -173,6 +190,23 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
+    <ClInclude Include="src\commands\client\drawCardsCmd.h" />
+    <ClInclude Include="src\commands\client\endGameCmd.h" />
+    <ClInclude Include="src\commands\client\executePlayerActionCmd.h" />
+    <ClInclude Include="src\commands\client\gameSettingsCmd.h" />
+    <ClInclude Include="src\commands\client\skipTurnCmd.h" />
+    <ClInclude Include="src\commands\client\startGameCmd.h" />
+    <ClInclude Include="src\commands\client\syncVarCmd.h" />
+    <ClInclude Include="src\commands\client\unoYellCmd.h" />
+    <ClInclude Include="src\commands\client\updateStateCmd.h" />
+    <ClInclude Include="src\commands\server\drawCardsServerCmd.h" />
+    <ClInclude Include="src\commands\server\endGameServerCmd.h" />
+    <ClInclude Include="src\commands\server\executePlayerActionServerCmd.h" />
+    <ClInclude Include="src\commands\server\gameSettingsServerCmd.h" />
+    <ClInclude Include="src\commands\server\skipTurnServerCmd.h" />
+    <ClInclude Include="src\commands\server\startGameServerCmd.h" />
+    <ClInclude Include="src\commands\server\syncVarServerCmd.h" />
+    <ClInclude Include="src\commands\server\unoYellServerCmd.h" />
     <ClInclude Include="src\gameVarIds.h" />
     <ClInclude Include="src\netGameStateManager.h" />
   </ItemGroup>

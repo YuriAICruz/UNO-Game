@@ -8,5 +8,6 @@
 class NETCODE_API stringUtils
 {
 public:
-    static std::vector<std::string> splitString(const std::string& s, char separator = NC_SEPARATOR);    
+    static std::vector<std::string> splitString(const std::string& s, char separator = NC_SEPARATOR);
+    static char* findWordStart(char* rawStr, int strSize, const char* word);
 };

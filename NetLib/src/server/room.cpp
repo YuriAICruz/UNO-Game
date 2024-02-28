@@ -122,7 +122,7 @@ namespace netcode
     {
         for (auto connectedClient : connectedClients)
         {
-            if (connectedClient->connection != nullptr && *connectedClient->connection == clientSocket)
+            if (connectedClient->connection == clientSocket)
             {
                 return true;
             }
@@ -197,8 +197,24 @@ namespace netcode
 
     room room::constructRoom(std::string data)
     {
-        auto splitData = stringUtils::splitString(data);
-        int id = std::stoi(splitData[0]);
+        std::vector<std::string> splitData = stringUtils::splitString(data);
+        return constructRoom(splitData);
+    }
+
+    room room::constructRoom(std::vector<std::string> splitData)
+    {
+        if (splitData.size() == 0)
+        {
+            return room(0, "invalid");
+        }
+
+        uint16_t id = std::stoi(splitData[0]);
+        
+        if (splitData.size() == 1)
+        {
+            return room(id, "no name");
+        }
+        
         std::string name = splitData[1];
         std::vector<clientInfo> clients;
         for (int i = 2, n = splitData.size(); i < n; i += 2)

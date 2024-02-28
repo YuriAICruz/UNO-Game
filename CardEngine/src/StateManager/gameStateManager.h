@@ -19,6 +19,7 @@ protected:
     std::shared_ptr<eventBus::eventBus> events;
     bool running = false;
     uint8_t currentPlayerCardsDraw = 0;
+    std::string currentDeckConfigFilePath;
 
 public:
     gameStateManager(std::shared_ptr<eventBus::eventBus> events);
@@ -37,7 +38,7 @@ public:
     virtual turnSystem::IPlayer* getCurrentPlayer() const;
     virtual turnSystem::IPlayer* getNextPlayer() const;
     virtual turnSystem::IPlayer* getPlayer(int i) const;
-    virtual turnSystem::IPlayer* getPlayerFromId(int id) const;
+    virtual turnSystem::IPlayer* getPlayerFromId(uint16_t id) const;
     virtual int playersCount() const;
     virtual cards::ICard* getTopCard() const;
     virtual bool makePlayerDraw(turnSystem::IPlayer* player, int count);
@@ -53,6 +54,7 @@ public:
     virtual void endGame();
     virtual void endTurn();
     virtual bool yellUno();
+    virtual int getCurrentPlayerCardsDraw();
     std::tuple<const char*, size_t> getState() override;
     void setState(const char* data, size_t size) override;
     void print(const char* buffer, size_t size);

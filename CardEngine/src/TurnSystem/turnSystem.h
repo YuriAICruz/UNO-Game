@@ -32,7 +32,7 @@ namespace turnSystem
         IPlayer* getCurrentPlayer() const override;
         IPlayer* getNextPlayer() const;
         IPlayer* getPlayer(int i) const;
-        IPlayer* getPlayerFromId(int id) const;
+        IPlayer* getPlayerFromId(uint16_t id) const;
         std::vector<uint16_t> getPlayersIds();
         void shuffle() override;
         void shuffle(size_t seed) override;

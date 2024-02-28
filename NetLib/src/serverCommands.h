@@ -1,8 +1,9 @@
 ﻿#ifndef NETCODE_COMMANDS
 #define NETCODE_COMMANDS
 
-#define NC_PACKET_SIZE 256
+#define NC_PACKET_SIZE 512
 
+#define NC_NO_CALLBACK          "."
 #define NC_CREATE_ROOM          "cr"
 #define NC_LIST_ROOMS           "lr"
 #define NC_GET_ROOM             "getr"

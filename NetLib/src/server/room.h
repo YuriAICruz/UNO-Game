@@ -4,6 +4,7 @@
 #include <string>
 
 #include "../../framework.h"
+#include "../winSockImp.h"
 #include "clientInfo.h"
 
 namespace netcode
@@ -12,7 +13,7 @@ namespace netcode
     {
     private:
         std::string name;
-        int id;
+        uint16_t id;
         bool locked = false;
         std::vector<std::shared_ptr<clientInfo>> connectedClients;
         bool clientReady = false;
@@ -20,11 +21,11 @@ namespace netcode
     public:
         room() = default;
 
-        room(int id, const std::string& name) : id(id), name(name)
+        room(uint16_t id, const std::string& name) : id(id), name(name)
         {
         }
 
-        room(int id, const std::string& name, const std::vector<clientInfo>& clients) : id(id), name(name)
+        room(uint16_t id, const std::string& name, const std::vector<clientInfo>& clients) : id(id), name(name)
         {
             connectedClients.resize(clients.size());
             int i = 0;
@@ -56,13 +57,14 @@ namespace netcode
         void setClientsNotReady();
         bool isClientReady() const;
         static room constructRoom(std::string data);
+        static room constructRoom(std::vector<std::string> splitData);
 
-        std::string& getName()
+        std::string getName() const
         {
             return name;
         }
 
-        int getId()
+        uint16_t getId() const
         {
             return id;
         }

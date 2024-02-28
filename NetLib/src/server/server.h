@@ -1,23 +1,17 @@
 ﻿#pragma once
 
-#ifndef NET_WinSock2
-#define NET_WinSock2
-#include <WinSock2.h>
-#include <WS2tcpip.h>
-#pragma comment(lib, "ws2_32.lib")
-#endif
-
 #include <atomic>
 #include <functional>
 #include <map>
 #include <string>
 #include <unordered_set>
 
-#include "../../framework.h"
 #include "clientInfo.h"
 #include "room.h"
 #include "roomManager.h"
-#include "../serverCommands.h"
+#include "../../framework.h"
+#include "../winSockImp.h"
+#include "../commands/server/serverCommand.h"
 
 namespace netcode
 {
@@ -25,7 +19,7 @@ namespace netcode
     {
     private:
 #ifdef _DEBUG
-        const std::unordered_set<std::string> validKeys = {"s_p_56489135", "server_debug"};
+        const std::unordered_set<std::string> validKeys = {"server_debug"};
 #else
         const std::unordered_set<std::string> validKeys = {"s_p_56489135"};
 #endif //_DEBUG
@@ -34,7 +28,6 @@ namespace netcode
         sockaddr_in serverAddr;
         std::map<size_t, std::shared_ptr<clientInfo>> clients;
         size_t connectionsCount = 0;
-        int roomsCount = 0;
         int seed = 1234;
         roomManager roomManager;
         std::atomic<bool> running{false};
@@ -42,87 +35,33 @@ namespace netcode
         std::atomic<bool> isListening{false};
         std::atomic<bool> error{false};
 
-        std::map<std::string, std::function<void (std::string&, SOCKET)>> customCommands;
-        std::map<std::string, std::function<void (std::string&, SOCKET)>> commands = {
-            {
-                NC_CREATE_ROOM, [this](std::string& message, SOCKET clientConnection)
-                {
-                    this->createRoom(message, clientConnection);
-                }
-            },
-            {
-                NC_LIST_ROOMS, [this](std::string& message, SOCKET clientConnection)
-                {
-                    this->listRoom(message, clientConnection);
-                }
-            },
-            {
-                NC_ENTER_ROOM, [this](std::string& message, SOCKET clientConnection)
-                {
-                    this->enterRoom(message, clientConnection);
-                }
-            },
-            {
-                NC_EXIT_ROOM, [this](std::string& message, SOCKET clientConnection)
-                {
-                    this->exitRoom(message, clientConnection);
-                }
-            },
-            {
-                NC_GET_ROOM, [this](std::string& message, SOCKET clientConnection)
-                {
-                    this->getRoom(message, clientConnection);
-                }
-            },
-            {
-                NC_SET_SEED, [this](std::string& message, SOCKET clientConnection)
-                {
-                    this->setSeed(message, clientConnection);
-                }
-            },
-            {
-                NC_GET_SEED, [this](std::string& message, SOCKET clientConnection)
-                {
-                    this->getSeed(message, clientConnection);
-                }
-            },
-            {
-                NC_SET_NAME, [this](std::string& message, SOCKET clientConnection)
-                {
-                    this->updateClientName(message, clientConnection);
-                }
-            },
-            {
-                NC_ROOM_READY_STATUS, [this](std::string& message, SOCKET clientConnection)
-                {
-                    this->updateRoomStatus(message, clientConnection);
-                }
-            },
-        };
+        std::vector<std::unique_ptr<commands::serverCommand>> commandsHistory;
+        std::vector<std::unique_ptr<commands::serverCommand>> callbacks;
 
     public:
         std::function<void(clientInfo*)> onClientReconnected;
         std::function<void (room* room)> onRoomCreated;
 
-        server() = default;
+        server();
+
         int start(int port = 8080);
         int close();
-        room* getRoom(int id);
         void broadcastUpdatedRoom(SOCKET clientSocket);
-        void sendRoomData(SOCKET clientSocket, int id);
-        void broadcast(std::string msg);
-        void broadcastToRoom(std::string msg, SOCKET cs);
-        void broadcastToRoomRaw(const char* responseData, size_t size, SOCKET cs);
-        void sendMessage(std::string message, SOCKET clientSocket) const;
-        void sendMessage(const char* message, SOCKET clientSocket) const;
-        void sendMessageRaw(SOCKET clientSocket, const char* responseData, int len, int flags) const;
+        std::shared_ptr<clientInfo> getClient(SOCKET uint);
+        bool broadcast(std::string message) const;
+        bool broadcastToRoom(std::string message, SOCKET clientSocket);
+        bool broadcastToRoomRaw(const char* responseData, size_t size, SOCKET clientSocket);
+        bool sendMessage(std::string message, SOCKET clientSocket) const;
+        bool sendMessage(const char* message, SOCKET clientSocket) const;
+        bool sendMessageRaw(SOCKET clientSocket, const char* responseData, int len, int flags) const;
+        bool isRoomReady(int roomId);
 
         int getSeed() const
         {
             return seed;
         }
 
-        void setSeed(int seed)
+        void setSeed(size_t seed)
         {
             this->seed = seed;
         }
@@ -137,35 +76,27 @@ namespace netcode
             return error;
         }
 
-        void addCustomCommands(const std::map<std::string, std::function<void(std::string&, SOCKET)>>& cmds)
+        template <typename T, typename... Args>
+        bool NETCODE_API executeServerCommand(Args&&... args)
         {
-            customCommands = cmds;
+            commandsHistory.push_back(std::make_unique<T>(std::forward<Args>(args)..., &roomManager, this));
+            return commandsHistory.back()->execute();
         }
-
-        void lockRoom(SOCKET cs);
-        void unlockRoom(SOCKET cs);
-        bool isRoomReady(int roomId);
+        template <typename T, typename... Args>
+        void NETCODE_API addServerCallback(Args&&... args)
+        {
+            callbacks.push_back(std::make_unique<T>(std::forward<Args>(args)..., &roomManager, this));
+            callbacks.back()->setAsCallbackOnly();
+        }
 
     private:
         void listening();
         void disconnectClient(SOCKET clientSocket);
-        void clientReconnected(const std::shared_ptr<clientInfo>& client, SOCKET uint);
+        void clientReconnected(const std::shared_ptr<clientInfo>& client, SOCKET clientConnection);
+        void callbackPendingCommands(const std::string& key, std::vector<std::string>& data, SOCKET clientSocket) const;
+        void callRegisteredCallbacks(const std::string& key, std::vector<std::string>& data, SOCKET clientSocket) const;
         void clientHandler(SOCKET clientSocket);
-        bool containsCommand(const std::string& command);
-        bool containsCustomCommand(const std::string& command);
         bool validateKey(SOCKET clientSocket, int& id) const;
-        std::shared_ptr<clientInfo> getClient(SOCKET uint);
         std::shared_ptr<clientInfo> getClientFromId(size_t id) const;
-
-        void createRoom(const std::string& message, SOCKET clientSocket);
-        void listRoom(const std::string& message, SOCKET clientSocket);
-        void getRoom(const std::string& message, SOCKET clientSocket);
-        void enterRoom(const std::string& message, SOCKET clientSocket);
-        void exitRoom(const std::string& message, SOCKET clientSocket);
-        void updateRoomStatus(const std::string& message, SOCKET clientSocket);
-
-        void updateClientName(const std::string& message, SOCKET clientSocket);
-        void getSeed(const std::string& message, SOCKET clientSocket);
-        void setSeed(const std::string& message, SOCKET clientSocket);
     };
 }

@@ -3,16 +3,11 @@
 #include <future>
 #include <map>
 
-#ifndef NET_WinSock2
-#define NET_WinSock2
-#include <WinSock2.h>
-#include <WS2tcpip.h>
-#pragma comment(lib, "ws2_32.lib")
-#endif
-
+#include "../winSockImp.h"
 #include "../serverCommands.h"
 #include "../../framework.h"
 #include "../server/room.h"
+#include "../commands/client/clientCommand.h"
 
 #ifdef _DEBUG
 #define CLIENT_KEY "server_debug"
@@ -20,136 +15,69 @@
 #define CLIENT_KEY "s_p_56489135"
 #endif //_DEBUG
 
+namespace commands
+{
+    class callback;
+    class clientRawCommand;
+    class createRoomCmd;
+    class enterRoomCmd;
+    class exitRoomCmd;
+    class hasRoomCmd;
+    class getUpdatedRoomCmd;
+    class getSeedCmd;
+    class getRoomCmd;
+    class setNameCmd;
+    class validateKeyCmd;
+}
+
 namespace netcode
 {
     class NETCODE_API client
     {
     private:
         WSADATA wsaData;
-        SOCKET clientSocket;
+        SOCKET clientSocket = 0;
         sockaddr_in serverAddr;
+
         std::atomic<bool> running{false};
         std::atomic<bool> connected{false};
         std::atomic<bool> error{false};
         std::atomic<bool> isListening{false};
-        std::string clientName = "Player";
-        room currentRoom;
-        int seed = 1234;
-        int id = 0;
-        bool hasId = false;
-        std::string lastResponse;
-        struct addrinfo* addr_info;
-        std::vector<room> lastRoomsList;
-        std::promise<int>* connectingCallback;
-        std::promise<std::vector<room>>* roomsCallback;
-        std::promise<room*>* roomCallback;
-        std::promise<bool>* roomReadyCallback;
-        std::promise<int>* seedCallback;
+        friend class commands::validateKeyCmd;
 
-        std::map<std::string, std::function<void (std::string&)>> customCommands;
-        std::map<std::string, std::function<void (char*, size_t)>> customRawCommands;
-        std::map<std::string, std::function<void (std::string&)>> commands = {
-            {
-                NC_CREATE_ROOM, [this](std::string& message)
-                {
-                    this->createRoomCallback(message);
-                }
-            },
-            {
-                NC_LIST_ROOMS, [this](std::string& message)
-                {
-                    this->listRoomsCallback(message);
-                }
-            },
-            {
-                NC_GET_ROOM, [this](std::string& message)
-                {
-                    this->getRoomCallback(message);
-                }
-            },
-            {
-                NC_ENTER_ROOM, [this](std::string& message)
-                {
-                    this->enterRoomCallback(message);
-                }
-            },
-            {
-                NC_GET_SEED, [this](std::string& message)
-                {
-                    this->getSeedCallback(message);
-                }
-            },
-            {
-                NC_EXIT_ROOM, [this](std::string& message)
-                {
-                    this->exitRoomCallback(message);
-                }
-            },
-            {
-                NC_VALID_KEY, [this](std::string& message)
-                {
-                    this->validKeyCallback(message);
-                }
-            },
-            {
-                NC_INVALID_KEY, [this](std::string& message)
-                {
-                    this->invalidKeyCallback(message);
-                }
-            },
-            {
-                NC_ROOM_READY_STATUS, [this](std::string& message)
-                {
-                    this->roomStatusCallback(message);
-                }
-            },
-            {
-                NC_ROOM_ALL_READY, [this](std::string& message)
-                {
-                    this->roomIsReadyCallback(message);
-                }
-            },
-            {
-                NC_ROOM_NOT_READY, [this](std::string& message)
-                {
-                    this->roomIsNotReadyCallback(message);
-                }
-            },
-        };
+        std::string clientName = "Player";
+        friend class commands::setNameCmd;
+        room currentRoom;
+        friend class commands::getRoomCmd;
+        int seed = 1234;
+        friend class commands::getSeedCmd;
+
+        uint16_t id = 0;
+        bool hasId = false;
+        std::string lastResponse = "";
+        struct addrinfo* addr_info = nullptr;
+
+        std::vector<std::unique_ptr<commands::clientCommand>> commandsHistory;
+        std::vector<std::unique_ptr<commands::clientCommand>> callbacks;
 
     public:
         std::function<void (room*)> onRoomUpdate;
         std::function<void (bool)> onRoomReady;
-        client() = default;
+        client();
 
         int start(std::string addr = "ftp://127.0.0.1:8080");
         int connectToServer();
-        void setName(const std::string& name);
         std::string& getPlayerName();
+        void roomReady(bool ready) const;
+        int sendMessage(std::string str);
         int sendMessage(const char* str);
         int close();
 
-        room* createRoom(const std::string& roomName);
-        void exitRoom();
-        void enterRoom(int id);
-        bool hasRoom();
-        bool setReady();
-        bool sendRoomReadyStatus(bool ready);
-        bool setNotReady();
-        room* getRoom();
-        room* getUpdatedRoom(bool wait = true);
-        int getSeed();
-        std::vector<room> getRooms();
-        std::string& getRoomName();
-        int getRoomCount();
-        int getRoomId();
 
-
-        int getId() const
+        uint16_t getId() const
         {
             return id;
         }
-
 
         bool isRunning() const
         {
@@ -166,35 +94,34 @@ namespace netcode
             return error;
         }
 
-        void addCustomCommands(const std::map<std::string, std::function<void(std::string&)>>& cmds)
+        template <typename T, typename... Args>
+        bool NETCODE_API executeCommand(Args&&... args)
         {
-            customCommands = cmds;
+            commandsHistory.push_back(std::make_unique<T>(std::forward<Args>(args)..., this));
+            return commandsHistory.back()->execute();
         }
 
-        void addCustomRawCommands(const std::map<std::string, std::function<void(char*, size_t)>>& cmds)
+        template <typename T, typename... Args>
+        void NETCODE_API addCallback(Args&&... args)
         {
-            customRawCommands = cmds;
+            callbacks.push_back(std::make_unique<T>(std::forward<Args>(args)..., this));
+            callbacks.back()->setAsCallbackOnly();
         }
 
     private:
+        void setRoom(const room& room);
+        friend class commands::createRoomCmd;
+        friend class commands::enterRoomCmd;
+        friend class commands::exitRoomCmd;
+        friend class commands::getUpdatedRoomCmd;
+        friend class commands::hasRoomCmd;
+
         int initializeWinsock();
         int createSocket();
+        void callbackPendingCommands(const std::string& key, const std::string& message, char* rawStr,
+                                     int strSize) const;
+        void callRegisteredCallbacks(const std::string& key, const std::string& message, char* rawStr,
+                                     int strSize) const;
         void listenToServer();
-        bool containsCommand(const std::string& string);
-        bool containsCustomCommand(const std::string& command);
-        bool containsCustomRawCommand(const std::string& command);
-
-        void invalidKeyCallback(const std::string& message);
-        void validKeyCallback(const std::string& message);
-        void updateRoom(const std::string& message);
-        void createRoomCallback(const std::string& message);
-        void listRoomsCallback(const std::string& message);
-        void getRoomCallback(const std::string& message);
-        void getSeedCallback(const std::string& message);
-        void enterRoomCallback(const std::string& message);
-        void roomStatusCallback(const std::string& message);
-        void exitRoomCallback(const std::string& message);
-        void roomIsReadyCallback(const std::string& message) const;
-        void roomIsNotReadyCallback(const std::string& message) const;
     };
 }
