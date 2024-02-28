@@ -195,26 +195,28 @@ namespace netcode
         return ss.str();
     }
 
-    room room::constructRoom(std::string data)
+    bool room::constructRoom(std::string data, room& result)
     {
         std::vector<std::string> splitData = stringUtils::splitString(data);
-        return constructRoom(splitData);
+        return constructRoom(splitData, result);
     }
 
-    room room::constructRoom(std::vector<std::string> splitData)
+    bool room::constructRoom(std::vector<std::string> splitData, room& result)
     {
         if (splitData.size() == 0)
         {
-            return room(0, "invalid");
+            result = room(0, "invalid");
+            return false;
         }
 
         uint16_t id = std::stoi(splitData[0]);
-        
+
         if (splitData.size() == 1)
         {
-            return room(id, "no name");
+            result = room(id, "no name");
+            return false;
         }
-        
+
         std::string name = splitData[1];
         std::vector<clientInfo> clients;
         for (int i = 2, n = splitData.size(); i < n; i += 2)
@@ -224,6 +226,7 @@ namespace netcode
             clients.emplace_back(clientInfo{clientId, clientName});
         }
 
-        return room(id, name, clients);
+        result = room(id, name, clients);
+        return true;
     }
 }

@@ -56,8 +56,8 @@ namespace netcode
         void setClientNotReady();
         void setClientsNotReady();
         bool isClientReady() const;
-        static room constructRoom(std::string data);
-        static room constructRoom(std::vector<std::string> splitData);
+        static bool constructRoom(std::string data, room& result);
+        static bool constructRoom(std::vector<std::string> splitData, room& result);
 
         std::string getName() const
         {
